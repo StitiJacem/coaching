@@ -1,0 +1,77 @@
+# Production Docker Compose
+# Use this for live environments - excludes pgAdmin
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: coaching-app-db-prod
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+      - ./backend/database.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coaching-network
+    restart: always
+    # Security: PostgreSQL only accessible from backend
+    expose:
+      - "5432"
+
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coaching-app-api-prod
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+      NODE_ENV: production
+      JWT_SECRET: ${JWT_SECRET}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - coaching-network
+    restart: always
+
+  # Frontend (Angular)
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: coaching-app-ui-prod
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - API_URL=https://api.yourdomain.com
+    depends_on:
+      - backend
+    networks:
+      - coaching-network
+    restart: always
+
+volumes:
+  postgres_data_prod:
+    driver: local
+
+networks:
+  coaching-network:
+    driver: bridge

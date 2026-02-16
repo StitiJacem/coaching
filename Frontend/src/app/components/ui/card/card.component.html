@@ -1,0 +1,7 @@
+<div 
+  [class]="'bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden ' + 
+           (noPadding ? '' : 'p-6') + 
+           (hover ? ' cursor-pointer hover:border-slate-600 transition-colors' : '') + 
+           ' ' + className">
+  <ng-content></ng-content>
+</div>

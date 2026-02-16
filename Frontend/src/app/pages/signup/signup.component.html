@@ -1,0 +1,122 @@
+<div class="min-h-screen bg-galio-dark flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-galio-orange/10 rounded-full blur-[120px]"></div>
+        <div class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-galio-lime/10 rounded-full blur-[120px]">
+        </div>
+        <div
+            class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]">
+        </div>
+    </div>
+
+    <div class="w-full max-w-md relative z-10 animate-fade-in">
+        <!-- Logo + Title -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 bg-galio-orange rounded-2xl transform -skew-x-12 mb-6 shadow-lg shadow-galio-orange/20">
+                <span class="font-display font-bold text-4xl text-white transform skew-x-12">E</span>
+            </div>
+            <h1 class="text-4xl font-display font-bold text-white mb-2 tracking-wide">CREATE ACCOUNT</h1>
+            <p class="text-slate-400">Join the elite performance platform</p>
+        </div>
+
+        <!-- Card -->
+        <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 shadow-2xl">
+            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-6">
+                <!-- Role Selection -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Select Your
+                        Role</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button type="button" *ngFor="let role of roles" (click)="setRole(role.id)"
+                            [ngClass]="signupForm.get('role')?.value === role.id
+                                ? 'bg-galio-orange border-galio-orange text-white shadow-lg shadow-galio-orange/20'
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'"
+                            class="flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200">
+                            <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    [attr.d]="role.icon" />
+                            </svg>
+                            <span class="text-xs font-bold uppercase tracking-wide">{{ role.label }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- First / Last Name -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First
+                            Name</label>
+                        <input type="text" formControlName="first_name"
+                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-4 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                            placeholder="John" required>
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last
+                            Name</label>
+                        <input type="text" formControlName="last_name"
+                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-4 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                            placeholder="Doe" required>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email
+                        Address</label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </div>
+                        <input type="email" formControlName="email"
+                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                            placeholder="john@example.com">
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="w-full">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                    <div class="relative">
+                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                            </svg>
+                        </div>
+                        <input type="password" formControlName="password"
+                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                            placeholder="Create a strong password">
+                    </div>
+                </div>
+
+                <!-- Error -->
+                <div *ngIf="errorMessage"
+                    class="bg-galio-danger/10 border border-galio-danger/20 text-galio-danger text-center text-sm p-3 rounded-xl font-medium">
+                    {{ errorMessage }}
+                </div>
+
+                <!-- Create Account -->
+                <button type="submit" [disabled]="signupForm.invalid || !signupForm.get('role')?.value"
+                    class="w-full inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-galio-dark focus:ring-galio-orange disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
+                    Create Account
+                </button>
+
+                <!-- Sign In Link -->
+                <p class="text-center text-sm text-slate-400 mt-6">
+                    Already have an account?
+                    <a routerLink="/login"
+                        class="font-bold text-white hover:text-galio-orange transition-colors ml-1">Sign In</a>
+                </p>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+            <p class="text-xs text-slate-500 uppercase tracking-widest">GALIOSPORT Sport Science Platform</p>
+        </div>
+    </div>
+</div>

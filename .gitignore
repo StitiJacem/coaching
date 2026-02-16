@@ -1,0 +1,37 @@
+# Node
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Build outputs
+dist/
+tmp/
+out-tsc/
+bazel-out/
+.angular/
+
+# Environment variables
+.env
+.env.*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# Frontend specific
+/Frontend/node_modules/
+/Frontend/dist/
+/Frontend/.angular/
+
+# Backend specific
+/backend/node_modules/

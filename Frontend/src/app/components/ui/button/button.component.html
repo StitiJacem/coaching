@@ -1,0 +1,18 @@
+<button
+  #buttonEl
+  [class]="baseStyles + ' ' + variantClasses + ' ' + sizeClasses + ' ' + className"
+  [disabled]="disabled || isLoading"
+  (click)="onClick()"
+  [style.transform]="'scale(1)'"
+  (mousedown)="buttonEl.style.transform = 'scale(0.98)'"
+  (mouseup)="buttonEl.style.transform = 'scale(1)'"
+  (mouseleave)="buttonEl.style.transform = 'scale(1)'">
+  <lucide-icon *ngIf="isLoading" name="loader-2" class="w-4 h-4 mr-2 animate-spin" />
+  <ng-container *ngIf="!isLoading && leftIconName">
+    <lucide-icon [name]="leftIconName" class="w-4 h-4 mr-2" />
+  </ng-container>
+  <ng-content></ng-content>
+  <ng-container *ngIf="!isLoading && rightIconName">
+    <lucide-icon [name]="rightIconName" class="w-4 h-4 ml-2" />
+  </ng-container>
+</button>

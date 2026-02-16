@@ -1,0 +1,133 @@
+<div class="min-h-screen bg-galio-dark flex items-center justify-center p-4 relative overflow-hidden">
+    <!-- Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-galio-orange/10 rounded-full blur-[120px]"></div>
+        <div class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-galio-lime/10 rounded-full blur-[120px]">
+        </div>
+        <div
+            class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]">
+        </div>
+    </div>
+
+    <div class="w-full max-w-2xl relative z-10 animate-fade-in">
+        <!-- Logo + Title -->
+        <div class="text-center mb-8">
+            <div
+                class="inline-flex items-center justify-center w-16 h-16 bg-galio-orange rounded-2xl transform -skew-x-12 mb-6 shadow-lg shadow-galio-orange/20">
+                <span class="font-display font-bold text-4xl text-white transform skew-x-12">E</span>
+            </div>
+            <h1 class="text-4xl font-display font-bold text-white mb-2 tracking-wide">COMPLETE YOUR PROFILE</h1>
+            <p class="text-slate-400">Just a few more details to get started</p>
+        </div>
+
+        <!-- Progress Indicator -->
+        <div class="flex items-center justify-center gap-2 mb-8">
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold"
+                    [ngClass]="step >= 1 ? 'bg-galio-orange text-white' : 'bg-slate-800 text-slate-500'">
+                    1
+                </div>
+                <span class="ml-2 text-sm font-bold uppercase tracking-wider"
+                    [ngClass]="step >= 1 ? 'text-white' : 'text-slate-500'">Role</span>
+            </div>
+            <div class="w-12 h-0.5" [ngClass]="step >= 2 ? 'bg-galio-orange' : 'bg-slate-800'"></div>
+            <div class="flex items-center">
+                <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold"
+                    [ngClass]="step >= 2 ? 'bg-galio-orange text-white' : 'bg-slate-800 text-slate-500'">
+                    2
+                </div>
+                <span class="ml-2 text-sm font-bold uppercase tracking-wider"
+                    [ngClass]="step >= 2 ? 'text-white' : 'text-slate-500'">Details</span>
+            </div>
+        </div>
+
+        <!-- Card -->
+        <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 shadow-2xl">
+            <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+                <!-- Step 1: Role Selection -->
+                <div *ngIf="step === 1" class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-display font-bold text-white mb-2">SELECT YOUR ROLE</h3>
+                        <p class="text-slate-400 text-sm">Choose how you'll be using GALIOSPORT</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button type="button" *ngFor="let role of roles" (click)="setRole(role.id)"
+                            [ngClass]="profileForm.get('role')?.value === role.id
+                                ? 'bg-galio-orange border-galio-orange text-white shadow-lg shadow-galio-orange/20'
+                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'"
+                            class="flex flex-col items-start p-5 rounded-xl border transition-all duration-200 text-left">
+                            <svg class="w-8 h-8 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    [attr.d]="role.icon" />
+                            </svg>
+                            <span class="text-base font-bold uppercase tracking-wide mb-1">{{ role.label }}</span>
+                            <span class="text-xs opacity-80">{{ role.description }}</span>
+                        </button>
+                    </div>
+
+                    <button type="button" (click)="nextStep()" [disabled]="!profileForm.get('role')?.value"
+                        class="w-full inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                        Continue
+                        <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Step 2: Name Details -->
+                <div *ngIf="step === 2" class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-display font-bold text-white mb-2">YOUR DETAILS</h3>
+                        <p class="text-slate-400 text-sm">Help us personalize your experience</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First
+                                Name</label>
+                            <input type="text" formControlName="first_name"
+                                class="w-full bg-galio-surface border border-galio-border rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                                placeholder="John">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last
+                                Name</label>
+                            <input type="text" formControlName="last_name"
+                                class="w-full bg-galio-surface border border-galio-border rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                                placeholder="Doe">
+                        </div>
+                    </div>
+
+                    <!-- Error -->
+                    <div *ngIf="errorMessage"
+                        class="bg-galio-danger/10 border border-galio-danger/20 text-galio-danger text-center text-sm p-3 rounded-xl font-medium">
+                        {{ errorMessage }}
+                    </div>
+
+                    <div class="flex gap-4">
+                        <button type="button" (click)="prevStep()"
+                            class="flex-1 inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-all duration-200">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                            </svg>
+                            Back
+                        </button>
+                        <button type="submit" [disabled]="profileForm.invalid || loading"
+                            class="flex-1 inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 transition-all duration-200 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed">
+                            <span *ngIf="!loading">Complete Profile</span>
+                            <span *ngIf="loading">Processing...</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Footer -->
+        <div class="mt-8 text-center">
+            <p class="text-xs text-slate-500 uppercase tracking-widest">GALIOSPORT Sport Science Platform</p>
+        </div>
+    </div>
+</div>

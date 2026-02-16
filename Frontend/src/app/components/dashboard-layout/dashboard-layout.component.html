@@ -1,0 +1,80 @@
+<div class="flex min-h-screen bg-gosport-dark text-white font-sans">
+    <!-- Desktop Sidebar -->
+    <div class="hidden md:block">
+        <app-sidebar></app-sidebar>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div *ngIf="mobileMenuOpen" (click)="mobileMenuOpen = false"
+        class="fixed inset-0 bg-black/80 z-40 md:hidden transition-opacity"></div>
+    <div *ngIf="mobileMenuOpen"
+        class="fixed inset-y-0 left-0 z-50 w-64 bg-gosport-surface md:hidden transform transition-transform">
+        <app-sidebar></app-sidebar>
+    </div>
+
+    <div class="flex-1 flex flex-col h-screen overflow-hidden">
+        <!-- Top Header -->
+        <header
+            class="h-16 border-b border-gosport-border bg-gosport-dark/80 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-30">
+            <div class="flex items-center gap-4">
+                <!-- Mobile Menu Toggle -->
+                <button (click)="mobileMenuOpen = true" class="md:hidden p-2 text-slate-400 hover:text-white">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Search Bar -->
+                <div class="hidden md:flex items-center relative">
+                    <svg class="w-4 h-4 text-slate-500 absolute left-3" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input type="text" [placeholder]="searchPlaceholders[roleService.currentRole]"
+                        class="bg-slate-900/50 border border-slate-800 rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-gosport-orange w-72 transition-colors">
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <!-- Notification Bell -->
+                <button class="relative p-2 text-slate-400 hover:text-white transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-gosport-orange rounded-full"></span>
+                </button>
+
+                <div class="h-8 w-px bg-slate-800 mx-1 hidden md:block"></div>
+
+                <!-- User Info -->
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden md:block">
+                        <p class="text-sm font-bold text-white">{{ roleService.user.name }}</p>
+                        <span
+                            class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider"
+                            [ngClass]="badgeVariants[roleService.currentRole]">
+                            {{ roleService.user.roleLabel }}
+                        </span>
+                    </div>
+                    <div
+                        class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border border-slate-600 flex items-center justify-center">
+                        <img *ngIf="roleService.user.avatar" [src]="roleService.user.avatar"
+                            class="w-full h-full object-cover" alt="">
+                        <span *ngIf="!roleService.user.avatar" class="font-bold text-white">{{
+                            roleService.user.name.substring(0,2) }}</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-8 scroll-smooth">
+            <div class="max-w-7xl mx-auto">
+                <ng-content></ng-content>
+            </div>
+        </main>
+    </div>
+</div>

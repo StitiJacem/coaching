@@ -1,0 +1,2 @@
+src/entities/User.ts(37,13): error TS2322: Type 'Date | undefined' is not assignable to type 'Date'.
+  Type 'undefined' is not assignable to type 'Date'.
