@@ -74,7 +74,7 @@ const roleColors: Record<UserRole, string> = {
 
 @Injectable({ providedIn: 'root' })
 export class RoleService {
-    private roleSubject = new BehaviorSubject<UserRole>('coach');
+    private roleSubject = new BehaviorSubject<UserRole>('athlete');
     currentRole$ = this.roleSubject.asObservable();
 
     allRoles: UserRole[] = ['coach', 'athlete', 'doctor', 'nutritionist', 'manager'];
@@ -92,8 +92,11 @@ export class RoleService {
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
-                const role = user.role || 'athlete';
-                this.setCurrentRole(role);
+                // Priority: Use role from user object if it exists
+                const role = (user.role as UserRole) || 'athlete';
+                if (this.roleSubject.value !== role) {
+                    this.setCurrentRole(role);
+                }
             } catch (e) {
                 console.error('Error parsing user from local storage', e);
             }

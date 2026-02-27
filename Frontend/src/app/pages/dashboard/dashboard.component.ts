@@ -1,6 +1,10 @@
 import { RoleService } from '../../services/role.service';
 import { DashboardService } from '../../services/dashboard.service';
+import { WorkoutLogService, TodayWorkout, AthleteWorkoutStats } from '../../services/workout-log.service';
 import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
+import { CoachService, CoachingRequest } from '../../services/coach.service';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -14,10 +18,22 @@ export class DashboardComponent implements OnInit {
     recentAthletes: any[] = [];
     loading = true;
     error: string | null = null;
+    isStartingWorkout = false;
+
+    // Athlete-specific real data
+    todayWorkout: TodayWorkout | null = null;
+    workoutStats: AthleteWorkoutStats | null = null;
+    // Coach-specific real data
+    pendingRequests: CoachingRequest[] = [];
+    isUpdatingRequest = false;
 
     constructor(
         public roleService: RoleService,
-        private dashboardService: DashboardService
+        private dashboardService: DashboardService,
+        private workoutLogService: WorkoutLogService,
+        private authService: AuthService,
+        private router: Router,
+        private coachService: CoachService
     ) { }
 
     ngOnInit() {
@@ -30,40 +46,138 @@ export class DashboardComponent implements OnInit {
         const role = this.roleService.currentRole;
 
         this.dashboardService.getStats(role).subscribe({
-            next: (data) => {
-                this.stats = data;
-            },
-            error: (err) => {
-                console.error('Error loading stats', err);
-                this.error = 'Failed to load statistics';
-            }
+            next: (data) => { this.stats = data; },
+            error: (err) => { console.error('Error loading stats', err); }
         });
 
         this.dashboardService.getTodaySessions().subscribe({
-            next: (data) => {
-                this.todaySessions = data;
-            },
-            error: (err) => {
-                console.error('Error loading sessions', err);
-                // Don't set error here, just log it
-            }
+            next: (data) => { this.todaySessions = data; },
+            error: (err) => { console.error('Error loading sessions', err); }
         });
 
         this.dashboardService.getRecentAthletes().subscribe({
-            next: (data) => {
-                this.recentAthletes = data;
-                this.loading = false;
+            next: (data) => { this.recentAthletes = data; this.loading = false; },
+            error: (err) => { console.error('Error loading athletes', err); this.loading = false; }
+        });
+
+        // Load role-specific data
+        if (role === 'coach') {
+            this.loadCoachData();
+        } else if (role === 'athlete') {
+            this.loadAthleteData();
+            this.loadCoachData(); // Reuse loadCoachData to get incoming requests for athletes too
+        }
+    }
+
+    loadAthleteData() {
+        const user = this.authService.getUser();
+        if (!user) return;
+
+        // Load today's workout
+        this.workoutLogService.getTodayWorkout(user.id).subscribe({
+            next: (data: TodayWorkout) => {
+                this.todayWorkout = data;
+                // Load workout stats if we have an athleteId
+                if (data.athleteId) {
+                    this.workoutLogService.getAthleteStats(data.athleteId).subscribe({
+                        next: (stats: AthleteWorkoutStats) => { this.workoutStats = stats; },
+                        error: (err: any) => { console.error('Error loading workout stats', err); }
+                    });
+                }
+            },
+            error: (err: any) => { console.error('Error loading today workout', err); }
+        });
+    }
+
+    loadCoachData() {
+        this.coachService.getMyRequests().subscribe({
+            next: (requests) => {
+                this.pendingRequests = requests.filter(r => r.status === 'pending');
+            },
+            error: (err) => { console.error('Error loading coaching requests', err); }
+        });
+    }
+
+    handleRequest(requestId: string | undefined, status: 'accepted' | 'rejected') {
+        if (!requestId) return;
+        this.isUpdatingRequest = true;
+        this.coachService.updateRequestStatus(requestId, status).subscribe({
+            next: () => {
+                this.pendingRequests = this.pendingRequests.filter(r => r.id !== requestId);
+                this.isUpdatingRequest = false;
+                // Refresh athletes list if accepted
+                if (status === 'accepted') {
+                    this.loadDashboardData();
+                }
             },
             error: (err) => {
-                console.error('Error loading athletes', err);
-                this.loading = false;
+                console.error('Error updating request', err);
+                this.isUpdatingRequest = false;
             }
         });
     }
 
-    get currentStats() {
-        return this.stats;
+    startWorkout() {
+        if (!this.todayWorkout?.day || !this.todayWorkout?.athleteId) return;
+        this.isStartingWorkout = true;
+
+        const data = {
+            athleteId: this.todayWorkout.athleteId,
+            programId: this.todayWorkout.program?.id,
+            programDayId: this.todayWorkout.day?.id,
+            scheduledDate: new Date().toISOString().split('T')[0]
+        };
+
+        this.workoutLogService.startWorkout(data).subscribe({
+            next: (log) => {
+                this.isStartingWorkout = false;
+                this.router.navigate(['/dashboard/workout', log.id]);
+            },
+            error: (err) => {
+                console.error('Error starting workout', err);
+                this.isStartingWorkout = false;
+            }
+        });
     }
+
+    get todayExerciseCount(): number {
+        return this.todayWorkout?.day?.exercises?.length || 0;
+    }
+
+    get todayWorkoutName(): string {
+        if (this.todayWorkout?.day) return this.todayWorkout.day.title;
+        return 'No Workout Assigned';
+    }
+
+    get currentStreak(): number {
+        return this.workoutStats?.currentStreak || 0;
+    }
+
+    get adherencePercent(): number {
+        return this.workoutStats?.adherencePercent || 0;
+    }
+
+    get completedSessions(): number {
+        return this.workoutStats?.completedSessions || 0;
+    }
+
+    get hasActiveProgram(): boolean {
+        return !!this.todayWorkout?.program;
+    }
+
+    get workoutAlreadyStarted(): boolean {
+        return this.todayWorkout?.workoutLog?.status === 'in_progress';
+    }
+
+    get workoutCompleted(): boolean {
+        return this.todayWorkout?.workoutLog?.status === 'completed';
+    }
+
+    get userFirstName(): string {
+        return this.roleService.user.name.split(' ')[0] || 'Athlete';
+    }
+
+    get currentStats() { return this.stats; }
 
     get dashboardTitle() {
         const titles: Record<string, string> = {
@@ -81,7 +195,6 @@ export class DashboardComponent implements OnInit {
     }
 
     getIconName(iconPath: string): string {
-        // Map icon paths to lucide-angular icon names
         const iconMap: Record<string, string> = {
             'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z': 'users',
             'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3': 'dumbbell',
@@ -98,7 +211,6 @@ export class DashboardComponent implements OnInit {
     }
 
     getAthleteStatus(athlete: any): 'online' | 'offline' | 'busy' {
-        // Determine status based on lastActive or other logic
         if (athlete.status) return athlete.status;
         return 'offline';
     }
@@ -118,8 +230,5 @@ export class DashboardComponent implements OnInit {
         return 'Unknown';
     }
 
-    onAddClient() {
-        // Navigate to add athlete page
-        console.log('Add athlete clicked');
-    }
+    onAddClient() { console.log('Add athlete clicked'); }
 }

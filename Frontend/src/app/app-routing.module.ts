@@ -17,6 +17,9 @@ import { MessagingComponent } from './pages/dashboard/messaging/messaging.compon
 import { AnalyticsComponent } from './pages/dashboard/analytics/analytics.component';
 import { NutritionComponent } from './pages/dashboard/nutrition/nutrition.component';
 import { MedicalComponent } from './pages/dashboard/medical/medical.component';
+import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
+import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
+import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
 
 import { CompleteProfileComponent } from './pages/complete-profile/complete-profile.component';
 
@@ -39,6 +42,9 @@ const routes: Routes = [
   { path: 'dashboard/analytics', component: AnalyticsComponent },
   { path: 'dashboard/nutrition', component: NutritionComponent },
   { path: 'dashboard/medical', component: MedicalComponent },
+  { path: 'dashboard/discovery', component: DiscoveryComponent },
+  { path: 'dashboard/workout/:id', component: WorkoutPlayerComponent },
+  { path: 'dashboard/workout-history', component: WorkoutHistoryComponent },
   { path: 'home', component: HomeComponent },
   { path: '**', redirectTo: '/login' }
 ];

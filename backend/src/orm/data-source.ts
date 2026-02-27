@@ -5,6 +5,15 @@ import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
 import { Goal } from "../entities/Goal";
+import { CoachProfile } from "../entities/CoachProfile";
+import { CoachSpecialization } from "../entities/CoachSpecialization";
+import { CoachCertification } from "../entities/CoachCertification";
+import { ProgramDay } from "../entities/ProgramDay";
+import { ProgramExercise } from "../entities/ProgramExercise";
+import { WorkoutLog } from "../entities/WorkoutLog";
+import { ExerciseLog } from "../entities/ExerciseLog";
+import { CoachingRequest } from "../entities/CoachingRequest";
+import { UserInvitation } from "../entities/UserInvitation";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -22,7 +31,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME || "coaching_db",
     synchronize: true,
     logging: false,
-    entities: [User, Athlete, Program, Session, Goal],
+    entities: [User, Athlete, Program, Session, Goal, CoachProfile, CoachSpecialization, CoachCertification, ProgramDay, ProgramExercise, WorkoutLog, ExerciseLog, CoachingRequest, UserInvitation],
     migrations: [],
     subscribers: [],
 });

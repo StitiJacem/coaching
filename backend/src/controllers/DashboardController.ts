@@ -3,6 +3,8 @@ import { AppDataSource } from "../orm/data-source";
 import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
+import { CoachProfile } from "../entities/CoachProfile";
+import { Brackets } from "typeorm";
 
 export class DashboardController {
 
@@ -22,8 +24,19 @@ export class DashboardController {
                 const programRepo = AppDataSource.getRepository(Program);
                 const sessionRepo = AppDataSource.getRepository(Session);
 
-                const totalAthletes: number = await athleteRepo.count();
-                const totalPrograms: number = await programRepo.count();
+                const coachId = (req as any).user.id;
+                const coachProfile = await AppDataSource.getRepository(CoachProfile).findOne({ where: { userId: coachId } });
+
+                const totalAthletes: number = await athleteRepo.createQueryBuilder("athlete")
+                    .where(new Brackets(qb => {
+                        qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)', { coachId });
+                        if (coachProfile) {
+                            qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                        }
+                    }))
+                    .getCount();
+
+                const totalPrograms: number = await programRepo.count({ where: { coachId } });
 
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
@@ -118,10 +131,21 @@ export class DashboardController {
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
 
-            const sessions: Session[] = await sessionRepo.find({
-                relations: ["athlete", "athlete.user", "program"],
-                order: { time: "ASC" }
-            });
+            const coachId = (req as any).user.id;
+            const coachProfile = await AppDataSource.getRepository(CoachProfile).findOne({ where: { userId: coachId } });
+
+            const sessions: Session[] = await sessionRepo.createQueryBuilder("session")
+                .leftJoinAndSelect("session.athlete", "athlete")
+                .leftJoinAndSelect("athlete.user", "user")
+                .leftJoinAndSelect("session.program", "program")
+                .where(new Brackets(qb => {
+                    qb.where("program.coachId = :coachId", { coachId });
+                    if (coachProfile) {
+                        qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                    }
+                }))
+                .orderBy("session.time", "ASC")
+                .getMany();
 
             const todaySessions = sessions
                 .filter((s: Session) => {
@@ -149,14 +173,21 @@ export class DashboardController {
 
     static getRecentAthletes = async (req: Request, res: Response) => {
         try {
-
             const athleteRepo = AppDataSource.getRepository(Athlete);
+            const coachId = (req as any).user.id;
+            const coachProfile = await AppDataSource.getRepository(CoachProfile).findOne({ where: { userId: coachId } });
 
-            const athletes: Athlete[] = await athleteRepo.find({
-                order: { lastActive: "DESC" },
-                take: 5,
-                relations: ["user"]
-            });
+            const athletes: Athlete[] = await athleteRepo.createQueryBuilder("athlete")
+                .leftJoinAndSelect("athlete.user", "user")
+                .where(new Brackets(qb => {
+                    qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)', { coachId });
+                    if (coachProfile) {
+                        qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                    }
+                }))
+                .orderBy("athlete.lastActive", "DESC")
+                .take(5)
+                .getMany();
 
             const formattedAthletes = athletes.map((a: Athlete) => ({
                 id: a.id,
@@ -166,7 +197,7 @@ export class DashboardController {
                     || "Unknown",
                 program: a.sport || "No Program",
                 lastActive: a.lastActive,
-                
+
             }));
 
             res.json(formattedAthletes);

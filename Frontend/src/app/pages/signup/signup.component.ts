@@ -38,6 +38,17 @@ export class SignupComponent implements OnInit {
     }
   ];
 
+  specializationsList = [
+    { id: 'PADEL', label: 'Padel', icon: '🎾' },
+    { id: 'PILATES', label: 'Pilates', icon: '🧘' },
+    { id: 'MUSCULATION', label: 'Musculation', icon: '💪' },
+    { id: 'YOGA', label: 'Yoga', icon: '🕉️' },
+    { id: 'CROSSFIT', label: 'CrossFit', icon: '🏋️' },
+    { id: 'BOXING', label: 'Boxing', icon: '🥊' }
+  ];
+
+  selectedSpecializations: string[] = [];
+
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
@@ -56,6 +67,18 @@ export class SignupComponent implements OnInit {
 
   setRole(roleId: string): void {
     this.signupForm.patchValue({ role: roleId });
+    if (roleId !== 'coach') {
+      this.selectedSpecializations = [];
+    }
+  }
+
+  toggleSpecialization(specId: string): void {
+    const index = this.selectedSpecializations.indexOf(specId);
+    if (index > -1) {
+      this.selectedSpecializations.splice(index, 1);
+    } else {
+      this.selectedSpecializations.push(specId);
+    }
   }
 
   onSubmit(): void {
@@ -70,7 +93,8 @@ export class SignupComponent implements OnInit {
       password: formData.password,
       first_name: formData.first_name,
       last_name: formData.last_name,
-      role: formData.role
+      role: formData.role,
+      specializations: this.selectedSpecializations
     }).subscribe({
       next: () => {
         this.router.navigate(['/verify-email'], {

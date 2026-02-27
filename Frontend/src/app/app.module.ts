@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientModule } from '@angular/common/http';
-import { ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -32,7 +32,11 @@ import { CardComponent } from './components/ui/card/card.component';
 import { BadgeComponent } from './components/ui/badge/badge.component';
 import { ButtonComponent } from './components/ui/button/button.component';
 import { AvatarComponent } from './components/ui/avatar/avatar.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { LucideAngularModule, Plus, ArrowRight, Clock, Search, User, LogOut } from 'lucide-angular';
+import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
+import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
+import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
+import { InviteModalComponent } from './pages/dashboard/athletes/invite-modal/invite-modal.component';
 
 @NgModule({
   declarations: [
@@ -56,16 +60,28 @@ import { LucideAngularModule } from 'lucide-angular';
     MessagingComponent,
     AnalyticsComponent,
     NutritionComponent,
-    MedicalComponent
+    MedicalComponent,
+    DiscoveryComponent,
+    WorkoutPlayerComponent,
+    WorkoutHistoryComponent,
+    InviteModalComponent
   ],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
     AppRoutingModule,
     HttpClientModule,
+    FormsModule,
     ReactiveFormsModule,
     SignupComponent,
-    LucideAngularModule,
+    LucideAngularModule.pick({
+      Plus,
+      ArrowRight,
+      Clock,
+      Search,
+      User,
+      LogOut
+    }),
     StatsCardComponent,
     CardComponent,
     BadgeComponent,

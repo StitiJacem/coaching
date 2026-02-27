@@ -10,6 +10,7 @@ router.use(authenticateToken);
 router.get("/", AthleteController.getAll);
 router.get("/:id", AthleteController.getById);
 router.get("/:id/stats", AthleteController.getStats);
+router.post("/invite", AthleteController.invite);
 router.put("/:id", AthleteController.update);
 
 export default router;

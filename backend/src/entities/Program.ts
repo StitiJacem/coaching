@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { Athlete } from "./Athlete";
 import { User } from "./User";
+import { CoachProfile } from "./CoachProfile";
+import { ProgramDay } from "./ProgramDay";
 
 @Entity("programs")
 export class Program {
@@ -20,15 +22,31 @@ export class Program {
     @JoinColumn({ name: "athleteId" })
     athlete!: Athlete;
 
-    @Column()
+    @Column({ nullable: true })
     coachId!: number;
 
     @ManyToOne(() => User)
     @JoinColumn({ name: "coachId" })
     coach!: User;
 
-    @Column({ default: "active" })
+    @Column({ nullable: true })
+    coachProfileId?: string;
+
+    @ManyToOne(() => CoachProfile, (profile) => profile.programs)
+    @JoinColumn({ name: "coachProfileId" })
+    coachProfile?: CoachProfile;
+
+    @Column({ default: false })
+    is_template!: boolean;
+
+    @Column({ nullable: true })
+    specialization?: string;
+
+    @Column({ default: "active" }) // status was duplicated, keeping only one
     status!: string;
+
+    @OneToMany(() => ProgramDay, (day) => day.program, { cascade: true })
+    days!: ProgramDay[];
 
     @Column({ type: "date" })
     startDate!: Date;

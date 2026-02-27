@@ -60,6 +60,12 @@ export class AthleteService {
     });
   }
 
+  invite(email: string, message?: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/invite`, { email, message }, {
+      headers: this.getHeaders()
+    });
+  }
+
   getById(id: number): Observable<Athlete> {
     return this.http.get<Athlete>(`${this.apiUrl}/${id}`, {
       headers: this.getHeaders()

@@ -30,7 +30,7 @@ const startServer = async () => {
 
         const server = http.createServer(app);
 
-        server.listen(port);
+        server.listen(port as number, '0.0.0.0');
         server.on('error', (error: any) => onError(error, port));
         server.on('listening', () => onListening(server));
     } catch (err) {

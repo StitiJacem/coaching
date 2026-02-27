@@ -1,0 +1,137 @@
+<app-dashboard-layout>
+    <div class="space-y-6">
+        <!-- Loading -->
+        <div *ngIf="isLoading" class="flex items-center justify-center py-32">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-galio-orange"></div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div *ngIf="showCompletionScreen && !isLoading"
+            class="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-fade-in">
+            <div class="w-24 h-24 bg-galio-lime/10 rounded-full flex items-center justify-center text-5xl">🏆</div>
+            <h1 class="text-5xl font-display font-bold text-white uppercase">Workout Complete!</h1>
+            <p class="text-slate-400 text-lg">You smashed {{ exercises.length }} exercises in {{ formattedTime }}</p>
+
+            <!-- Rating -->
+            <div class="space-y-2">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Rate this session</p>
+                <div class="flex gap-2 justify-center">
+                    <button *ngFor="let star of [1,2,3,4,5]" (click)="overallRating = star"
+                        [class]="star <= overallRating ? 'text-yellow-400' : 'text-slate-700'"
+                        class="text-3xl transition-colors">★</button>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <textarea [(ngModel)]="completionNotes" placeholder="Any notes about this session? (optional)"
+                class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-galio-orange resize-none h-24">
+      </textarea>
+
+            <button (click)="completeWorkout()" [disabled]="isCompleting"
+                class="px-10 py-4 bg-galio-lime text-galio-dark font-bold text-lg rounded-2xl hover:bg-green-500 transition-all disabled:opacity-50">
+                {{ isCompleting ? 'Saving...' : 'Save & Finish' }}
+            </button>
+        </div>
+
+        <!-- Workout Player -->
+        <div *ngIf="!isLoading && !showCompletionScreen" class="space-y-6">
+            <!-- Header -->
+            <header class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Active Session</p>
+                    <h1 class="text-4xl md:text-5xl font-display font-bold text-white uppercase">
+                        {{ workoutLog?.programDay?.title || 'Workout' }}
+                    </h1>
+                </div>
+                <div class="text-right">
+                    <p class="text-slate-500 text-xs uppercase tracking-widest">Elapsed</p>
+                    <p class="text-3xl font-display font-bold text-galio-orange">{{ formattedTime }}</p>
+                </div>
+            </header>
+
+            <!-- Progress Bar -->
+            <div class="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-galio-orange rounded-full transition-all duration-500"
+                    [style.width.%]="progressPercent">
+                </div>
+            </div>
+            <p class="text-slate-500 text-sm">
+                Exercise {{ currentExerciseIndex + 1 }} of {{ exercises.length }}
+            </p>
+
+            <!-- Exercise Card -->
+            <div *ngIf="currentExercise"
+                class="bg-galio-surface border border-galio-border rounded-3xl overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+                    <!-- GIF -->
+                    <div class="bg-slate-900 flex items-center justify-center p-8 min-h-[280px]">
+                        <img *ngIf="currentExercise.exercise_gif" [src]="currentExercise.exercise_gif"
+                            [alt]="currentExercise.exercise_name" class="max-h-64 w-auto object-contain rounded-2xl">
+                        <div *ngIf="!currentExercise.exercise_gif"
+                            class="w-40 h-40 bg-slate-800 rounded-2xl flex items-center justify-center text-6xl">💪
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="p-8 space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white uppercase">{{ currentExercise.exercise_name }}</h2>
+                            <p class="text-slate-500 text-sm mt-1">{{ currentExercise.sets }} sets × {{
+                                currentExercise.reps }} reps</p>
+                        </div>
+
+                        <!-- Set Logger -->
+                        <div class="space-y-3">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">Log Each Set</h3>
+                            <div *ngFor="let setLog of currentSetLogs; let i = index; trackBy: trackByIndex"
+                                class="flex items-center gap-3 bg-slate-900/50 rounded-xl px-4 py-3">
+                                <span class="text-slate-600 font-bold text-sm w-12">Set {{ i + 1 }}</span>
+                                <div class="flex items-center gap-2 flex-1">
+                                    <div class="flex-1">
+                                        <label class="text-[9px] text-slate-600 uppercase font-bold">Reps</label>
+                                        <input type="number" [(ngModel)]="setLog.reps" min="0"
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-3 text-white text-sm font-bold focus:outline-none focus:border-galio-orange">
+                                    </div>
+                                    <div class="flex-1">
+                                        <label class="text-[9px] text-slate-600 uppercase font-bold">Weight (kg)</label>
+                                        <input type="number" [(ngModel)]="setLog.weightKg" min="0"
+                                            class="w-full bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-3 text-white text-sm font-bold focus:outline-none focus:border-galio-orange">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Navigation -->
+                        <div class="flex gap-3 pt-2">
+                            <button *ngIf="currentExerciseIndex > 0" (click)="prevExercise()"
+                                class="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all">
+                                ← Back
+                            </button>
+                            <button (click)="nextExercise()"
+                                class="flex-1 py-3 font-bold uppercase tracking-wider rounded-xl transition-all"
+                                [class]="currentExerciseIndex < exercises.length - 1 ? 'bg-galio-orange hover:bg-orange-600 text-white' : 'bg-galio-lime hover:bg-green-500 text-galio-dark'">
+                                {{ currentExerciseIndex < exercises.length - 1 ? 'Next Exercise →' : '🏆 Finish Workout'
+                                    }} </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exercise Checklist -->
+            <div class="bg-galio-surface border border-galio-border rounded-3xl p-6">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">All Exercises</h3>
+                <div class="space-y-2">
+                    <div *ngFor="let ex of exercises; let i = index"
+                        class="flex items-center gap-4 py-2 border-b border-slate-800 last:border-0"
+                        [class.opacity-40]="i > currentExerciseIndex">
+                        <span class="text-xl"
+                            [class]="i < currentExerciseIndex ? 'text-green-400' : (i === currentExerciseIndex ? 'text-galio-orange' : 'text-slate-700')">
+                            {{ i < currentExerciseIndex ? '✓' : (i===currentExerciseIndex ? '▶' : '○' ) }} </span>
+                                <span class="text-sm font-bold text-white uppercase">{{ ex.exercise_name }}</span>
+                                <span class="ml-auto text-xs text-slate-500">{{ ex.sets }}×{{ ex.reps }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-dashboard-layout>

@@ -42,6 +42,22 @@
                     </div>
                 </div>
 
+                <!-- Coach Specializations -->
+                <div *ngIf="signupForm.get('role')?.value === 'coach'" class="space-y-3 animate-fade-in">
+                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Your
+                        Specializations (Select multi)</label>
+                    <div class="grid grid-cols-3 gap-2">
+                        <button type="button" *ngFor="let spec of specializationsList"
+                            (click)="toggleSpecialization(spec.id)" [ngClass]="selectedSpecializations.includes(spec.id)
+                                ? 'bg-galio-lime/20 border-galio-lime text-galio-lime shadow-lg shadow-galio-lime/10'
+                                : 'bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-600'"
+                            class="flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-200">
+                            <span class="text-xl mb-1">{{ spec.icon }}</span>
+                            <span class="text-[10px] font-bold uppercase tracking-tight">{{ spec.label }}</span>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- First / Last Name -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="w-full">

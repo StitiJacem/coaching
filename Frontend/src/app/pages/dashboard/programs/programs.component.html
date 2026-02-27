@@ -2,20 +2,312 @@
     <div class="space-y-8">
         <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Management</p>
-                <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">Programs</h1>
+                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Coach Studio</p>
+                <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">
+                    {{ isCreating ? 'Build Program' : 'Programs' }}
+                </h1>
             </div>
-            <button
-                class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 transition-all duration-200 active:scale-[0.98]">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                </svg>
-                Add New
-            </button>
+            <div class="flex gap-3">
+                <button *ngIf="isCreating" (click)="cancel()"
+                    class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm border border-slate-700 text-slate-400 hover:bg-slate-800 transition-all">
+                    Cancel
+                </button>
+                <button *ngIf="!isCreating" (click)="startNewProgram()"
+                    class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 transition-all duration-200 active:scale-[0.98]">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Program
+                </button>
+                <button *ngIf="isCreating" (click)="saveProgram()"
+                    class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-lime hover:bg-green-600 text-galio-dark shadow-lg shadow-galio-lime/25 transition-all">
+                    Finalize Save
+                </button>
+            </div>
         </header>
 
-        <div class="bg-galio-surface border border-galio-border rounded-2xl p-8">
-            <!-- Content will be added here -->
+        <!-- Main Dashboard View -->
+        <div *ngIf="!isCreating" class="space-y-6">
+            <!-- Loading State -->
+            <div *ngIf="isLoadingPrograms" class="flex justify-center py-20">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-galio-orange"></div>
+            </div>
+
+            <!-- Empty State -->
+            <div *ngIf="!isLoadingPrograms && programs.length === 0"
+                class="bg-galio-surface border border-galio-border rounded-2xl p-8 text-center py-20">
+                <div class="max-w-md mx-auto">
+                    <div class="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2">No Programs Formulated</h3>
+                    <p class="text-slate-400 mb-8">Establish a periodized training cycle over multiple weeks.</p>
+                    <button (click)="startNewProgram()"
+                        class="text-galio-orange font-bold uppercase tracking-widest text-sm hover:underline">
+                        Create Multi-Day Program →
+                    </button>
+                </div>
+            </div>
+
+            <!-- Programs List -->
+            <div *ngIf="!isLoadingPrograms && programs.length > 0"
+                class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div *ngFor="let program of programs"
+                    class="bg-galio-surface border border-galio-border rounded-3xl p-6 hover:border-galio-orange transition-all group">
+                    <div class="flex justify-between items-start mb-6">
+                        <div
+                            class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-galio-orange">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                            </svg>
+                        </div>
+                        <span
+                            class="px-3 py-1 bg-galio-orange/10 text-galio-orange text-[10px] font-bold uppercase tracking-widest rounded-full">
+                            {{ program.status }}
+                        </span>
+                    </div>
+                    <h3 class="text-xl font-bold text-white mb-2 group-hover:text-galio-orange transition-colors">{{
+                        program.name }}</h3>
+                    <p class="text-slate-500 text-sm mb-6 line-clamp-2">
+                        {{ program.description || 'No description provided for this periodized program.' }}
+                    </p>
+                    <div
+                        class="flex items-center gap-4 text-xs font-bold text-slate-400 mb-6 font-display uppercase tracking-widest">
+                        <span class="flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {{ program.startDate | date:'shortDate' }}
+                        </span>
+                        <span>•</span>
+                        <span>{{ program.days.length || 0 }} Days</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button (click)="editProgram(program)"
+                            class="w-full py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-all">
+                            Modify
+                        </button>
+                        <button (click)="assignToAthlete(program)"
+                            class="w-full py-2.5 rounded-xl bg-galio-lime/10 text-galio-lime text-xs font-bold uppercase tracking-wider hover:bg-galio-lime hover:text-galio-dark transition-all">
+                            Assign
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-Day Builder View -->
+        <div *ngIf="isCreating" class="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-in">
+            <!-- Left: Library & Navigation -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Days Navigator -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xs font-black text-slate-500 uppercase tracking-widest">Program Schedule</h3>
+                        <button (click)="addDay()" class="text-galio-lime hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button *ngFor="let day of days; let i = index" (click)="setActiveDay(i)"
+                            [ngClass]="activeDayIndex === i ? 'bg-galio-orange text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'"
+                            class="px-4 py-2 rounded-xl text-xs font-bold transition-all relative group">
+                            DAY {{ day.day_number }}
+                            <span *ngIf="days.length > 1" (click)="removeDay(i); $event.stopPropagation()"
+                                class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 scale-0 group-hover:scale-100 transition-all">
+                                ×
+                            </span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Exercise Search -->
+                <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 sticky top-8">
+                    <div class="mb-6">
+                        <div class="relative">
+                            <input [(ngModel)]="searchQuery" (keyup.enter)="searchExercises()"
+                                placeholder="Search exercises..."
+                                class="w-full bg-slate-800 border border-slate-700 rounded-2xl px-12 py-3 text-white focus:outline-none focus:border-galio-orange transition-all">
+                            <svg class="absolute left-4 top-3.5 w-5 h-5 text-slate-500" fill="none"
+                                stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <button (click)="searchExercises()"
+                                class="absolute right-4 top-3 text-galio-orange hover:text-white">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 overflow-x-auto pb-4 custom-scrollbar whitespace-nowrap mb-6">
+                        <button *ngFor="let m of muscles" (click)="filterByMuscle(m.id)"
+                            [ngClass]="activeMuscleFilter === m.id ? 'bg-slate-200 text-slate-900' : 'bg-slate-800 text-slate-400 hover:text-white'"
+                            class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider transition-all">
+                            {{ m.label }}
+                        </button>
+                    </div>
+
+                    <!-- Library List -->
+                    <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
+                        <div *ngIf="isLoadingExercises" class="flex justify-center py-10">
+                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-galio-orange"></div>
+                        </div>
+
+                        <div *ngFor="let exercise of exerciseLibrary" (click)="addExercise(exercise)"
+                            class="group relative bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-galio-orange rounded-2xl p-3 cursor-pointer transition-all duration-300">
+                            <div class="flex items-center gap-4">
+                                <div class="w-16 h-16 rounded-xl overflow-hidden bg-slate-900 flex-shrink-0">
+                                    <img [src]="exercise.gifUrl"
+                                        class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                </div>
+                                <div class="min-w-0">
+                                    <h4 class="text-white font-bold text-xs truncate uppercase">{{ exercise.name }}</h4>
+                                    <div class="flex gap-2 mt-1">
+                                        <span
+                                            class="text-[8px] px-1.5 py-0.5 bg-slate-900 text-slate-400 rounded uppercase font-bold">{{
+                                            exercise.target }}</span>
+                                        <span
+                                            class="text-[8px] px-1.5 py-0.5 bg-slate-900 text-slate-400 rounded uppercase font-bold">{{
+                                            exercise.equipment }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: Active Day Editor -->
+            <div class="lg:col-span-8 space-y-6">
+                <!-- Program & Day Settings -->
+                <div class="bg-galio-surface border border-galio-border rounded-3xl p-8 space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Program
+                                Title</label>
+                            <input [(ngModel)]="programTitle" placeholder="Full Body Power Cycle"
+                                class="w-full bg-slate-900/50 border border-slate-800 rounded-2xl px-6 py-4 text-xl font-display font-bold text-white focus:outline-none focus:border-galio-orange transition-all">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Active
+                                Day Title</label>
+                            <input [(ngModel)]="days[activeDayIndex].title"
+                                class="w-full bg-slate-900/50 border border-slate-800 rounded-2xl px-6 py-4 font-bold text-white focus:outline-none focus:border-galio-orange transition-all">
+                        </div>
+                        <div>
+                            <label
+                                class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Assign
+                                To Athlete <span class="text-red-500">*</span></label>
+                            <select [(ngModel)]="selectedAthleteId"
+                                class="w-full bg-slate-900/50 border border-slate-800 rounded-2xl px-6 py-4 font-bold text-white focus:outline-none focus:border-galio-orange transition-all">
+                                <option [ngValue]="null" disabled>Select athlete...</option>
+                                <option *ngFor="let a of athletes" [ngValue]="a.id">{{ getAthleteName(a) }}</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Assign Modal -->
+                <div *ngIf="showAssignModal"
+                    class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                    <div class="bg-galio-surface border border-galio-border rounded-3xl p-8 max-w-md w-full">
+                        <h3 class="text-xl font-bold text-white mb-2">Assign Program</h3>
+                        <p class="text-slate-400 text-sm mb-6">Choose an athlete to assign
+                            <strong class="text-white">{{ assigningProgram?.name }}</strong> to.
+                        </p>
+                        <select [(ngModel)]="assignModalAthleteId"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-galio-orange mb-6">
+                            <option [ngValue]="null" disabled>Select athlete...</option>
+                            <option *ngFor="let a of athletes" [ngValue]="a.id">{{ getAthleteName(a) }}</option>
+                        </select>
+                        <div class="flex gap-3">
+                            <button (click)="cancelAssign()"
+                                class="flex-1 py-3 rounded-xl border border-slate-700 text-slate-400 font-bold text-sm hover:bg-slate-800 transition-all">
+                                Cancel
+                            </button>
+                            <button (click)="confirmAssign()" [disabled]="!assignModalAthleteId || isAssigning"
+                                class="flex-1 py-3 rounded-xl bg-galio-lime text-galio-dark font-bold text-sm hover:bg-green-500 transition-all disabled:opacity-50">
+                                {{ isAssigning ? 'Assigning...' : 'Confirm Assign' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Exercises for Active Day -->
+                <div class="space-y-4">
+                    <div class="flex items-center justify-between px-2">
+                        <h2 class="text-xl font-display font-bold text-white uppercase italic tracking-wider">
+                            Routined Exercises
+                            <span class="text-galio-orange text-sm ml-2 not-italic font-sans">({{
+                                days[activeDayIndex].exercises.length }})</span>
+                        </h2>
+                    </div>
+
+                    <div *ngIf="days[activeDayIndex].exercises.length === 0"
+                        class="border-2 border-dashed border-slate-800 rounded-3xl py-20 text-center text-slate-600">
+                        <p class="text-sm font-bold uppercase tracking-widest">Select exercises from the library for
+                            this day</p>
+                    </div>
+
+                    <div *ngFor="let item of days[activeDayIndex].exercises; let i = index"
+                        class="group bg-galio-surface border border-galio-border hover:border-slate-600 rounded-3xl p-6 transition-all animate-slide-up">
+                        <div class="flex flex-col md:flex-row gap-6 items-center w-full">
+                            <div class="flex items-center gap-4 flex-1 w-full md:w-auto">
+                                <span class="text-xs font-black text-slate-700 font-display">#{{ i+1 }}</span>
+                                <div class="w-16 h-16 rounded-xl border border-slate-800 overflow-hidden bg-slate-900">
+                                    <img [src]="item.exercise_gif" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-bold text-white uppercase truncate">{{ item.exercise_name }}
+                                    </h3>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-4 bg-slate-900/50 p-4 rounded-2xl">
+                                <div class="space-y-1">
+                                    <label
+                                        class="block text-[8px] font-bold text-slate-500 uppercase text-center">Sets</label>
+                                    <input type="number" [(ngModel)]="item.sets"
+                                        class="w-16 bg-slate-900 border border-slate-700 rounded-lg py-1.5 text-center text-white font-bold">
+                                </div>
+                                <div class="space-y-1">
+                                    <label
+                                        class="block text-[8px] font-bold text-slate-500 uppercase text-center">Reps</label>
+                                    <input type="number" [(ngModel)]="item.reps"
+                                        class="w-16 bg-slate-900 border border-slate-700 rounded-lg py-1.5 text-center text-white font-bold">
+                                </div>
+                                <div class="space-y-1">
+                                    <label
+                                        class="block text-[8px] font-bold text-slate-500 uppercase text-center">Order</label>
+                                    <input type="number" [(ngModel)]="item.order"
+                                        class="w-12 bg-slate-900 border border-slate-700 rounded-lg py-1.5 text-center text-white font-bold">
+                                </div>
+                                <button (click)="removeExercise(i)"
+                                    class="p-2 text-slate-600 hover:text-red-500 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </app-dashboard-layout>

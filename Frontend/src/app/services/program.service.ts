@@ -3,6 +3,25 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
+export interface ProgramExercise {
+  id?: number;
+  exercise_id: string;
+  exercise_name: string;
+  exercise_gif?: string;
+  sets: number;
+  reps: number;
+  rpe?: number;
+  rest_seconds?: number;
+  order: number;
+}
+
+export interface ProgramDay {
+  id?: number;
+  day_number: number;
+  title: string;
+  exercises: ProgramExercise[];
+}
+
 export interface Program {
   id?: number;
   name: string;
@@ -15,6 +34,7 @@ export interface Program {
   type?: string;
   athlete?: any;
   coach?: any;
+  days: ProgramDay[];
 }
 
 @Injectable({

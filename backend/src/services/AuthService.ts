@@ -2,6 +2,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserRepository } from '../repositories/UserRepository';
 import { User } from '../entities/User';
+import { AppDataSource } from '../orm/data-source';
+import { CoachProfile } from '../entities/CoachProfile';
+import { CoachSpecialization } from '../entities/CoachSpecialization';
 
 import { EmailService } from '../utils/EmailService';
 
@@ -12,8 +15,9 @@ export class AuthService {
         this.userRepository = new UserRepository();
     }
 
-    async register(userData: Partial<User>): Promise<User> {
-        const existingUser = await this.userRepository.findByEmail(userData.email!);
+    async register(userData: any): Promise<User> {
+        const email = userData.email?.toLowerCase();
+        const existingUser = await this.userRepository.findByEmail(email);
         if (existingUser) {
             throw new Error('User already exists');
         }
@@ -23,6 +27,7 @@ export class AuthService {
 
         const user = new User({
             ...userData,
+            email: email,
             password: hashedPassword,
             verification_code: verificationCode,
             code_expires_at: new Date(Date.now() + 3600000),
@@ -34,6 +39,26 @@ export class AuthService {
 
         const savedUser = await this.userRepository.create(user);
 
+        // If user is a coach, create their profile and specializations
+        if (userData.role === 'coach') {
+            await AppDataSource.transaction(async transactionalEntityManager => {
+                const coachProfile = new CoachProfile();
+                coachProfile.userId = savedUser.id;
+                coachProfile.user = savedUser;
+                const savedProfile = await transactionalEntityManager.save(coachProfile);
+
+                if (userData.specializations && Array.isArray(userData.specializations)) {
+                    const specializationEntities = userData.specializations.map((spec: string) => {
+                        const s = new CoachSpecialization();
+                        s.coachProfileId = savedProfile.id;
+                        s.specialization = spec;
+                        return s;
+                    });
+                    await transactionalEntityManager.save(specializationEntities);
+                }
+            });
+        }
+
         const greetingName = savedUser.first_name || savedUser.username || 'Sportif';
         EmailService.sendVerificationEmail(savedUser.email, verificationCode, greetingName)
             .catch(err => console.error('Failed to send verification email:', err));
@@ -42,7 +67,8 @@ export class AuthService {
     }
 
     async login(email: string, password: string): Promise<{ user: User, token: string }> {
-        const user = await this.userRepository.findByEmail(email);
+        const normalizedEmail = email.toLowerCase();
+        const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
             throw new Error('Invalid credentials');
         }
@@ -60,12 +86,17 @@ export class AuthService {
             throw new Error('Invalid credentials');
         }
 
-        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: '1d' });
+        const token = jwt.sign(
+            { id: user.id, email: user.email, role: user.role },
+            process.env.JWT_SECRET!,
+            { expiresIn: '1d' }
+        );
         return { user, token };
     }
 
     async verifyEmail(email: string, code: string): Promise<boolean> {
-        const user = await this.userRepository.findByEmail(email);
+        const normalizedEmail = email.toLowerCase();
+        const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
             throw new Error('User not found');
         }
@@ -87,7 +118,8 @@ export class AuthService {
     }
 
     async resendCode(email: string): Promise<void> {
-        const user = await this.userRepository.findByEmail(email);
+        const normalizedEmail = email.toLowerCase();
+        const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
             throw new Error('User not found');
         }

@@ -1,6 +1,8 @@
 import { AppDataSource } from "../orm/data-source";
 import { User } from "../entities/User";
 import { Athlete } from "../entities/Athlete";
+import { CoachProfile } from "../entities/CoachProfile";
+import { CoachSpecialization } from "../entities/CoachSpecialization";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
 import { Goal } from "../entities/Goal";
@@ -33,6 +35,26 @@ export const seedDatabase = async () => {
         coach.is_verified = true;
         coach.onboarding_completed = true;
         await userRepo.save(coach);
+
+        // Create Coach Profile
+        const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+        const specRepo = AppDataSource.getRepository(CoachSpecialization);
+
+        const coachProfile = new CoachProfile();
+        coachProfile.user = coach;
+        coachProfile.bio = "Elite performance coach specializing in Padel and Strength training. 10+ years experience.";
+        coachProfile.experience_years = 12;
+        coachProfile.rating = 4.9;
+        coachProfile.verified = true;
+        await coachProfileRepo.save(coachProfile);
+
+        const specs = ["PADEL", "MUSCULATION"];
+        for (const specName of specs) {
+            const spec = new CoachSpecialization();
+            spec.coachProfile = coachProfile;
+            spec.specialization = specName;
+            await specRepo.save(spec);
+        }
 
         // Create Athletes
         const athletesData = [

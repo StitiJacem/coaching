@@ -61,6 +61,50 @@
                     </app-card>
                 </section>
 
+                <!-- Pending Connection Requests (Coach Only) -->
+                <section *ngIf="roleService.currentRole === 'coach' && pendingRequests.length > 0"
+                    class="animate-slide-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-display font-bold text-white tracking-wide">Connection Requests</h2>
+                        <span
+                            class="px-2 py-0.5 rounded-full bg-gosport-orange text-white text-[10px] font-black uppercase">
+                            {{ pendingRequests.length }} NEW
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div *ngFor="let request of pendingRequests"
+                            class="p-6 rounded-3xl bg-gosport-surface border border-gosport-border hover:border-gosport-orange/50 transition-all group">
+                            <div class="flex items-start gap-4">
+                                <app-avatar [src]="request.athlete?.user?.avatar"
+                                    [fallback]="request.athlete?.user?.first_name?.[0] || 'A'"
+                                    class="w-12 h-12"></app-avatar>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-bold text-white truncate uppercase tracking-tight">{{
+                                        request.athlete?.user?.first_name }} {{ request.athlete?.user?.last_name }}</h3>
+                                    <p class="text-[10px] font-bold text-gosport-lime uppercase mb-2">{{
+                                        request.athlete?.sport || 'Multi-sport' }}</p>
+                                    <p class="text-xs text-slate-400 line-clamp-2 italic mb-4">"{{ request.message || 'I
+                                        would like to connect with you to improve my performance.' }}"</p>
+
+                                    <div *ngIf="request.initiator === 'athlete'"
+                                        class="flex items-center gap-2 pt-2 border-t border-slate-800">
+                                        <button (click)="handleRequest(request.id, 'accepted')"
+                                            [disabled]="isUpdatingRequest"
+                                            class="flex-1 py-2 rounded-lg bg-gosport-orange hover:bg-orange-600 text-white text-[10px] font-black uppercase tracking-widest transition-all">
+                                            Accept
+                                        </button>
+                                        <button (click)="handleRequest(request.id, 'rejected')"
+                                            [disabled]="isUpdatingRequest"
+                                            class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-all">
+                                            Ignore
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Recent Athletes -->
                 <section>
                     <div class="flex items-center justify-between mb-4">
@@ -74,9 +118,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <a *ngFor="let athlete of recentAthletes" [routerLink]="'/dashboard/athletes/' + athlete.id">
                             <app-card [hover]="true" class="flex items-center gap-4">
-                                <app-avatar 
-                                    [src]="athlete.avatar" 
-                                    [fallback]="athlete.name[0]"
+                                <app-avatar [src]="athlete.avatar" [fallback]="athlete.name[0]"
                                     [status]="getAthleteStatus(athlete)">
                                 </app-avatar>
                                 <div class="flex-1 min-w-0">
@@ -147,9 +189,9 @@
         <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Friday, February 14</p>
+                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Today</p>
                 <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">
-                    Let's Go, <span class="text-gosport-orange">{{ roleService.user.name.split(' ')[0] }}</span>
+                    Let's Go, <span class="text-gosport-orange">{{ userFirstName }}</span>
                 </h1>
             </div>
             <div
@@ -159,30 +201,114 @@
                         d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z"
                         clip-rule="evenodd" />
                 </svg>
-                18 Day Streak
+                {{ currentStreak }} Day Streak
             </div>
         </header>
 
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div *ngFor="let stat of currentStats"
+            <div
                 class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 hover:border-slate-600 transition-colors">
                 <div class="flex items-start justify-between mb-4">
                     <div class="p-2 bg-gosport-orange/10 rounded-xl">
                         <svg class="w-5 h-5 text-gosport-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                [attr.d]="stat.icon" />
+                                d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0" />
                         </svg>
                     </div>
                 </div>
-                <p class="text-3xl font-display font-bold text-white mb-1">{{ stat.value }}</p>
-                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">{{ stat.label }}</p>
-                <p class="text-xs text-slate-500 mt-1">{{ stat.subtext }}</p>
+                <p class="text-3xl font-display font-bold text-white mb-1">{{ completedSessions }}</p>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Sessions Done</p>
+                <p class="text-xs text-slate-500 mt-1">Consistency Score: {{ adherencePercent }}%</p>
+            </div>
+            <div
+                class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 hover:border-slate-600 transition-colors">
+                <div class="flex items-start justify-between mb-4">
+                    <div class="p-2 bg-gosport-orange/10 rounded-xl">
+                        <svg class="w-5 h-5 text-gosport-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                </div>
+                <p class="text-3xl font-display font-bold text-white mb-1">{{ currentStreak }}</p>
+                <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Day Streak</p>
+                <p class="text-xs text-slate-500 mt-1">Keep it up!</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
+                <!-- Pending Connection Requests (Athlete View) -->
+                <section *ngIf="pendingRequests.length > 0" class="animate-slide-up">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-2xl font-display font-bold text-white tracking-wide">New Invitations</h2>
+                        <span
+                            class="px-2 py-0.5 rounded-full bg-gosport-orange text-white text-[10px] font-black uppercase">
+                            {{ pendingRequests.length }} NEW
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div *ngFor="let request of pendingRequests"
+                            class="p-6 rounded-3xl bg-gosport-surface border border-gosport-border hover:border-gosport-orange/50 transition-all group">
+                            <div class="flex items-start gap-4">
+                                <app-avatar [src]="request.coachProfile?.user?.avatar"
+                                    [fallback]="request.coachProfile?.user?.first_name?.[0] || 'C'"
+                                    class="w-12 h-12"></app-avatar>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="font-bold text-white truncate uppercase tracking-tight">
+                                        Coach {{ request.coachProfile?.user?.first_name }} {{
+                                        request.coachProfile?.user?.last_name }}</h3>
+                                    <p class="text-[10px] font-bold text-gosport-lime uppercase mb-2">
+                                        {{ request.coachProfile?.specializations?.[0]?.specialization || 'Performance
+                                        Coach' }}</p>
+                                    <p class="text-xs text-slate-400 line-clamp-2 italic mb-4">"{{ request.message || 'I
+                                        would like to coach you!' }}"</p>
+
+                                    <div *ngIf="request.initiator === 'coach'"
+                                        class="flex items-center gap-2 pt-2 border-t border-slate-800">
+                                        <button (click)="handleRequest(request.id, 'accepted')"
+                                            [disabled]="isUpdatingRequest"
+                                            class="flex-1 py-2 rounded-lg bg-gosport-lime hover:bg-gosport-lime/80 text-gosport-dark text-[10px] font-black uppercase tracking-widest transition-all">
+                                            Accept
+                                        </button>
+                                        <button (click)="handleRequest(request.id, 'rejected')"
+                                            [disabled]="isUpdatingRequest"
+                                            class="flex-1 py-2 rounded-lg bg-slate-800 hover:bg-red-500/20 text-slate-400 hover:text-red-500 text-[10px] font-black uppercase tracking-widest transition-all">
+                                            Reject
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Discovery CTA (For Athletes without coaches) -->
+                <section class="animate-slide-up">
+                    <div class="p-8 bg-gradient-to-br from-galio-orange to-orange-700 rounded-3xl relative overflow-hidden group cursor-pointer"
+                        routerLink="/dashboard/discovery">
+                        <div
+                            class="absolute -right-4 -bottom-4 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700">
+                        </div>
+                        <div class="relative z-10 flex items-center justify-between">
+                            <div>
+                                <h2 class="text-3xl font-display font-bold text-white italic mb-2 tracking-wide">CONNECT
+                                    WITH A SPECIALIST</h2>
+                                <p class="text-white/80 font-bold text-xs uppercase tracking-widest">Padel, Pilates,
+                                    Musculation & more</p>
+                            </div>
+                            <div
+                                class="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-galio-orange shadow-xl transform rotate-12 group-hover:rotate-0 transition-transform">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
                 <!-- Today's Workout -->
                 <section>
                     <div class="flex items-center justify-between mb-4">
@@ -201,8 +327,9 @@
                                         class="inline-block px-3 py-1 rounded-full bg-gosport-orange/20 text-gosport-orange text-xs font-bold uppercase tracking-wider mb-3">
                                         Today's Session
                                     </span>
-                                    <h3 class="text-3xl md:text-4xl font-display font-bold text-white italic">UPPER BODY
-                                        POWER</h3>
+                                    <h3 class="text-3xl md:text-4xl font-display font-bold text-white uppercase italic">
+                                        {{ todayWorkoutName }}
+                                    </h3>
                                 </div>
 
                                 <div class="flex flex-wrap items-center gap-4 text-sm text-slate-400">
@@ -219,20 +346,21 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                                         </svg>
-                                        8 Exercises
+                                        {{ todayExerciseCount }} Exercises
                                     </span>
                                     <span class="w-1 h-1 rounded-full bg-slate-600"></span>
                                     <span class="text-white font-bold">ADVANCED</span>
                                 </div>
 
                                 <div class="flex flex-wrap gap-4 pt-2">
-                                    <button
-                                        class="px-8 py-3 rounded-xl bg-gosport-orange hover:bg-orange-600 text-white font-bold uppercase tracking-wider shadow-lg shadow-gosport-orange/25 transition-all active:scale-[0.98]">
-                                        Start Workout
+                                    <button (click)="startWorkout()" [disabled]="isStartingWorkout || workoutCompleted"
+                                        class="px-8 py-3 rounded-xl bg-gosport-orange hover:bg-orange-600 text-white font-bold uppercase tracking-wider shadow-lg shadow-gosport-orange/25 transition-all active:scale-[0.98] disabled:opacity-50">
+                                        {{ isStartingWorkout ? 'Starting...' : (workoutCompleted ? 'Workout Finished' :
+                                        (workoutAlreadyStarted ? 'Resume Workout' : 'Start Workout')) }}
                                     </button>
-                                    <button
+                                    <button routerLink="/dashboard/workout-history"
                                         class="px-8 py-3 rounded-xl border border-slate-600 hover:border-white text-white font-bold uppercase tracking-wider transition-colors">
-                                        View Details
+                                        View History
                                     </button>
                                 </div>
                             </div>
@@ -247,8 +375,9 @@
                                         class="text-gosport-orange" />
                                 </svg>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center text-white">
-                                    <span class="text-2xl font-bold font-display">0%</span>
-                                    <span class="text-[10px] uppercase font-bold text-slate-500">Complete</span>
+                                    <span class="text-2xl font-bold font-display">{{ workoutCompleted ? '100%' :
+                                        (workoutAlreadyStarted ? '50%' : '0%') }}</span>
+                                    <span class="text-[10px] uppercase font-bold text-slate-500">Status</span>
                                 </div>
                             </div>
                         </div>
