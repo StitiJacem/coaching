@@ -1,0 +1,114 @@
+[
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-xhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_services.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_services.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-anydpi-v26\\ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-debug-39:/layout_activity_book_appointment.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-41:/layout/activity_book_appointment.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_book_appointment.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_book_appointment.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_item_service.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\item_service.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_item_vehicle.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\item_vehicle.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_item_appointment.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\item_appointment.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-mdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_dialog_vehicle.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\dialog_vehicle.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-xhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-mdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-anydpi-v26\\ic_launcher.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-hdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_signup.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_signup.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_home.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_home.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-xxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-xxxhdpi\\ic_launcher_round.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-xxxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-xxhdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\drawable_ic_launcher_foreground.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\drawable\\ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_appointments.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_appointments.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\drawable_ic_launcher_background.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\drawable\\ic_launcher_background.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_profile.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_profile.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\mipmap-hdpi\\ic_launcher.webp"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_login.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_login.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-debug-39:\\layout_activity_vehicles.xml.flat",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_vehicles.xml"
+    }
+]

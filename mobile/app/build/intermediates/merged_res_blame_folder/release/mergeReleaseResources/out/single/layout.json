@@ -1,0 +1,22 @@
+[
+    {
+        "merged": "com.mecanotun.mobile.app-mergeReleaseResources-38:/layout/activity_services.xml",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_services.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-mergeReleaseResources-38:/layout/activity_signup.xml",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_signup.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-mergeReleaseResources-38:/layout/activity_home.xml",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_home.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-mergeReleaseResources-38:/layout/activity_login.xml",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_login.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-mergeReleaseResources-38:/layout/activity_profile.xml",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_profile.xml"
+    }
+]

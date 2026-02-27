@@ -1,0 +1,30 @@
+[
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-mergeDebugResources-38:\\layout\\activity_signup.xml",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_signup.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-mergeDebugResources-38:\\layout\\activity_services.xml",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_services.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-mergeDebugResources-38:\\layout\\activity_login.xml",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_login.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-mergeDebugResources-38:\\layout\\activity_home.xml",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_home.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-mergeDebugResources-38:\\layout\\activity_book_appointment.xml",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_book_appointment.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-mergeDebugResources-38:/layout/activity_book_appointment.xml",
+        "source": "com.mecanotun.mobile.app-main-41:/layout/activity_book_appointment.xml"
+    },
+    {
+        "merged": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-mergeDebugResources-38:\\layout\\activity_profile.xml",
+        "source": "C:\\Users\\Jacem\\.gradle\\daemon\\9.0-milestone-1\\com.mecanotun.mobile.app-main-41:\\layout\\activity_profile.xml"
+    }
+]

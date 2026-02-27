@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_light">#FAFAFA</color>
+    <color name="black">#FF000000</color>
+    <color name="gray">#757575</color>
+    <color name="light_gray">#EEEEEE</color>
+    <color name="mecanotun_blue">#1976D2</color>
+    <color name="mecanotun_dark_blue">#0D47A1</color>
+    <color name="mecanotun_dark_orange">#E65100</color>
+    <color name="mecanotun_green">#43A047</color>
+    <color name="mecanotun_light_blue">#BBDEFB</color>
+    <color name="mecanotun_light_orange">#FFE0B2</color>
+    <color name="mecanotun_orange">#FF6F00</color>
+    <color name="purple_200">#FFBB86FC</color>
+    <color name="purple_500">#6200EE</color>
+    <color name="purple_700">#3700B3</color>
+    <color name="status_cancelled">#EF5350</color>
+    <color name="status_completed">#42A5F5</color>
+    <color name="status_confirmed">#66BB6A</color>
+    <color name="status_pending">#FFA726</color>
+    <color name="teal_200">#03DAC5</color>
+    <color name="teal_700">#018786</color>
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="action_sign_up">Create Account</string>
+    <string name="add_mechanic">Add Mechanic</string>
+    <string name="address">Address</string>
+    <string name="admin_dashboard">Admin Dashboard</string>
+    <string name="already_have_account">Already have an account?</string>
+    <string name="app_name">MecanoTun Mobile</string>
+    <string name="appointment_car">Car: %1$s %2$s (%3$d)</string>
+    <string name="appointment_date">Date: %s</string>
+    <string name="appointment_status">Status: %s</string>
+    <string name="appointment_time">Time: %s</string>
+    <string name="appointments_title">My Appointments</string>
+    <string name="book_appointment">Book Appointment</string>
+    <string name="book_appointment_title">Book Appointment</string>
+    <string name="book_now">Book Now</string>
+    <string name="booking_error">Failed to book appointment</string>
+    <string name="booking_success">Appointment booked successfully!</string>
+    <string name="browse_services">Browse Services</string>
+    <string name="cancel">Cancel</string>
+    <string name="car_details">Car Details</string>
+    <string name="car_make">Car Make</string>
+    <string name="car_model">Car Model</string>
+    <string name="car_year">Car Year</string>
+    <string name="complete_appointment">Complete</string>
+    <string name="confirm_appointment">Confirm</string>
+    <string name="confirm_password">Confirm Password</string>
+    <string name="delete_mechanic">Delete Mechanic</string>
+    <string name="edit_profile">Edit Profile</string>
+    <string name="email">Email</string>
+    <string name="error_occurred">An error occurred</string>
+    <string name="full_name">Full Name</string>
+    <string name="home_title">MecanoTun</string>
+    <string name="in_repair">In Repair</string>
+    <string name="loading">Loading…</string>
+    <string name="login">Login</string>
+    <string name="login_button">Sign In</string>
+    <string name="login_error">Invalid email or password</string>
+    <string name="login_link">Login</string>
+    <string name="logout">Logout</string>
+    <string name="logout_confirmation">Are you sure you want to logout?</string>
+    <string name="manage_appointments">Manage Appointments</string>
+    <string name="manage_mechanics">Manage Mechanics</string>
+    <string name="mechanic_added">Mechanic added successfully</string>
+    <string name="mechanic_dashboard">Mechanic Dashboard</string>
+    <string name="mechanic_deleted">Mechanic deleted successfully</string>
+    <string name="my_appointments">My Appointments</string>
+    <string name="my_appointments_mechanic">My Appointments</string>
+    <string name="my_profile">My Profile</string>
+    <string name="no_account">Don\'t have an account?</string>
+    <string name="no_appointments">No appointments found</string>
+    <string name="no_appointments_mechanic">No appointments assigned to you</string>
+    <string name="no_mechanics">No mechanics found</string>
+    <string name="no_services">No services available</string>
+    <string name="password">Password</string>
+    <string name="passwords_dont_match">Passwords don\'t match</string>
+    <string name="phone">Phone Number</string>
+    <string name="profile_title">My Profile</string>
+    <string name="profile_update_error">Failed to update profile</string>
+    <string name="profile_updated">Profile updated successfully</string>
+    <string name="save">Save</string>
+    <string name="select_date">Select Date</string>
+    <string name="select_service">Select Service</string>
+    <string name="select_time">Select Time</string>
+    <string name="service_duration">Duration: %d min</string>
+    <string name="service_price">Price: %.2f DT</string>
+    <string name="services_title">Our Services</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="sign_up_link">Sign Up</string>
+    <string name="signup_error">Failed to create account</string>
+    <string name="status_updated">Status updated successfully</string>
+    <string name="submit_booking">Submit Booking</string>
+    <string name="success">Success</string>
+    <string name="update_status">Update Status</string>
+    <string name="welcome_message">Welcome to MecanoTun</string>
+    <string name="welcome_user">Welcome, %s!</string>
+    <style name="Theme.MecanoTunMobile" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+        
+        <item name="colorPrimary">@color/mecanotun_blue</item>
+        <item name="colorPrimaryVariant">@color/mecanotun_dark_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+        
+        <item name="colorSecondary">@color/mecanotun_orange</item>
+        <item name="colorSecondaryVariant">@color/mecanotun_dark_orange</item>
+        <item name="colorOnSecondary">@color/white</item>
+        
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        
+    </style>
+    <style name="Theme.MecanoTunMobile.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+</resources>
