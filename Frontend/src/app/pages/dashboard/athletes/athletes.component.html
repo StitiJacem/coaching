@@ -133,8 +133,7 @@
                             <div *ngIf="!isLoadingDrafts && draftPrograms.length > 0"
                                 class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                 <div *ngFor="let program of draftPrograms" (click)="selectedProgramId = program.id"
-                                    [class.border-gosport-orange]="selectedProgramId === program.id"
-                                    [class.bg-gosport-orange/5]="selectedProgramId === program.id"
+                                    [ngClass]="{'border-gosport-orange bg-gosport-orange/5': selectedProgramId === program.id}"
                                     class="p-4 bg-black/20 border border-white/5 rounded-2xl cursor-pointer hover:border-slate-600 transition-all">
                                     <div class="flex items-center justify-between">
                                         <h4 class="font-bold text-white">{{ program.name }}</h4>
