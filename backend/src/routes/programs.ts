@@ -14,6 +14,7 @@ router.get("/", ProgramController.getAll);
 router.get("/:id", ProgramController.getById);
 router.post("/", ProgramController.create);
 router.put("/:id", ProgramController.update);
+router.patch("/:id/accept", ProgramController.acceptProgram);
 router.delete("/:id", ProgramController.delete);
 
 export default router;

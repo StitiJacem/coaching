@@ -42,8 +42,14 @@ export class Program {
     @Column({ nullable: true })
     specialization?: string;
 
-    @Column({ default: "active" }) // status was duplicated, keeping only one
+    @Column({ default: "active" })
     status!: string;
+
+    @Column({ default: false })
+    isConfigured!: boolean;
+
+    @Column({ type: "jsonb", nullable: true })
+    scheduleConfig?: any;
 
     @OneToMany(() => ProgramDay, (day) => day.program, { cascade: true })
     days!: ProgramDay[];

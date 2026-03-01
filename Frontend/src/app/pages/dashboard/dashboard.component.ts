@@ -5,6 +5,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CoachService, CoachingRequest } from '../../services/coach.service';
 import { AuthService } from '../../services/auth.service';
+import { ProgramService, Program } from '../../services/program.service';
 
 @Component({
     selector: 'app-dashboard',
@@ -27,13 +28,19 @@ export class DashboardComponent implements OnInit {
     pendingRequests: CoachingRequest[] = [];
     isUpdatingRequest = false;
 
+    // Athlete-side program acceptance
+    pendingPrograms: Program[] = [];
+    showConfigModal = false;
+    selectedProgramForConfig: Program | null = null;
+
     constructor(
         public roleService: RoleService,
         private dashboardService: DashboardService,
         private workoutLogService: WorkoutLogService,
         private authService: AuthService,
         private router: Router,
-        private coachService: CoachService
+        private coachService: CoachService,
+        private programService: ProgramService
     ) { }
 
     ngOnInit() {
@@ -66,6 +73,7 @@ export class DashboardComponent implements OnInit {
         } else if (role === 'athlete') {
             this.loadAthleteData();
             this.loadCoachData(); // Reuse loadCoachData to get incoming requests for athletes too
+            this.loadPendingPrograms();
         }
     }
 
@@ -231,4 +239,30 @@ export class DashboardComponent implements OnInit {
     }
 
     onAddClient() { console.log('Add athlete clicked'); }
+
+    loadPendingPrograms() {
+        const user = this.authService.getUser();
+        if (!user) return;
+
+        this.programService.getAll({ status: 'assigned' }).subscribe({
+            next: (programs) => {
+                this.pendingPrograms = programs;
+            },
+            error: (err) => {
+                console.error('Error loading pending programs', err);
+            }
+        });
+    }
+
+    openConfigModal(program: Program) {
+        this.selectedProgramForConfig = program;
+        this.showConfigModal = true;
+    }
+
+    onProgramAccepted(updatedProgram: Program) {
+        this.showConfigModal = false;
+        this.selectedProgramForConfig = null;
+        this.pendingPrograms = this.pendingPrograms.filter(p => p.id !== updatedProgram.id);
+        this.loadAthleteData(); // Refresh today's workout
+    }
 }

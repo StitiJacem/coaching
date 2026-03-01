@@ -91,9 +91,9 @@ export class AthletesComponent implements OnInit {
   confirmAssignment(): void {
     if (!this.selectedAthlete || !this.selectedProgramId) return;
     this.isAssigning = true;
-    this.programService.update(this.selectedProgramId, {
+    this.programService.update(this.selectedProgramId!, {
       athleteId: this.selectedAthlete.id,
-      status: 'active'
+      status: 'assigned'
     }).subscribe({
       next: () => {
         alert('Program assigned successfully!');

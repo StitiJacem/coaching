@@ -34,6 +34,8 @@ export interface Program {
   type?: string;
   athlete?: any;
   coach?: any;
+  isConfigured?: boolean;
+  scheduleConfig?: any;
   days: ProgramDay[];
 }
 
@@ -82,6 +84,12 @@ export class ProgramService {
 
   update(id: number, program: Partial<Program>): Observable<Program> {
     return this.http.put<Program>(`${this.apiUrl}/${id}`, program, {
+      headers: this.getHeaders()
+    });
+  }
+
+  acceptProgram(id: number, config: { scheduleConfig: any; startDate?: string }): Observable<Program> {
+    return this.http.patch<Program>(`${this.apiUrl}/${id}/accept`, config, {
       headers: this.getHeaders()
     });
   }

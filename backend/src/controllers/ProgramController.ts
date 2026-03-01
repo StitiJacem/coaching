@@ -24,13 +24,13 @@ export class ProgramController {
 
             // Find active program for this athlete
             const program = await programRepo.findOne({
-                where: { athleteId: athlete.id, status: "active" },
+                where: { athleteId: athlete.id, status: "active", isConfigured: true },
                 relations: ["days", "days.exercises", "coach"],
                 order: { created_at: "DESC" },
             });
 
             if (!program || !program.days || program.days.length === 0) {
-                return res.json({ program: null, day: null, workoutLog: null, message: "No active program assigned" });
+                return res.json({ program: null, day: null, workoutLog: null, message: "No active, configured program found" });
             }
 
             // Sort days by day_number
@@ -129,7 +129,8 @@ export class ProgramController {
             program.startDate = new Date(startDate);
             program.endDate = endDate ? new Date(endDate) : undefined;
             program.type = type;
-            program.status = athleteId ? "active" : "draft";
+            program.status = athleteId ? "assigned" : "draft";
+            program.isConfigured = false;
 
             if (days && Array.isArray(days)) {
                 program.days = days.map((dayData: any) => {
@@ -188,6 +189,9 @@ export class ProgramController {
             if (name) program.name = name;
             if (description !== undefined) program.description = description;
             if (status) program.status = status;
+            if (program.athleteId && program.status === 'active' && !program.isConfigured) {
+                program.status = 'assigned';
+            }
             if (endDate) program.endDate = new Date(endDate);
             if (type) program.type = type;
 
@@ -250,6 +254,37 @@ export class ProgramController {
         } catch (error) {
             console.error("Error deleting program:", error);
             res.status(500).json({ message: "Error deleting program" });
+        }
+    };
+
+    // PATCH /api/programs/:id/accept - Athlete accepts and configures a program
+    static acceptProgram = async (req: Request, res: Response) => {
+        try {
+            const programRepo = AppDataSource.getRepository(Program);
+            const programId = parseInt(req.params.id as string);
+            const { scheduleConfig, startDate } = req.body;
+
+            const program = await programRepo.findOne({
+                where: { id: programId }
+            });
+
+            if (!program) {
+                return res.status(404).json({ message: "Program not found" });
+            }
+
+            program.status = "active";
+            program.isConfigured = true;
+            program.scheduleConfig = scheduleConfig;
+            if (startDate) {
+                program.startDate = new Date(startDate);
+            }
+
+            await programRepo.save(program);
+
+            res.json({ message: "Program accepted and configured successfully", program });
+        } catch (error) {
+            console.error("Error accepting program:", error);
+            res.status(500).json({ message: "Error accepting program" });
         }
     };
 }

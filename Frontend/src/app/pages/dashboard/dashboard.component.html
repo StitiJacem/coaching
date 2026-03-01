@@ -186,6 +186,50 @@
 
     <!-- ATHLETE VIEW -->
     <div *ngIf="roleService.currentRole === 'athlete'" class="space-y-8">
+        <!-- New Program Assignments Notification -->
+        <section *ngIf="pendingPrograms.length > 0" class="animate-slide-up">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-display font-bold text-white tracking-wide">New Program Assignments</h2>
+                <span class="px-2 py-0.5 rounded-full bg-gosport-orange text-white text-[10px] font-black uppercase">
+                    {{ pendingPrograms.length }} NEW
+                </span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div *ngFor="let program of pendingPrograms"
+                    class="p-8 rounded-[2rem] bg-gradient-to-br from-gosport-surface to-slate-900 border border-gosport-border hover:border-gosport-orange/50 transition-all group relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-gosport-orange/5 rounded-full blur-3xl group-hover:bg-gosport-orange/10 transition-colors">
+                    </div>
+
+                    <div class="relative z-10">
+                        <div class="flex items-center gap-4 mb-6">
+                            <div
+                                class="w-14 h-14 rounded-2xl bg-gosport-orange/10 flex items-center justify-center text-gosport-orange">
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-display font-black text-white uppercase italic">{{ program.name
+                                    }}</h3>
+                                <p class="text-[10px] font-bold text-gosport-orange uppercase tracking-widest">Assigned
+                                    by Coach</p>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-slate-400 mb-8 line-clamp-2">"{{ program.description || 'New training
+                            program ready for review.' }}"</p>
+
+                        <button (click)="openConfigModal(program)"
+                            class="w-full py-4 rounded-xl bg-white text-black font-black uppercase text-xs tracking-widest hover:bg-gosport-orange hover:text-white transition-all transform active:scale-[0.98] shadow-xl">
+                            Consult & Accept
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Header -->
         <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
@@ -589,3 +633,8 @@
         </div>
     </div>
 </app-dashboard-layout>
+
+<!-- Program Configuration Modal -->
+<app-program-config-modal *ngIf="showConfigModal && selectedProgramForConfig" [program]="selectedProgramForConfig"
+    (accepted)="onProgramAccepted($event)" (close)="showConfigModal = false">
+</app-program-config-modal>
