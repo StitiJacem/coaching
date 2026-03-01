@@ -21,7 +21,7 @@ export class AthletesComponent implements OnInit {
   showAssignModal = false;
   selectedAthlete: Athlete | null = null;
   draftPrograms: Program[] = [];
-  selectedProgramId: number | null = null;
+  selectedProgramId: number | null | undefined = null;
   isLoadingDrafts = false;
   isAssigning = false;
 
