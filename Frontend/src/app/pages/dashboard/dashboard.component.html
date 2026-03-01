@@ -636,5 +636,5 @@
 
 <!-- Program Configuration Modal -->
 <app-program-config-modal *ngIf="showConfigModal && selectedProgramForConfig" [program]="selectedProgramForConfig"
-    (accepted)="onProgramAccepted($event)" (close)="showConfigModal = false">
+    (accepted)="onProgramAccepted($any($event))" (close)="showConfigModal = false">
 </app-program-config-modal>

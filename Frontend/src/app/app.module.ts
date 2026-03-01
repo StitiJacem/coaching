@@ -37,6 +37,7 @@ import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.compon
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
 import { InviteModalComponent } from './pages/dashboard/athletes/invite-modal/invite-modal.component';
+import { ProgramConfigModalComponent } from './pages/dashboard/programs/program-config-modal.component';
 
 @NgModule({
   declarations: [
@@ -86,7 +87,8 @@ import { InviteModalComponent } from './pages/dashboard/athletes/invite-modal/in
     CardComponent,
     BadgeComponent,
     ButtonComponent,
-    AvatarComponent
+    AvatarComponent,
+    ProgramConfigModalComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
