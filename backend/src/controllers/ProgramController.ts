@@ -124,12 +124,12 @@ export class ProgramController {
             const program = new Program();
             program.name = name;
             program.description = description;
-            program.athleteId = athleteId;
+            program.athleteId = athleteId || undefined;
             program.coachId = coachId;
             program.startDate = new Date(startDate);
             program.endDate = endDate ? new Date(endDate) : undefined;
             program.type = type;
-            program.status = "active";
+            program.status = athleteId ? "active" : "draft";
 
             if (days && Array.isArray(days)) {
                 program.days = days.map((dayData: any) => {

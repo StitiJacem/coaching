@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, OneToMany } from "typeorm";
 import { Athlete } from "./Athlete";
 import { User } from "./User";
-import { CoachProfile } from "./CoachProfile";
+import { CoachProfile } from "./Coach";
 import { ProgramDay } from "./ProgramDay";
 
 @Entity("programs")
@@ -15,12 +15,12 @@ export class Program {
     @Column({ type: "text", nullable: true })
     description?: string;
 
-    @Column()
-    athleteId!: number;
+    @Column({ nullable: true })
+    athleteId?: number;
 
-    @ManyToOne(() => Athlete)
+    @ManyToOne(() => Athlete, { nullable: true })
     @JoinColumn({ name: "athleteId" })
-    athlete!: Athlete;
+    athlete?: Athlete;
 
     @Column({ nullable: true })
     coachId!: number;

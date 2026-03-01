@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../orm/data-source";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { Athlete } from "../entities/Athlete";
-import { CoachProfile } from "../entities/CoachProfile";
+import { CoachProfile } from "../entities/Coach";
 
 export class CoachingRequestController {
     // POST /api/coaching-requests - Athlete sends a request to a coach

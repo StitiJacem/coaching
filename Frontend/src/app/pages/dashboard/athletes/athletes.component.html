@@ -79,12 +79,13 @@
                 </div>
 
                 <div class="flex items-center justify-between pt-4 border-t border-white/5">
-                    <div class="flex -space-x-2">
-                        <div *ngFor="let i of [1,2,3]"
-                            class="w-8 h-8 rounded-full border-2 border-gosport-surface bg-slate-700 flex items-center justify-center text-[10px] font-bold text-white">
-                            P{{i}}
-                        </div>
-                    </div>
+                    <button (click)="openAssignModal(athlete)"
+                        class="text-xs font-bold text-gosport-orange uppercase tracking-wider hover:text-white transition-colors flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                        </svg>
+                        Assign Program
+                    </button>
                     <button *ngIf="athlete.id" [routerLink]="['/dashboard/athletes', athlete.id]"
                         class="text-xs font-bold text-slate-400 uppercase tracking-wider hover:text-white transition-colors flex items-center gap-2">
                         View Profile
@@ -92,6 +93,90 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                 d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assign Program Modal -->
+        <div *ngIf="showAssignModal" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" (click)="closeAssignModal()"></div>
+            <div
+                class="relative bg-gosport-surface border border-gosport-border rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl">
+                <div class="p-8">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <p class="text-slate-500 font-bold uppercase tracking-wider text-xs mb-1">Assign Program</p>
+                            <h2 class="text-3xl font-display font-bold text-white uppercase">{{
+                                selectedAthlete?.user?.first_name }} {{ selectedAthlete?.user?.last_name }}</h2>
+                        </div>
+                        <button (click)="closeAssignModal()" class="text-slate-500 hover:text-white transition-colors">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Option 1: Existing Drafts -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">Select
+                                Existing Draft</label>
+                            <div *ngIf="isLoadingDrafts" class="flex justify-center p-4">
+                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gosport-orange"></div>
+                            </div>
+                            <div *ngIf="!isLoadingDrafts && draftPrograms.length === 0"
+                                class="bg-black/20 rounded-2xl p-6 text-center border border-white/5">
+                                <p class="text-slate-400 text-sm">No draft programs found.</p>
+                            </div>
+                            <div *ngIf="!isLoadingDrafts && draftPrograms.length > 0"
+                                class="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                <div *ngFor="let program of draftPrograms" (click)="selectedProgramId = program.id"
+                                    [class.border-gosport-orange]="selectedProgramId === program.id"
+                                    [class.bg-gosport-orange/5]="selectedProgramId === program.id"
+                                    class="p-4 bg-black/20 border border-white/5 rounded-2xl cursor-pointer hover:border-slate-600 transition-all">
+                                    <div class="flex items-center justify-between">
+                                        <h4 class="font-bold text-white">{{ program.name }}</h4>
+                                        <div class="w-5 h-5 rounded-full border-2 border-slate-700 flex items-center justify-center"
+                                            [class.border-gosport-orange]="selectedProgramId === program.id">
+                                            <div *ngIf="selectedProgramId === program.id"
+                                                class="w-2.5 h-2.5 rounded-full bg-gosport-orange"></div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-slate-500 mt-1">{{ program.days.length }} Days • {{
+                                        program.type || 'Standard' }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <div class="flex-grow h-px bg-white/5"></div>
+                            <span class="text-[10px] font-bold text-slate-600 uppercase">OR</span>
+                            <div class="flex-grow h-px bg-white/5"></div>
+                        </div>
+
+                        <!-- Option 2: Create New -->
+                        <button (click)="createNewForAthlete()"
+                            class="w-full flex items-center justify-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold hover:bg-white/10 transition-all">
+                            <svg class="w-5 h-5 text-gosport-orange" fill="none" stroke="currentColor"
+                                viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 4v16m8-8H4" />
+                            </svg>
+                            Create New Program
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-8 bg-black/20 flex gap-4">
+                    <button (click)="closeAssignModal()"
+                        class="flex-1 px-8 py-4 rounded-2xl font-bold uppercase tracking-wider text-sm border border-slate-800 text-slate-400 hover:text-white hover:border-slate-600 transition-all">
+                        Cancel
+                    </button>
+                    <button (click)="confirmAssignment()" [disabled]="!selectedProgramId || isAssigning"
+                        class="flex-1 px-8 py-4 rounded-2xl font-bold uppercase tracking-wider text-sm bg-gosport-orange hover:bg-orange-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-gosport-orange/25 transition-all">
+                        {{ isAssigning ? 'Assigning...' : 'Assign Program' }}
                     </button>
                 </div>
             </div>

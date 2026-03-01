@@ -5,7 +5,7 @@ import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
 import { Goal } from "../entities/Goal";
-import { CoachProfile } from "../entities/CoachProfile";
+import { CoachProfile } from "../entities/Coach";
 import { CoachSpecialization } from "../entities/CoachSpecialization";
 import { CoachCertification } from "../entities/CoachCertification";
 import { ProgramDay } from "../entities/ProgramDay";

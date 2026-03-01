@@ -3,7 +3,7 @@ import { AppDataSource } from "../orm/data-source";
 import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
-import { CoachProfile } from "../entities/CoachProfile";
+import { CoachProfile } from "../entities/Coach";
 import { Brackets } from "typeorm";
 
 export class DashboardController {

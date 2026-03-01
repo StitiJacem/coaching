@@ -1,7 +1,7 @@
 import { AppDataSource } from "../orm/data-source";
 import { User } from "../entities/User";
 import { Athlete } from "../entities/Athlete";
-import { CoachProfile } from "../entities/CoachProfile";
+import { CoachProfile } from "../entities/Coach";
 import { CoachSpecialization } from "../entities/CoachSpecialization";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";

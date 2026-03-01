@@ -1,6 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
 import { Athlete } from "./Athlete";
-import { CoachProfile } from "./CoachProfile";
+import { CoachProfile } from "./Coach";
 
 export type CoachingRequestStatus = 'pending' | 'accepted' | 'rejected';
 

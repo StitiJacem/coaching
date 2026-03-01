@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn } from "typeorm";
-import { CoachProfile } from "./CoachProfile";
+import { CoachProfile } from "./Coach";
 
 @Entity("coach_certifications")
 export class CoachCertification {

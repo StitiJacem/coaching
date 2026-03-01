@@ -4,6 +4,7 @@ import { ExerciseService, Exercise } from '../../../services/exercise.service';
 import { ProgramService, ProgramDay, ProgramExercise, Program } from '../../../services/program.service';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { AuthService } from '../../../services/auth.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-programs',
@@ -56,13 +57,25 @@ export class ProgramsComponent implements OnInit {
     private exerciseService: ExerciseService,
     private programService: ProgramService,
     private athleteService: AthleteService,
-    private authService: AuthService
+    private authService: AuthService,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
     this.loadInitialExercises();
     this.loadPrograms();
     this.loadAthletes();
+    this.checkQueryParameters();
+  }
+
+  checkQueryParameters(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['athleteId']) {
+        const athleteId = parseInt(params['athleteId']);
+        this.startNewProgram();
+        this.selectedAthleteId = athleteId;
+      }
+    });
   }
 
   loadPrograms(): void {
@@ -164,14 +177,14 @@ export class ProgramsComponent implements OnInit {
   saveProgram(): void {
     const currentUser = this.authService.getUser();
     if (!currentUser) { alert('Not logged in.'); return; }
-    if (!this.selectedAthleteId) { alert('Please select an athlete to assign this program to.'); return; }
+    // if (!this.selectedAthleteId) { alert('Please select an athlete to assign this program to.'); return; }
 
     const programPayload: Partial<Program> = {
       name: this.programTitle,
       coachId: currentUser.id,
-      athleteId: this.selectedAthleteId,
+      athleteId: this.selectedAthleteId || undefined,
       startDate: new Date(),
-      status: 'active',
+      status: this.selectedAthleteId ? 'active' : 'draft',
       days: this.days
     };
 
@@ -181,7 +194,10 @@ export class ProgramsComponent implements OnInit {
 
     request.subscribe({
       next: () => {
-        alert(this.editingProgramId ? 'Program updated!' : 'Program saved & assigned!');
+        const successMsg = this.editingProgramId
+          ? 'Program updated!'
+          : (this.selectedAthleteId ? 'Program saved & assigned!' : 'Program saved to drafts!');
+        alert(successMsg);
         this.isCreating = false;
         this.editingProgramId = null;
         this.loadPrograms();

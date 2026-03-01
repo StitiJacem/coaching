@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../orm/data-source";
-import { CoachProfile } from "../entities/CoachProfile";
+import { CoachProfile } from "../entities/Coach";
 
 export class CoachController {
     // GET /api/coaches - Get all verified coaches

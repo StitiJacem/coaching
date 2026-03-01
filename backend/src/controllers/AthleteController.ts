@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../orm/data-source";
 import { Athlete } from "../entities/Athlete";
 import { User } from "../entities/User";
-import { CoachProfile } from "../entities/CoachProfile";
+import { CoachProfile } from "../entities/Coach";
 import { UserInvitation } from "../entities/UserInvitation";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { EmailService } from "../utils/EmailService";

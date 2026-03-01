@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { UserRepository } from '../repositories/UserRepository';
 import { User } from '../entities/User';
 import { AppDataSource } from '../orm/data-source';
-import { CoachProfile } from '../entities/CoachProfile';
+import { CoachProfile } from '../entities/Coach';
 import { CoachSpecialization } from '../entities/CoachSpecialization';
 
 import { EmailService } from '../utils/EmailService';

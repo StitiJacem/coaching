@@ -26,7 +26,7 @@ export interface Program {
   id?: number;
   name: string;
   description?: string;
-  athleteId: number;
+  athleteId?: number;
   coachId: number;
   status: string;
   startDate: Date | string;
