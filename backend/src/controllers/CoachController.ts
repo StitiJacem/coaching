@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../orm/data-source";
 import { CoachProfile } from "../entities/Coach";
+import { Athlete } from "../entities/Athlete";
+import { CoachingRequest } from "../entities/CoachingRequest";
 
 export class CoachController {
     // GET /api/coaches - Get all verified coaches
@@ -13,6 +15,27 @@ export class CoachController {
                 .leftJoinAndSelect("coach.user", "user")
                 .leftJoinAndSelect("coach.specializations", "specializations")
                 .where("coach.verified = :verified", { verified: true });
+
+            // If an athlete is listing coaches, filter out those they are already connected with or have pending requests for
+            const user = (req as any).user;
+            if (user && user.role === 'athlete') {
+                const athleteRepo = AppDataSource.getRepository(Athlete);
+                const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
+
+                if (athlete) {
+                    queryBuilder.andWhere(qb => {
+                        const subQuery = qb.subQuery()
+                            .select("req.coachProfileId")
+                            .from(CoachingRequest, "req")
+                            .where("req.athleteId = :athleteId")
+                            .andWhere("req.status IN (:...statuses)")
+                            .getQuery();
+                        return "coach.id NOT IN " + subQuery;
+                    })
+                        .setParameter("athleteId", athlete.id)
+                        .setParameter("statuses", ["pending", "accepted"]);
+                }
+            }
 
             if (specialization) {
                 queryBuilder.andWhere("specializations.specialization = :spec", { spec: specialization });

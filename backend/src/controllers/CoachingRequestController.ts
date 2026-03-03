@@ -37,17 +37,20 @@ export class CoachingRequestController {
 
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
 
-            // Check for existing request
+            // Check for existing request (pending or accepted)
             const existing = await requestRepo.findOne({
-                where: {
-                    athleteId: athlete.id,
-                    coachProfileId: coachProfileId,
-                    status: "pending"
-                }
+                where: [
+                    { athleteId: athlete.id, coachProfileId: coachProfileId, status: "pending" },
+                    { athleteId: athlete.id, coachProfileId: coachProfileId, status: "accepted" }
+                ]
             });
 
             if (existing) {
-                return res.status(400).json({ message: "You already have a pending request for this coach" });
+                if (existing.status === "pending") {
+                    return res.status(400).json({ message: "You already have a pending request for this coach" });
+                } else {
+                    return res.status(400).json({ message: "You are already connected with this coach" });
+                }
             }
 
             const request = requestRepo.create({
