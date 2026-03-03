@@ -14,5 +14,6 @@ router.get('/athlete/:athleteId', authenticateToken, CoachingRequestController.g
 // Coach routes
 router.get('/coach/:coachId', authenticateToken, CoachingRequestController.getRequestsByCoach);
 router.patch('/:id', authenticateToken, CoachingRequestController.updateStatus);
+router.delete('/:id', authenticateToken, CoachingRequestController.deleteRequest);
 
 export default router;

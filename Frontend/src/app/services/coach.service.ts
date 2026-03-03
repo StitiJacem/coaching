@@ -78,4 +78,8 @@ export class CoachService {
     updateRequestStatus(requestId: string, status: 'accepted' | 'rejected'): Observable<any> {
         return this.http.patch(`${this.requestUrl}/${requestId}`, { status }, { headers: this.getHeaders() });
     }
+
+    terminateConnection(requestId: string): Observable<any> {
+        return this.http.delete(`${this.requestUrl}/${requestId}`, { headers: this.getHeaders() });
+    }
 }

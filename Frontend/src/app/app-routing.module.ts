@@ -20,6 +20,7 @@ import { MedicalComponent } from './pages/dashboard/medical/medical.component';
 import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
+import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
 
 import { CompleteProfileComponent } from './pages/complete-profile/complete-profile.component';
 
@@ -43,6 +44,7 @@ const routes: Routes = [
   { path: 'dashboard/nutrition', component: NutritionComponent },
   { path: 'dashboard/medical', component: MedicalComponent },
   { path: 'dashboard/discovery', component: DiscoveryComponent },
+  { path: 'dashboard/coaches', component: MyCoachesComponent },
   { path: 'dashboard/workout/:id', component: WorkoutPlayerComponent },
   { path: 'dashboard/workout-history', component: WorkoutHistoryComponent },
   { path: 'home', component: HomeComponent },

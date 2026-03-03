@@ -38,6 +38,7 @@ import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
 import { InviteModalComponent } from './pages/dashboard/athletes/invite-modal/invite-modal.component';
 import { ProgramConfigModalComponent } from './pages/dashboard/programs/program-config-modal.component';
+import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
 
 @NgModule({
   declarations: [
@@ -65,7 +66,8 @@ import { ProgramConfigModalComponent } from './pages/dashboard/programs/program-
     DiscoveryComponent,
     WorkoutPlayerComponent,
     WorkoutHistoryComponent,
-    InviteModalComponent
+    InviteModalComponent,
+    MyCoachesComponent
   ],
   imports: [
     BrowserModule,

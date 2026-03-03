@@ -16,10 +16,12 @@ export class CoachingRequestController {
             }
 
             const athleteRepo = AppDataSource.getRepository(Athlete);
-            const athlete = await athleteRepo.findOne({ where: { userId } });
+            let athlete = await athleteRepo.findOne({ where: { userId } });
 
             if (!athlete) {
-                return res.status(404).json({ message: "Athlete profile not found" });
+                console.log(`[DEBUG] Auto-creating missing athlete profile for user ${userId}`);
+                athlete = athleteRepo.create({ userId, lastActive: new Date() });
+                await athleteRepo.save(athlete);
             }
 
             const { coachProfileId, message } = req.body;
@@ -144,14 +146,19 @@ export class CoachingRequestController {
 
             if (role === "athlete") {
                 const athleteRepo = AppDataSource.getRepository(Athlete);
-                const athlete = await athleteRepo.findOne({ where: { userId } });
-                if (!athlete) return res.status(404).json({ message: "Athlete profile not found" });
+                let athlete = await athleteRepo.findOne({ where: { userId } });
+
+                if (!athlete) {
+                    console.log(`[DEBUG] Auto-creating missing athlete profile for user ${userId} in getMyRequests`);
+                    athlete = athleteRepo.create({ userId, lastActive: new Date() });
+                    await athleteRepo.save(athlete);
+                }
 
                 const requests = await requestRepo.find({
-                    where: {
-                        athleteId: athlete.id,
-                        initiator: "coach" // Athletes only see invitations FROM coaches
-                    },
+                    where: [
+                        { athleteId: athlete.id, initiator: "coach" },
+                        { athleteId: athlete.id, status: "accepted" }
+                    ],
                     relations: ["coachProfile", "coachProfile.user"],
                     order: { created_at: "DESC" }
                 });
@@ -179,6 +186,46 @@ export class CoachingRequestController {
         } catch (error) {
             console.error("Error fetching my requests:", error);
             res.status(500).json({ message: "Error fetching requests" });
+        }
+    };
+
+    // DELETE /api/coaching-requests/:id - Terminate a connection or cancel a request
+    static deleteRequest = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user.id;
+            const role = (req as any).user.role;
+            const requestId = req.params.id;
+
+            const requestRepo = AppDataSource.getRepository(CoachingRequest);
+            const request = await requestRepo.findOne({
+                where: { id: requestId as string },
+                relations: ["athlete", "coachProfile"]
+            });
+
+            if (!request) {
+                return res.status(404).json({ message: "Request not found" });
+            }
+
+            // Authorization check: Only the athlete or coach involved can delete
+            const coachRepo = AppDataSource.getRepository(CoachProfile);
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+
+            const coachProfile = await coachRepo.findOne({ where: { userId } });
+            const athleteProfile = await athleteRepo.findOne({ where: { userId } });
+
+            const isCoachOfRequest = coachProfile && request.coachProfileId === coachProfile.id;
+            const isAthleteOfRequest = athleteProfile && request.athleteId === athleteProfile.id;
+
+            if (!isCoachOfRequest && !isAthleteOfRequest) {
+                return res.status(403).json({ message: "You are not authorized to terminate this connection" });
+            }
+
+            await requestRepo.remove(request);
+            res.json({ message: "Connection terminated successfully" });
+
+        } catch (error) {
+            console.error("Error deleting coaching request:", error);
+            res.status(500).json({ message: "Error terminating connection" });
         }
     };
 }
