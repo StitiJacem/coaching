@@ -34,6 +34,11 @@ export class SessionController {
                     date: targetDate,
                     nextDay
                 });
+            } else if (req.query.startDate && req.query.endDate) {
+                queryBuilder.andWhere("session.date >= :startDate AND session.date <= :endDate", {
+                    startDate: req.query.startDate,
+                    endDate: req.query.endDate
+                });
             }
             if (status) {
                 queryBuilder.andWhere("session.status = :status", { status });
@@ -104,6 +109,8 @@ export class SessionController {
             session.type = type;
             session.duration = duration;
             session.notes = notes;
+            session.title = req.body.title;
+            session.workoutData = req.body.workoutData;
             session.status = "upcoming";
 
             const savedSession = await sessionRepo.save(session);
@@ -139,6 +146,8 @@ export class SessionController {
             if (type) session.type = type;
             if (duration !== undefined) session.duration = duration;
             if (notes !== undefined) session.notes = notes;
+            if (req.body.title !== undefined) session.title = req.body.title;
+            if (req.body.workoutData !== undefined) session.workoutData = req.body.workoutData;
             if (status) session.status = status;
 
             const updatedSession = await sessionRepo.save(session);

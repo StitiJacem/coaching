@@ -2,9 +2,13 @@ import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AthleteService } from '../../../../services/athlete.service';
 
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule } from '@angular/forms';
+
 @Component({
     selector: 'app-invite-modal',
-    standalone: false,
+    standalone: true,
+    imports: [CommonModule, ReactiveFormsModule],
     templateUrl: './invite-modal.component.html',
     styleUrls: []
 })

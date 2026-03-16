@@ -5,6 +5,7 @@ import { User } from '../entities/User';
 import { AppDataSource } from '../orm/data-source';
 import { CoachProfile } from '../entities/Coach';
 import { CoachSpecialization } from '../entities/CoachSpecialization';
+import { Athlete } from '../entities/Athlete';
 
 import { EmailService } from '../utils/EmailService';
 
@@ -57,6 +58,11 @@ export class AuthService {
                     await transactionalEntityManager.save(specializationEntities);
                 }
             });
+        } else if (userData.role === 'athlete') {
+            const athleteProfile = new Athlete();
+            athleteProfile.userId = savedUser.id;
+            athleteProfile.lastActive = new Date();
+            await AppDataSource.getRepository(Athlete).save(athleteProfile);
         }
 
         const greetingName = savedUser.first_name || savedUser.username || 'Sportif';

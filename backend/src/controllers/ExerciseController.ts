@@ -39,4 +39,26 @@ export class ExerciseController {
             res.status(500).json({ message: "Error fetching body part" });
         }
     };
+
+    static getById = async (req: Request, res: Response) => {
+        try {
+            const exercise = await exerciseService.getById(req.params.id as string);
+            if (!exercise) return res.status(404).json({ message: "Exercise not found" });
+            res.json(exercise);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching exercise" });
+        }
+    };
+
+    // GET /api/exercises/video?name=barbell+squat
+    static getVideo = async (req: Request, res: Response) => {
+        try {
+            const name = req.query.name as string;
+            if (!name) return res.status(400).json({ message: "Exercise name required" });
+            const result = await exerciseService.getVideoForExercise(name);
+            res.json(result);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching video" });
+        }
+    };
 }

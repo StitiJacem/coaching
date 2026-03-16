@@ -6,9 +6,13 @@ export interface Exercise {
     id: string;
     name: string;
     target: string;
+    secondaryMuscles?: string[];
+    instructions?: string[];
     bodyPart: string;
     equipment: string;
     gifUrl: string;
+    videoId?: string;
+    videoTitle?: string;
 }
 
 @Injectable({
@@ -29,5 +33,13 @@ export class ExerciseService {
 
     getByBodyPart(bodyPart: string): Observable<Exercise[]> {
         return this.http.get<Exercise[]>(`${this.apiUrl}/bodypart/${bodyPart}`);
+    }
+
+    getById(id: string): Observable<Exercise> {
+        return this.http.get<Exercise>(`${this.apiUrl}/${id}`);
+    }
+
+    getVideoForExercise(name: string): Observable<{ videoId?: string; videoTitle?: string }> {
+        return this.http.get<{ videoId?: string; videoTitle?: string }>(`${this.apiUrl}/video?name=${encodeURIComponent(name)}`);
     }
 }

@@ -4,6 +4,7 @@ import { BehaviorSubject } from 'rxjs';
 export type UserRole = 'coach' | 'athlete' | 'doctor' | 'nutritionist' | 'manager';
 
 export interface UserProfile {
+    id: number;
     name: string;
     role: UserRole;
     roleLabel: string;
@@ -31,6 +32,7 @@ const navByRole: Record<UserRole, NavItem[]> = {
     ],
     athlete: [
         { icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', label: 'Dashboard', path: '/dashboard' },
+        { icon: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z', label: 'My Schedule', path: '/dashboard/schedule' },
         { icon: 'M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3', label: 'My Programs', path: '/dashboard/programs' },
         { icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01', label: 'Sessions', path: '/dashboard/sessions' },
         { icon: 'M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z', label: 'Goals', path: '/dashboard/goals' },
@@ -116,6 +118,7 @@ export class RoleService {
         }
 
         return {
+            id: user.id || 0,
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || 'User',
             role: this.currentRole,
             roleLabel: this.currentRole.charAt(0).toUpperCase() + this.currentRole.slice(1),

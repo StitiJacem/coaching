@@ -6,12 +6,21 @@ import { User } from "../entities/User";
 import { ProgramDay } from "../entities/ProgramDay";
 import { ProgramExercise } from "../entities/ProgramExercise";
 import { WorkoutLog } from "../entities/WorkoutLog";
+import { EmailService } from "../utils/EmailService";
 
 export class ProgramController {
     // GET /api/programs/athlete/:userId/today – returns the current day's workout for an athlete
     static getTodayWorkout = async (req: Request, res: Response) => {
         try {
-            const userId = parseInt(req.params.userId as string);
+            const user = (req as any).user;
+            let userId = parseInt(req.params.userId as string);
+
+            // SECURITY: Athletes can only fetch their own today's workout
+            if (user.role === 'athlete' && user.id !== userId) {
+                console.warn(`Security Warning: User ${user.id} attempted to access workout for user ${userId}`);
+                userId = user.id; // Force to their own ID
+            }
+
             const programRepo = AppDataSource.getRepository(Program);
             const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
 
@@ -68,7 +77,9 @@ export class ProgramController {
     static getAll = async (req: Request, res: Response) => {
         try {
             const programRepo = AppDataSource.getRepository(Program);
-            const { coachId, athleteId, status } = req.query;
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const user = (req as any).user;
+            let { coachId, athleteId, status } = req.query;
 
             const queryBuilder = programRepo.createQueryBuilder("program")
                 .leftJoinAndSelect("program.athlete", "athlete")
@@ -77,12 +88,25 @@ export class ProgramController {
                 .leftJoinAndSelect("program.days", "days")
                 .leftJoinAndSelect("days.exercises", "exercises");
 
-            if (coachId) {
-                queryBuilder.andWhere("program.coachId = :coachId", { coachId });
+            // SECURITY: If user is an athlete, force filter by their own athleteId
+            if (user.role === 'athlete') {
+                let athlete = await athleteRepo.findOne({ where: { userId: user.id } });
+                if (!athlete) {
+                    console.log(`[DEBUG] Auto-creating missing athlete profile for user ${user.id} in ProgramController.getAll`);
+                    athlete = athleteRepo.create({ userId: user.id, lastActive: new Date() });
+                    await athleteRepo.save(athlete);
+                }
+                queryBuilder.andWhere("program.athleteId = :myAthleteId", { myAthleteId: athlete.id });
+            } else {
+                // If not an athlete (e.g., coach), allow provided filters
+                if (coachId) {
+                    queryBuilder.andWhere("program.coachId = :coachId", { coachId });
+                }
+                if (athleteId) {
+                    queryBuilder.andWhere("program.athleteId = :athleteId", { athleteId });
+                }
             }
-            if (athleteId) {
-                queryBuilder.andWhere("program.athleteId = :athleteId", { athleteId });
-            }
+
             if (status) {
                 queryBuilder.andWhere("program.status = :status", { status });
             }
@@ -98,14 +122,26 @@ export class ProgramController {
     // GET /api/programs/:id - Get single program
     static getById = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const programRepo = AppDataSource.getRepository(Program);
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+
+            const programId = parseInt(req.params.id as string);
             const program = await programRepo.findOne({
-                where: { id: parseInt(req.params.id as string) },
+                where: { id: programId },
                 relations: ["athlete", "athlete.user", "coach", "days", "days.exercises"]
             });
 
             if (!program) {
                 return res.status(404).json({ message: "Program not found" });
+            }
+
+            // SECURITY: If user is an athlete, they must own the program
+            if (user.role === 'athlete') {
+                const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
+                if (!athlete || program.athleteId !== athlete.id) {
+                    return res.status(403).json({ message: "Access denied: You do not own this program" });
+                }
             }
 
             res.json(program);
@@ -146,7 +182,9 @@ export class ProgramController {
                             ex.exercise_gif = exData.exercise_gif;
                             ex.sets = exData.sets || 3;
                             ex.reps = exData.reps || 12;
-                            ex.order = exData.order || index;
+                            ex.rest_seconds = exData.rest_seconds || 60;
+                            ex.order = exData.order !== undefined ? exData.order : index;
+                            ex.programDay = day;
                             return ex;
                         });
                     }
@@ -184,16 +222,19 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            const { name, description, status, endDate, type, days } = req.body;
+            const { name, description, status, endDate, type, days, athleteId, isConfigured } = req.body;
 
             if (name) program.name = name;
             if (description !== undefined) program.description = description;
             if (status) program.status = status;
+            if (athleteId !== undefined) program.athleteId = athleteId;
+            if (isConfigured !== undefined) program.isConfigured = isConfigured;
+            if (endDate) program.endDate = new Date(endDate);
+            if (type) program.type = type;
+
             if (program.athleteId && program.status === 'active' && !program.isConfigured) {
                 program.status = 'assigned';
             }
-            if (endDate) program.endDate = new Date(endDate);
-            if (type) program.type = type;
 
             if (days && Array.isArray(days)) {
                 // Clear existing days to rebuild hierarchy (prevents orphaned records in this MVP)
@@ -215,7 +256,9 @@ export class ProgramController {
                             ex.exercise_gif = exData.exercise_gif;
                             ex.sets = exData.sets || 3;
                             ex.reps = exData.reps || 12;
-                            ex.order = exData.order || index;
+                            ex.rest_seconds = exData.rest_seconds || 60;
+                            ex.order = exData.order !== undefined ? exData.order : index;
+                            ex.programDay = day;
                             return ex;
                         });
                     }
@@ -265,7 +308,8 @@ export class ProgramController {
             const { scheduleConfig, startDate } = req.body;
 
             const program = await programRepo.findOne({
-                where: { id: programId }
+                where: { id: programId },
+                relations: ["athlete", "athlete.user", "coach"]
             });
 
             if (!program) {
@@ -280,6 +324,16 @@ export class ProgramController {
             }
 
             await programRepo.save(program);
+
+            // Send notification to coach if possible
+            if (program.coach?.email && program.athlete?.user) {
+                const athleteName = `${program.athlete.user.first_name || ''} ${program.athlete.user.last_name || ''}`.trim() || program.athlete.user.email;
+                EmailService.sendProgramAcceptanceNotification(
+                    program.coach.email,
+                    athleteName,
+                    program.name
+                ).catch(err => console.error("Failed to send coach notification:", err));
+            }
 
             res.json({ message: "Program accepted and configured successfully", program });
         } catch (error) {

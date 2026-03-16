@@ -8,6 +8,8 @@ export interface ProgramExercise {
   exercise_id: string;
   exercise_name: string;
   exercise_gif?: string;
+  videoId?: string;
+  videoTitle?: string;
   sets: number;
   reps: number;
   rpe?: number;
@@ -88,7 +90,7 @@ export class ProgramService {
     });
   }
 
-  acceptProgram(id: number, config: { scheduleConfig: any; startDate?: string }): Observable<Program> {
+  acceptProgram(id: number, config: { scheduleConfig?: any; startDate?: string }): Observable<Program> {
     return this.http.patch<Program>(`${this.apiUrl}/${id}/accept`, config, {
       headers: this.getHeaders()
     });

@@ -15,6 +15,8 @@ export interface Session {
   notes?: string;
   athlete?: any;
   program?: any;
+  title?: string;
+  workoutData?: any;
 }
 
 @Injectable({
@@ -36,11 +38,13 @@ export class SessionService {
     });
   }
 
-  getAll(filters?: { athleteId?: number; programId?: number; date?: string; status?: string }): Observable<Session[]> {
+  getAll(filters?: { athleteId?: number; programId?: number; date?: string; startDate?: string; endDate?: string; status?: string }): Observable<Session[]> {
     let params: any = {};
     if (filters?.athleteId) params.athleteId = filters.athleteId;
     if (filters?.programId) params.programId = filters.programId;
     if (filters?.date) params.date = filters.date;
+    if (filters?.startDate) params.startDate = filters.startDate;
+    if (filters?.endDate) params.endDate = filters.endDate;
     if (filters?.status) params.status = filters.status;
 
     return this.http.get<Session[]>(this.apiUrl, {

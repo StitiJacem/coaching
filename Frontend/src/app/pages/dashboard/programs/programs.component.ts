@@ -1,68 +1,46 @@
 import { Component, OnInit } from '@angular/core';
 import { RoleService } from '../../../services/role.service';
-import { ExerciseService, Exercise } from '../../../services/exercise.service';
-import { ProgramService, ProgramDay, ProgramExercise, Program } from '../../../services/program.service';
+import { ProgramService, Program } from '../../../services/program.service';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { AuthService } from '../../../services/auth.service';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { DashboardLayoutComponent } from '../../../components/dashboard-layout/dashboard-layout.component';
 
 @Component({
   selector: 'app-programs',
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, DashboardLayoutComponent],
   templateUrl: './programs.component.html',
   styleUrls: ['./programs.component.css']
 })
 export class ProgramsComponent implements OnInit {
-  isCreating = false;
   programs: Program[] = [];
   isLoadingPrograms = false;
-  editingProgramId: number | null = null;
 
-  programTitle = '';
-
-  // Athlete assignment
+  // Athlete assignment (for the assignment modal)
   athletes: Athlete[] = [];
-  selectedAthleteId: number | null = null;
   isLoadingAthletes = false;
 
-  // Assign modal state
+  // Assign modal state (assigning existing programs)
   showAssignModal = false;
   assigningProgram: Program | null = null;
   assignModalAthleteId: number | null = null;
   isAssigning = false;
 
-  // Multi-Day State
-  days: ProgramDay[] = [];
-  activeDayIndex = 0;
-
-  // Exercise Library State
-  exerciseLibrary: Exercise[] = [];
-  searchQuery = '';
-  activeMuscleFilter = 'ALL';
-  isLoadingExercises = false;
-
-  muscles = [
-    { id: 'ALL', label: 'All' },
-    { id: 'abs', label: 'Abs' },
-    { id: 'back', label: 'Back' },
-    { id: 'biceps', label: 'Biceps' },
-    { id: 'chest', label: 'Chest' },
-    { id: 'legs', label: 'Legs' },
-    { id: 'shoulders', label: 'Shoulders' },
-    { id: 'triceps', label: 'Triceps' }
-  ];
-
   constructor(
     public roleService: RoleService,
-    private exerciseService: ExerciseService,
     private programService: ProgramService,
     private athleteService: AthleteService,
     private authService: AuthService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router
   ) { }
 
   ngOnInit(): void {
-    this.loadInitialExercises();
     this.loadPrograms();
     this.loadAthletes();
     this.checkQueryParameters();
@@ -71,9 +49,7 @@ export class ProgramsComponent implements OnInit {
   checkQueryParameters(): void {
     this.route.queryParams.subscribe(params => {
       if (params['athleteId']) {
-        const athleteId = parseInt(params['athleteId']);
-        this.startNewProgram();
-        this.selectedAthleteId = athleteId;
+        // Future: Handle deep linking to assignment
       }
     });
   }
@@ -83,7 +59,10 @@ export class ProgramsComponent implements OnInit {
     if (!currentUser) return;
     this.isLoadingPrograms = true;
     this.programService.getAll({ coachId: currentUser.id }).subscribe({
-      next: (data) => { this.programs = data; this.isLoadingPrograms = false; },
+      next: (data) => {
+        this.programs = data;
+        this.isLoadingPrograms = false;
+      },
       error: () => { this.isLoadingPrograms = false; }
     });
   }
@@ -96,74 +75,14 @@ export class ProgramsComponent implements OnInit {
     });
   }
 
-  loadInitialExercises(): void {
-    this.isLoadingExercises = true;
-    this.exerciseService.getAllExercises(50).subscribe({
-      next: (data) => { this.exerciseLibrary = data; this.isLoadingExercises = false; },
-      error: () => { this.isLoadingExercises = false; }
-    });
-  }
-
-  searchExercises(): void {
-    if (!this.searchQuery.trim()) { this.loadInitialExercises(); return; }
-    this.isLoadingExercises = true;
-    this.exerciseService.searchExercises(this.searchQuery).subscribe({
-      next: (data) => { this.exerciseLibrary = data; this.isLoadingExercises = false; },
-      error: () => { this.isLoadingExercises = false; }
-    });
-  }
-
-  filterByMuscle(muscle: string): void {
-    this.activeMuscleFilter = muscle;
-    if (muscle === 'ALL') { this.loadInitialExercises(); return; }
-    this.isLoadingExercises = true;
-    this.exerciseService.getByBodyPart(muscle).subscribe({
-      next: (data) => { this.exerciseLibrary = data; this.isLoadingExercises = false; },
-      error: () => { this.isLoadingExercises = false; }
-    });
-  }
-
   startNewProgram(): void {
-    this.isCreating = true;
-    this.editingProgramId = null;
-    this.selectedAthleteId = null;
-    this.programTitle = 'New Training Program';
-    this.days = [{ day_number: 1, title: 'Day 1: Initial Session', exercises: [] }];
-    this.activeDayIndex = 0;
+    this.router.navigate(['/dashboard/master-planner']);
   }
 
-  addDay(): void {
-    const nextNum = this.days.length + 1;
-    this.days.push({ day_number: nextNum, title: `Day ${nextNum}`, exercises: [] });
-    this.activeDayIndex = this.days.length - 1;
-  }
-
-  removeDay(index: number): void {
-    if (this.days.length > 1) {
-      this.days.splice(index, 1);
-      this.days.forEach((day, i) => { day.day_number = i + 1; });
-      if (this.activeDayIndex >= this.days.length) this.activeDayIndex = this.days.length - 1;
+  editProgram(program: Program): void {
+    if (program.id) {
+      this.router.navigate(['/dashboard/master-planner', program.id]);
     }
-  }
-
-  setActiveDay(index: number): void { this.activeDayIndex = index; }
-
-  addExercise(exercise: Exercise): void {
-    const activeDay = this.days[this.activeDayIndex];
-    if (!activeDay) return;
-    activeDay.exercises.push({
-      exercise_id: exercise.id,
-      exercise_name: exercise.name,
-      exercise_gif: exercise.gifUrl,
-      sets: 3,
-      reps: 12,
-      order: activeDay.exercises.length
-    });
-  }
-
-  removeExercise(index: number): void {
-    const activeDay = this.days[this.activeDayIndex];
-    if (activeDay) activeDay.exercises.splice(index, 1);
   }
 
   getAthleteName(athlete: Athlete): string {
@@ -172,50 +91,6 @@ export class ProgramsComponent implements OnInit {
       return name || athlete.user.email;
     }
     return `Athlete #${athlete.id}`;
-  }
-
-  saveProgram(): void {
-    const currentUser = this.authService.getUser();
-    if (!currentUser) { alert('Not logged in.'); return; }
-    // if (!this.selectedAthleteId) { alert('Please select an athlete to assign this program to.'); return; }
-
-    const programPayload: Partial<Program> = {
-      name: this.programTitle,
-      coachId: currentUser.id,
-      athleteId: this.selectedAthleteId || undefined,
-      startDate: new Date(),
-      status: this.selectedAthleteId ? 'active' : 'draft',
-      days: this.days
-    };
-
-    const request = this.editingProgramId
-      ? this.programService.update(this.editingProgramId, programPayload)
-      : this.programService.create(programPayload);
-
-    request.subscribe({
-      next: () => {
-        const successMsg = this.editingProgramId
-          ? 'Program updated!'
-          : (this.selectedAthleteId ? 'Program saved & assigned!' : 'Program saved to drafts!');
-        alert(successMsg);
-        this.isCreating = false;
-        this.editingProgramId = null;
-        this.loadPrograms();
-      },
-      error: (err: any) => {
-        console.error('Save failed:', err);
-        alert('Failed to save program.');
-      }
-    });
-  }
-
-  editProgram(program: Program): void {
-    this.isCreating = true;
-    this.editingProgramId = program.id || null;
-    this.programTitle = program.name;
-    this.selectedAthleteId = program.athleteId || null;
-    this.days = JSON.parse(JSON.stringify(program.days)) || [];
-    this.activeDayIndex = 0;
   }
 
   assignToAthlete(program: Program): void {
@@ -227,7 +102,11 @@ export class ProgramsComponent implements OnInit {
   confirmAssign(): void {
     if (!this.assigningProgram || !this.assignModalAthleteId) return;
     this.isAssigning = true;
-    this.programService.update(this.assigningProgram.id!, { athleteId: this.assignModalAthleteId, status: 'active' }).subscribe({
+    this.programService.update(this.assigningProgram.id!, {
+      athleteId: this.assignModalAthleteId,
+      status: 'active',
+      isConfigured: true // Auto-configure when assigned from template
+    }).subscribe({
       next: () => {
         this.isAssigning = false;
         this.showAssignModal = false;
@@ -241,10 +120,5 @@ export class ProgramsComponent implements OnInit {
   cancelAssign(): void {
     this.showAssignModal = false;
     this.assigningProgram = null;
-  }
-
-  cancel(): void {
-    this.isCreating = false;
-    this.editingProgramId = null;
   }
 }

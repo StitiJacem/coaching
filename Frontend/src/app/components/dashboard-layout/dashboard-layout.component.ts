@@ -1,9 +1,13 @@
 import { Component } from '@angular/core';
 import { RoleService } from '../../services/role.service';
 
+import { CommonModule } from '@angular/common';
+import { SidebarComponent } from '../sidebar/sidebar.component';
+
 @Component({
     selector: 'app-dashboard-layout',
-    standalone: false,
+    standalone: true,
+    imports: [CommonModule, SidebarComponent],
     templateUrl: './dashboard-layout.component.html',
     styleUrls: ['./dashboard-layout.component.css']
 })

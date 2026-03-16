@@ -6,10 +6,42 @@ import { Router } from '@angular/router';
 import { CoachService, CoachingRequest } from '../../services/coach.service';
 import { AuthService } from '../../services/auth.service';
 import { ProgramService, Program } from '../../services/program.service';
+import { SessionService, Session } from '../../services/session.service';
+import { AthleteService, Athlete } from '../../services/athlete.service';
+import {
+    startOfWeek,
+    endOfWeek,
+    eachDayOfInterval,
+    format,
+    isSameDay,
+    isToday,
+    getDay
+} from 'date-fns';
+
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+import { DashboardLayoutComponent } from '../../components/dashboard-layout/dashboard-layout.component';
+import { CardComponent } from '../../components/ui/card/card.component';
+import { AvatarComponent } from '../../components/ui/avatar/avatar.component';
+import { BadgeComponent } from '../../components/ui/badge/badge.component';
+import { ButtonComponent } from '../../components/ui/button/button.component';
+import { ProgramConfigModalComponent } from './programs/program-config-modal.component';
 
 @Component({
     selector: 'app-dashboard',
-    standalone: false,
+    standalone: true,
+    imports: [
+        CommonModule,
+        RouterModule,
+        LucideAngularModule,
+        DashboardLayoutComponent,
+        CardComponent,
+        AvatarComponent,
+        BadgeComponent,
+        ButtonComponent,
+        ProgramConfigModalComponent
+    ],
     templateUrl: './dashboard.component.html',
     styleUrls: ['./dashboard.component.css']
 })
@@ -24,6 +56,9 @@ export class DashboardComponent implements OnInit {
     // Athlete-specific real data
     todayWorkout: TodayWorkout | null = null;
     workoutStats: AthleteWorkoutStats | null = null;
+    weekDays: Date[] = [];
+    weekSessions: Session[] = [];
+    currentWeekRange: string = '';
     // Coach-specific real data
     pendingRequests: CoachingRequest[] = [];
     isUpdatingRequest = false;
@@ -32,6 +67,7 @@ export class DashboardComponent implements OnInit {
     pendingPrograms: Program[] = [];
     showConfigModal = false;
     selectedProgramForConfig: Program | null = null;
+    athleteId: number | null = null;
 
     constructor(
         public roleService: RoleService,
@@ -40,7 +76,9 @@ export class DashboardComponent implements OnInit {
         private authService: AuthService,
         private router: Router,
         private coachService: CoachService,
-        private programService: ProgramService
+        private programService: ProgramService,
+        private sessionService: SessionService,
+        private athleteService: AthleteService
     ) { }
 
     ngOnInit() {
@@ -71,13 +109,57 @@ export class DashboardComponent implements OnInit {
         if (role === 'coach') {
             this.loadCoachData();
         } else if (role === 'athlete') {
-            this.loadAthleteData();
-            this.loadCoachData(); // Reuse loadCoachData to get incoming requests for athletes too
-            this.loadPendingPrograms();
+            this.athleteService.getAll().subscribe({
+                next: (athletes) => {
+                    if (athletes.length > 0) {
+                        const athlete = athletes[0];
+                        this.athleteId = athlete.id!;
+                        this.loadAthleteData(this.athleteId);
+                        this.loadCoachData();
+                        this.loadPendingPrograms(this.athleteId);
+                        this.initializeWeeklySchedule(this.athleteId);
+                    }
+                },
+                error: (err) => console.error('Error loading athlete profile', err)
+            });
         }
     }
 
-    loadAthleteData() {
+    initializeWeeklySchedule(athleteId: number) {
+        const now = new Date();
+        const start = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+        const end = endOfWeek(now, { weekStartsOn: 1 });
+
+        this.weekDays = eachDayOfInterval({ start, end });
+        this.currentWeekRange = `${format(start, 'MMM d').toUpperCase()}-${format(end, 'd')}`;
+
+        this.loadWeeklySessions(athleteId, start, end);
+    }
+
+    loadWeeklySessions(athleteId: number, start: Date, end: Date) {
+        this.sessionService.getAll({
+            athleteId: athleteId,
+            startDate: format(start, 'yyyy-MM-dd'),
+            endDate: format(end, 'yyyy-MM-dd')
+        }).subscribe({
+            next: (sessions) => {
+                this.weekSessions = sessions;
+            },
+            error: (err) => {
+                console.error('Error loading weekly sessions', err);
+            }
+        });
+    }
+
+    hasSessionOn(day: Date): boolean {
+        return this.weekSessions.some(s => isSameDay(new Date(s.date), day));
+    }
+
+    isToday(day: Date): boolean {
+        return isToday(day);
+    }
+
+    loadAthleteData(athleteId: number) {
         const user = this.authService.getUser();
         if (!user) return;
 
@@ -85,13 +167,10 @@ export class DashboardComponent implements OnInit {
         this.workoutLogService.getTodayWorkout(user.id).subscribe({
             next: (data: TodayWorkout) => {
                 this.todayWorkout = data;
-                // Load workout stats if we have an athleteId
-                if (data.athleteId) {
-                    this.workoutLogService.getAthleteStats(data.athleteId).subscribe({
-                        next: (stats: AthleteWorkoutStats) => { this.workoutStats = stats; },
-                        error: (err: any) => { console.error('Error loading workout stats', err); }
-                    });
-                }
+                this.workoutLogService.getAthleteStats(athleteId).subscribe({
+                    next: (stats: AthleteWorkoutStats) => { this.workoutStats = stats; },
+                    error: (err: any) => { console.error('Error loading workout stats', err); }
+                });
             },
             error: (err: any) => { console.error('Error loading today workout', err); }
         });
@@ -240,29 +319,30 @@ export class DashboardComponent implements OnInit {
 
     onAddClient() { console.log('Add athlete clicked'); }
 
-    loadPendingPrograms() {
-        const user = this.authService.getUser();
-        if (!user) return;
-
-        this.programService.getAll({ status: 'assigned' }).subscribe({
-            next: (programs) => {
+    loadPendingPrograms(athleteId: number) {
+        this.programService.getAll({
+            status: 'assigned',
+            athleteId: athleteId
+        }).subscribe({
+            next: (programs: Program[]) => {
                 this.pendingPrograms = programs;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error loading pending programs', err);
             }
         });
     }
 
     openConfigModal(program: Program) {
-        this.selectedProgramForConfig = program;
-        this.showConfigModal = true;
+        this.router.navigate(['/dashboard/program-preview', program.id]);
     }
 
     onProgramAccepted(updatedProgram: Program) {
         this.showConfigModal = false;
         this.selectedProgramForConfig = null;
         this.pendingPrograms = this.pendingPrograms.filter(p => p.id !== updatedProgram.id);
-        this.loadAthleteData(); // Refresh today's workout
+        if (this.athleteId) {
+            this.loadAthleteData(this.athleteId);
+        }
     }
 }

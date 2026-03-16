@@ -209,7 +209,7 @@ export class AthleteController {
                 return res.status(404).json({ message: "Athlete not found" });
             }
 
-            const { age, height, weight, sport, goals, profilePicture } = req.body;
+            const { age, height, weight, sport, goals, profilePicture, preferredTrainingDays } = req.body;
 
             if (age !== undefined) athlete.age = age;
             if (height !== undefined) athlete.height = height;
@@ -217,6 +217,7 @@ export class AthleteController {
             if (sport !== undefined) athlete.sport = sport;
             if (goals !== undefined) athlete.goals = goals;
             if (profilePicture !== undefined) athlete.profilePicture = profilePicture;
+            if (preferredTrainingDays !== undefined) athlete.preferredTrainingDays = preferredTrainingDays;
 
             athlete.lastActive = new Date();
 

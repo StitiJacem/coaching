@@ -39,22 +39,19 @@ import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/worko
 import { InviteModalComponent } from './pages/dashboard/athletes/invite-modal/invite-modal.component';
 import { ProgramConfigModalComponent } from './pages/dashboard/programs/program-config-modal.component';
 import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
+import { TrainingCalendarComponent } from './pages/dashboard/athletes/training-calendar/training-calendar.component';
+import { WorkoutBuilderModalComponent } from './components/workout-builder/workout-builder-modal.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     NavbarComponent,
-    SidebarComponent,
-    DashboardLayoutComponent,
     HomeComponent,
     LoginComponent,
     VerifyEmailComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
     CompleteProfileComponent,
-    DashboardComponent,
-    AthletesComponent,
-    ProgramsComponent,
     ExercisesComponent,
     GoalsComponent,
     SessionsComponent,
@@ -66,7 +63,6 @@ import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.compone
     DiscoveryComponent,
     WorkoutPlayerComponent,
     WorkoutHistoryComponent,
-    InviteModalComponent,
     MyCoachesComponent
   ],
   imports: [
@@ -90,7 +86,15 @@ import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.compone
     BadgeComponent,
     ButtonComponent,
     AvatarComponent,
-    ProgramConfigModalComponent
+    ProgramConfigModalComponent,
+    SidebarComponent,
+    DashboardLayoutComponent,
+    AthletesComponent,
+    TrainingCalendarComponent,
+    WorkoutBuilderModalComponent,
+    InviteModalComponent,
+    ProgramsComponent,
+    DashboardComponent
   ],
   providers: [],
   bootstrap: [AppComponent]

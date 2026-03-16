@@ -2,13 +2,19 @@ import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { RoleService } from '../../../services/role.service';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
-import { ProgramService, Program } from '../../../services/program.service';
 import { AuthService } from '../../../services/auth.service';
 import { CoachService, CoachingRequest } from '../../../services/coach.service';
 
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { DashboardLayoutComponent } from '../../../components/dashboard-layout/dashboard-layout.component';
+import { InviteModalComponent } from './invite-modal/invite-modal.component';
+
 @Component({
   selector: 'app-athletes',
-  standalone: false,
+  standalone: true,
+  imports: [CommonModule, RouterModule, FormsModule, DashboardLayoutComponent, InviteModalComponent],
   templateUrl: './athletes.component.html',
   styleUrls: ['./athletes.component.css']
 })
@@ -18,18 +24,9 @@ export class AthletesComponent implements OnInit {
   searchTerm = '';
   showInviteModal = false;
 
-  // Assign Program State
-  showAssignModal = false;
-  selectedAthlete: Athlete | null = null;
-  draftPrograms: Program[] = [];
-  selectedProgramId: number | null | undefined = null;
-  isLoadingDrafts = false;
-  isAssigning = false;
-
   constructor(
     public roleService: RoleService,
     private athleteService: AthleteService,
-    private programService: ProgramService,
     private authService: AuthService,
     private coachService: CoachService,
     private router: Router
@@ -72,62 +69,11 @@ export class AthletesComponent implements OnInit {
   }
 
   openAssignModal(athlete: Athlete): void {
-    this.selectedAthlete = athlete;
-    this.showAssignModal = true;
-    this.loadDraftPrograms();
-  }
-
-  loadDraftPrograms(): void {
-    const coach = this.authService.getUser();
-    if (!coach) return;
-    this.isLoadingDrafts = true;
-    this.programService.getAll({ coachId: coach.id, status: 'draft' }).subscribe({
-      next: (programs) => {
-        this.draftPrograms = programs;
-        this.isLoadingDrafts = false;
-      },
-      error: () => this.isLoadingDrafts = false
-    });
-  }
-
-  confirmAssignment(): void {
-    if (!this.selectedAthlete || !this.selectedProgramId) return;
-    this.isAssigning = true;
-    this.programService.update(this.selectedProgramId!, {
-      athleteId: this.selectedAthlete.id,
-      status: 'assigned'
-    }).subscribe({
-      next: () => {
-        alert('Program assigned successfully!');
-        this.closeAssignModal();
-        this.loadAthletes();
-      },
-      error: () => {
-        alert('Failed to assign program.');
-        this.isAssigning = false;
-      }
-    });
-  }
-
-  createNewForAthlete(): void {
-    if (!this.selectedAthlete) return;
-    // Navigate to programs page with athlete pre-selected
-    // Using a simple query param or state would be ideal
-    this.router.navigate(['/dashboard/programs'], {
-      queryParams: { athleteId: this.selectedAthlete.id }
-    });
-  }
-
-  closeAssignModal(): void {
-    this.showAssignModal = false;
-    this.selectedAthlete = null;
-    this.selectedProgramId = null;
-    this.draftPrograms = [];
+    this.router.navigate(['/dashboard/athletes', athlete.id, 'calendar']);
   }
 
   onDisconnect(athlete: Athlete): void {
     if (confirm(`Are you sure you want to terminate your connection with ${athlete.user?.first_name}? This will remove them from your client list.`)) {
-      // Find the accepted request for this athlete-coach pair
       this.coachService.getMyRequests().subscribe({
         next: (requests: CoachingRequest[]) => {
           const req = requests.find(r => r.athleteId === athlete.id && r.status === 'accepted');

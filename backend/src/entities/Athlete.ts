@@ -31,6 +31,9 @@ export class Athlete {
     @Column({ nullable: true })
     profilePicture?: string;
 
+    @Column({ type: "jsonb", nullable: true })
+    preferredTrainingDays?: number[]; // [0, 2, 4] for Mon, Wed, Fri
+
     @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
     joinedDate!: Date;
 

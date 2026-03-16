@@ -12,6 +12,7 @@ export interface Athlete {
   sport?: string;
   goals?: string;
   profilePicture?: string;
+  preferredTrainingDays?: number[];
   lastActive?: Date | string;
   user?: {
     id: number;

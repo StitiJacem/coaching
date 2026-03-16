@@ -21,8 +21,10 @@ import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.compon
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
 import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
+import { TrainingCalendarComponent } from './pages/dashboard/athletes/training-calendar/training-calendar.component';
 
 import { CompleteProfileComponent } from './pages/complete-profile/complete-profile.component';
+import { AthleteScheduleComponent } from './pages/dashboard/athlete-schedule/athlete-schedule.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -45,8 +47,13 @@ const routes: Routes = [
   { path: 'dashboard/medical', component: MedicalComponent },
   { path: 'dashboard/discovery', component: DiscoveryComponent },
   { path: 'dashboard/coaches', component: MyCoachesComponent },
+  { path: 'dashboard/athletes/:id/calendar', component: TrainingCalendarComponent },
+  { path: 'dashboard/program-preview/:id', component: TrainingCalendarComponent },
+  { path: 'dashboard/master-planner', component: TrainingCalendarComponent },
+  { path: 'dashboard/master-planner/:id', component: TrainingCalendarComponent },
   { path: 'dashboard/workout/:id', component: WorkoutPlayerComponent },
   { path: 'dashboard/workout-history', component: WorkoutHistoryComponent },
+  { path: 'dashboard/schedule', component: AthleteScheduleComponent },
   { path: 'home', component: HomeComponent },
   { path: '**', redirectTo: '/login' }
 ];

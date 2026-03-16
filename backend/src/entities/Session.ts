@@ -39,6 +39,12 @@ export class Session {
     @Column({ type: "text", nullable: true })
     notes?: string;
 
+    @Column({ nullable: true })
+    title?: string;
+
+    @Column({ type: "jsonb", nullable: true })
+    workoutData?: any;
+
     @CreateDateColumn()
     created_at!: Date;
 
