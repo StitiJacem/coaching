@@ -21,6 +21,9 @@ export class Session {
     @JoinColumn({ name: "athleteId" })
     athlete!: Athlete;
 
+    @Column({ nullable: true })
+    coachId?: number;
+
     @Column({ type: "date" })
     date!: Date;
 

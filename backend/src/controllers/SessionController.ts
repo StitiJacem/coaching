@@ -3,17 +3,67 @@ import { AppDataSource } from "../orm/data-source";
 import { Session } from "../entities/Session";
 import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
+import { CoachProfile } from "../entities/Coach";
+import { CoachingRequest } from "../entities/CoachingRequest";
 const getStringParam = (param: string | string[] | undefined): string => {
     if (!param) throw new Error("Missing parameter");
     return Array.isArray(param) ? param[0] : param;
 };
 
 export class SessionController {
+    // Helper to check if user has access to athlete's sessions
+    private static isAuthorized = async (user: any, athleteId: number): Promise<boolean> => {
+        if (user.role === 'athlete') {
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
+            return athlete?.id === athleteId;
+        }
+
+        if (user.role === 'coach') {
+            const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+            const coachProfile = await coachProfileRepo.findOne({ where: { userId: user.id } });
+            if (!coachProfile) return false;
+
+            // Check for accepted coaching request
+            const requestRepo = AppDataSource.getRepository(CoachingRequest);
+            const hasRequest = await requestRepo.findOne({
+                where: {
+                    athleteId,
+                    coachProfileId: coachProfile.id,
+                    status: 'accepted'
+                }
+            });
+            if (hasRequest) return true;
+
+            // Also check for active program link
+            const programRepo = AppDataSource.getRepository(Program);
+            const hasProgram = await programRepo.findOne({
+                where: [
+                    { athleteId, coachId: user.id },
+                    { athleteId, coachProfileId: coachProfile.id }
+                ]
+            });
+            return !!hasProgram;
+        }
+
+        return false;
+    };
+
     // GET /api/sessions - Get all sessions (with filters)
     static getAll = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const sessionRepo = AppDataSource.getRepository(Session);
             const { athleteId, programId, date, status } = req.query;
+
+            if (!athleteId) {
+                return res.status(400).json({ message: "athleteId is required" });
+            }
+
+            const targetAthleteId = parseInt(athleteId as string);
+            if (!(await this.isAuthorized(user, targetAthleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to view these sessions" });
+            }
 
             const queryBuilder = sessionRepo.createQueryBuilder("session")
                 .leftJoinAndSelect("session.athlete", "athlete")
@@ -57,6 +107,7 @@ export class SessionController {
     // GET /api/sessions/:id - Get single session
     static getById = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const sessionRepo = AppDataSource.getRepository(Session);
             const session = await sessionRepo.findOne({
                 where: { id: parseInt(req.params.id as string) },
@@ -65,6 +116,10 @@ export class SessionController {
 
             if (!session) {
                 return res.status(404).json({ message: "Session not found" });
+            }
+
+            if (!(await this.isAuthorized(user, session.athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to view this session" });
             }
 
             res.json(session);
@@ -77,14 +132,19 @@ export class SessionController {
     // POST /api/sessions - Create new session
     static create = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const sessionRepo = AppDataSource.getRepository(Session);
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const programRepo = AppDataSource.getRepository(Program);
 
-            const { athleteId, programId, date, time, type, duration, notes } = req.body;
+            const { athleteId, programId, coachId, date, time, type, duration, notes } = req.body;
 
             if (!athleteId || !date || !time || !type) {
                 return res.status(400).json({ message: "Missing required fields" });
+            }
+
+            if (!(await this.isAuthorized(user, parseInt(athleteId as string)))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to create sessions for this athlete" });
             }
 
             // Verify athlete exists
@@ -104,6 +164,7 @@ export class SessionController {
             const session = new Session();
             session.athleteId = athleteId;
             session.programId = programId;
+            session.coachId = coachId;
             session.date = new Date(date);
             session.time = time;
             session.type = type;
@@ -112,6 +173,7 @@ export class SessionController {
             session.title = req.body.title;
             session.workoutData = req.body.workoutData;
             session.status = "upcoming";
+
 
             const savedSession = await sessionRepo.save(session);
 
@@ -130,6 +192,7 @@ export class SessionController {
     // PUT /api/sessions/:id - Update session
     static update = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const sessionRepo = AppDataSource.getRepository(Session);
             const session = await sessionRepo.findOne({
                 where: { id: parseInt(req.params.id as string) }
@@ -137,6 +200,10 @@ export class SessionController {
 
             if (!session) {
                 return res.status(404).json({ message: "Session not found" });
+            }
+
+            if (!(await this.isAuthorized(user, session.athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to update this session" });
             }
 
             const { date, time, type, duration, notes, status } = req.body;
@@ -167,6 +234,7 @@ export class SessionController {
     // DELETE /api/sessions/:id - Delete session
     static delete = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const sessionRepo = AppDataSource.getRepository(Session);
             const session = await sessionRepo.findOne({
                 where: { id: parseInt(req.params.id as string) }
@@ -174,6 +242,10 @@ export class SessionController {
 
             if (!session) {
                 return res.status(404).json({ message: "Session not found" });
+            }
+
+            if (!(await this.isAuthorized(user, session.athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to delete this session" });
             }
 
             await sessionRepo.remove(session);

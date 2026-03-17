@@ -82,4 +82,8 @@ export class CoachService {
     terminateConnection(requestId: string): Observable<any> {
         return this.http.delete(`${this.requestUrl}/${requestId}`, { headers: this.getHeaders() });
     }
+
+    disconnectAthlete(athleteId: number): Observable<any> {
+        return this.http.delete(`${this.requestUrl}/disconnect-athlete/${athleteId}`, { headers: this.getHeaders() });
+    }
 }

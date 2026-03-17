@@ -73,26 +73,17 @@ export class AthletesComponent implements OnInit {
   }
 
   onDisconnect(athlete: Athlete): void {
+    if (!athlete.id) return;
     if (confirm(`Are you sure you want to terminate your connection with ${athlete.user?.first_name}? This will remove them from your client list.`)) {
-      this.coachService.getMyRequests().subscribe({
-        next: (requests: CoachingRequest[]) => {
-          const req = requests.find(r => r.athleteId === athlete.id && r.status === 'accepted');
-          if (req && req.id) {
-            this.coachService.terminateConnection(req.id).subscribe({
-              next: () => {
-                this.athletes = this.athletes.filter(a => a.id !== athlete.id);
-                alert('Connection terminated successfully.');
-              },
-              error: (err: any) => {
-                console.error('Error terminating connection:', err);
-                alert('Failed to terminate connection.');
-              }
-            });
-          } else {
-            alert('Could not find active connection record.');
-          }
+      this.coachService.disconnectAthlete(athlete.id).subscribe({
+        next: () => {
+          this.athletes = this.athletes.filter(a => a.id !== athlete.id);
+          alert('Connection terminated successfully.');
         },
-        error: (err: any) => console.error('Error finding request:', err)
+        error: (err: any) => {
+          console.error('Error terminating connection:', err);
+          alert('Failed to terminate connection.');
+        }
       });
     }
   }

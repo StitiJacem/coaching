@@ -76,6 +76,10 @@ import { CoachService, CoachingRequest } from '../../../services/coach.service';
               <button class="w-full py-4 rounded-xl bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] hover:bg-gosport-orange hover:text-white transition-all active:scale-95 shadow-lg">
                 View Reports
               </button>
+              <button [routerLink]="['/dashboard/messaging']" [queryParams]="{ coachId: req.coachProfileId }"
+                class="w-full py-4 rounded-xl bg-gosport-surface border border-gosport-orange/30 text-gosport-orange font-black uppercase text-[10px] tracking-[0.2em] hover:bg-gosport-orange hover:text-white transition-all active:scale-95 shadow-lg">
+                Message Specialist
+              </button>
               <button (click)="onTerminate(req)" 
                 class="w-full py-4 rounded-xl border border-white/5 text-slate-500 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all">
                 Terminate Connection

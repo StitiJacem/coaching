@@ -148,8 +148,8 @@
                             <div *ngFor="let ex of session.workoutData.exercises | slice:0:3"
                                 class="flex items-center gap-2 text-[8px] text-slate-400 capitalize bg-white/5 px-2 py-1 rounded">
                                 <div class="w-1 h-1 rounded-full bg-gosport-orange"></div>
-                                <span class="truncate">{{ ex.name }}</span>
-                                <span class="text-slate-600 ml-auto">{{ ex.sets }}x{{ ex.reps }}</span>
+                                <span class="truncate">{{ $any(ex).name || $any(ex).exercise_name }}</span>
+                                <span class="text-slate-600 ml-auto">{{ $any(ex).sets }}x{{ $any(ex).reps }}</span>
                             </div>
                             <div *ngIf="session.workoutData.exercises.length > 3"
                                 class="text-[7px] text-slate-600 font-bold uppercase tracking-widest pl-2">

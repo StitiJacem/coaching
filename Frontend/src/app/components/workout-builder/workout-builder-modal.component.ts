@@ -160,8 +160,11 @@ export class WorkoutBuilderModalComponent implements OnInit {
             return;
         }
 
+        const coach = JSON.parse(localStorage.getItem('user') || '{}');
+
         const sessionData: any = {
             athleteId: this.athleteId,
+            coachId: coach.id,
             date: this.date ? format(this.date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
             time: '08:00', // Default time
             type: this.workoutType,

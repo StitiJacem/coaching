@@ -7,8 +7,48 @@ import { ProgramDay } from "../entities/ProgramDay";
 import { ProgramExercise } from "../entities/ProgramExercise";
 import { WorkoutLog } from "../entities/WorkoutLog";
 import { EmailService } from "../utils/EmailService";
+import { CoachProfile } from "../entities/Coach";
 
 export class ProgramController {
+    // Helper to check if user has access to athlete's programs
+    private static isAuthorized = async (user: any, athleteId: number): Promise<boolean> => {
+        if (user.role === 'athlete') {
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
+            return athlete?.id === athleteId;
+        }
+
+        if (user.role === 'coach') {
+            const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+            const coachProfile = await coachProfileRepo.findOne({ where: { userId: user.id } });
+            if (!coachProfile) return false;
+
+            // Check for accepted coaching request
+            const { CoachingRequest } = await import("../entities/CoachingRequest");
+            const requestRepo = AppDataSource.getRepository(CoachingRequest);
+            const hasRequest = await requestRepo.findOne({
+                where: {
+                    athleteId,
+                    coachProfileId: coachProfile.id,
+                    status: 'accepted'
+                }
+            });
+            if (hasRequest) return true;
+
+            // Also check for active program link (if they already have a program)
+            const programRepo = AppDataSource.getRepository(Program);
+            const hasProgram = await programRepo.findOne({
+                where: [
+                    { athleteId, coachId: user.id },
+                    { athleteId, coachProfileId: coachProfile.id }
+                ]
+            });
+            return !!hasProgram;
+        }
+
+        return false;
+    };
+
     // GET /api/programs/athlete/:userId/today – returns the current day's workout for an athlete
     static getTodayWorkout = async (req: Request, res: Response) => {
         try {
@@ -98,11 +138,15 @@ export class ProgramController {
                 }
                 queryBuilder.andWhere("program.athleteId = :myAthleteId", { myAthleteId: athlete.id });
             } else {
-                // If not an athlete (e.g., coach), allow provided filters
+                // If not an athlete (e.g., coach), allow provided filters but check authorization
                 if (coachId) {
                     queryBuilder.andWhere("program.coachId = :coachId", { coachId });
                 }
                 if (athleteId) {
+                    const targetAthleteId = parseInt(athleteId as string);
+                    if (!(await this.isAuthorized(user, targetAthleteId))) {
+                        return res.status(403).json({ message: "Access denied: You do not have permission to view this athlete's programs" });
+                    }
                     queryBuilder.andWhere("program.athleteId = :athleteId", { athleteId });
                 }
             }
@@ -136,12 +180,9 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            // SECURITY: If user is an athlete, they must own the program
-            if (user.role === 'athlete') {
-                const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
-                if (!athlete || program.athleteId !== athlete.id) {
-                    return res.status(403).json({ message: "Access denied: You do not own this program" });
-                }
+            // SECURITY: Verify authorization
+            if (!(await this.isAuthorized(user, program.athleteId!))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to access this program" });
             }
 
             res.json(program);
@@ -154,18 +195,33 @@ export class ProgramController {
     // POST /api/programs - Create new program
     static create = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const programRepo = AppDataSource.getRepository(Program);
             const { name, description, athleteId, coachId, startDate, endDate, type, days } = req.body;
+
+            if (athleteId && !(await this.isAuthorized(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied: You cannot create a program for this athlete" });
+            }
 
             const program = new Program();
             program.name = name;
             program.description = description;
             program.athleteId = athleteId || undefined;
             program.coachId = coachId;
+
+            // Auto-resolve coachProfileId if missing
+            if (!req.body.coachProfileId && coachId) {
+                const coachRepo = AppDataSource.getRepository(CoachProfile);
+                const profile = await coachRepo.findOne({ where: { userId: coachId } });
+                if (profile) program.coachProfileId = profile.id;
+            } else if (req.body.coachProfileId) {
+                program.coachProfileId = req.body.coachProfileId;
+            }
+
             program.startDate = new Date(startDate);
             program.endDate = endDate ? new Date(endDate) : undefined;
             program.type = type;
-            program.status = athleteId ? "assigned" : "draft";
+            program.status = athleteId ? "active" : "draft"; // Changed default status to active if athleteId is present
             program.isConfigured = false;
 
             if (days && Array.isArray(days)) {
@@ -209,6 +265,7 @@ export class ProgramController {
     // PUT /api/programs/:id - Update program
     static update = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const programRepo = AppDataSource.getRepository(Program);
             const dayRepo = AppDataSource.getRepository(ProgramDay);
 
@@ -222,6 +279,10 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
+            if (!(await this.isAuthorized(user, program.athleteId!))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to update this program" });
+            }
+
             const { name, description, status, endDate, type, days, athleteId, isConfigured } = req.body;
 
             if (name) program.name = name;
@@ -231,6 +292,15 @@ export class ProgramController {
             if (isConfigured !== undefined) program.isConfigured = isConfigured;
             if (endDate) program.endDate = new Date(endDate);
             if (type) program.type = type;
+
+            // Ensure coachProfileId is populated if we have coachId
+            if (!program.coachProfileId && program.coachId) {
+                const coachRepo = AppDataSource.getRepository(CoachProfile);
+                const profile = await coachRepo.findOne({ where: { userId: program.coachId } });
+                if (profile) {
+                    program.coachProfileId = profile.id;
+                }
+            }
 
             if (program.athleteId && program.status === 'active' && !program.isConfigured) {
                 program.status = 'assigned';
@@ -283,6 +353,7 @@ export class ProgramController {
     // DELETE /api/programs/:id - Delete program
     static delete = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const programRepo = AppDataSource.getRepository(Program);
             const program = await programRepo.findOne({
                 where: { id: parseInt(req.params.id as string) }
@@ -290,6 +361,10 @@ export class ProgramController {
 
             if (!program) {
                 return res.status(404).json({ message: "Program not found" });
+            }
+
+            if (!(await this.isAuthorized(user, program.athleteId!))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to delete this program" });
             }
 
             await programRepo.remove(program);

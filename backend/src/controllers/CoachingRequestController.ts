@@ -3,6 +3,8 @@ import { AppDataSource } from "../orm/data-source";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { Athlete } from "../entities/Athlete";
 import { CoachProfile } from "../entities/Coach";
+import { Program } from "../entities/Program";
+import { Session } from "../entities/Session";
 
 export class CoachingRequestController {
     // POST /api/coaching-requests - Athlete sends a request to a coach
@@ -154,7 +156,7 @@ export class CoachingRequestController {
                     await athleteRepo.save(athlete);
                 }
 
-                const requests = await requestRepo.find({
+                const rawRequests = await requestRepo.find({
                     where: [
                         { athleteId: athlete.id, initiator: "coach" },
                         { athleteId: athlete.id, status: "accepted" }
@@ -162,6 +164,40 @@ export class CoachingRequestController {
                     relations: ["coachProfile", "coachProfile.user"],
                     order: { created_at: "DESC" }
                 });
+
+                // Deduplicate by coachProfileId (OR query can return same coach twice)
+                const seenCoachIds = new Set<string>();
+                const requests: typeof rawRequests = [];
+                for (const r of rawRequests) {
+                    if (!seenCoachIds.has(r.coachProfileId)) {
+                        seenCoachIds.add(r.coachProfileId);
+                        requests.push(r);
+                    }
+                }
+
+                // Synthesize requests for coaches with active programs
+                const programRepo = AppDataSource.getRepository(Program);
+                const programs = await programRepo.find({
+                    where: { athleteId: athlete.id },
+                    relations: ["coachProfile", "coachProfile.user"]
+                });
+
+                for (const prog of programs) {
+                    if (prog.coachProfile && !seenCoachIds.has(prog.coachProfile.id)) {
+                        seenCoachIds.add(prog.coachProfile.id);
+                        requests.push({
+                            id: `prog-${prog.id}`,
+                            athleteId: athlete.id,
+                            coachProfileId: prog.coachProfile.id,
+                            coachProfile: prog.coachProfile,
+                            status: "accepted",
+                            initiator: "coach",
+                            created_at: prog.created_at || new Date(),
+                            updated_at: prog.updated_at || new Date()
+                        } as any);
+                    }
+                }
+
                 return res.json(requests);
             } else {
                 const coachRepo = AppDataSource.getRepository(CoachProfile);
@@ -193,39 +229,188 @@ export class CoachingRequestController {
     static deleteRequest = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.id;
-            const role = (req as any).user.role;
-            const requestId = req.params.id;
+            const requestId = req.params.id as string;
 
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
-            const request = await requestRepo.findOne({
-                where: { id: requestId as string },
-                relations: ["athlete", "coachProfile"]
-            });
-
-            if (!request) {
-                return res.status(404).json({ message: "Request not found" });
-            }
-
-            // Authorization check: Only the athlete or coach involved can delete
             const coachRepo = AppDataSource.getRepository(CoachProfile);
             const athleteRepo = AppDataSource.getRepository(Athlete);
+            const programRepo = AppDataSource.getRepository(Program);
 
-            const coachProfile = await coachRepo.findOne({ where: { userId } });
-            const athleteProfile = await athleteRepo.findOne({ where: { userId } });
+            let targetAthleteId: number | null = null;
+            let targetCoachProfileId: string | null = null;
 
-            const isCoachOfRequest = coachProfile && request.coachProfileId === coachProfile.id;
-            const isAthleteOfRequest = athleteProfile && request.athleteId === athleteProfile.id;
+            // Handle synthetic IDs from program-based connections (e.g. "prog-5")
+            const syntheticMatch = requestId.match(/^prog-(\d+)$/);
+            if (syntheticMatch) {
+                const programId = parseInt(syntheticMatch[1]);
+                const prog = await programRepo.findOne({
+                    where: { id: programId },
+                    relations: ["coachProfile"]
+                });
 
-            if (!isCoachOfRequest && !isAthleteOfRequest) {
-                return res.status(403).json({ message: "You are not authorized to terminate this connection" });
+                if (!prog) {
+                    return res.status(404).json({ message: "Program-based connection not found" });
+                }
+
+                const athleteProfile = await athleteRepo.findOne({ where: { userId } });
+                const coachProfile = await coachRepo.findOne({ where: { userId } });
+
+                const isAthlete = athleteProfile && prog.athleteId === athleteProfile.id;
+                const isCoach = coachProfile && prog.coachProfileId === coachProfile.id;
+
+                if (!isAthlete && !isCoach) {
+                    return res.status(403).json({ message: "You are not authorized to terminate this connection" });
+                }
+
+                targetAthleteId = prog.athleteId ?? null;
+                targetCoachProfileId = prog.coachProfileId ?? null;
+            } else {
+                // Real CoachingRequest record
+                const request = await requestRepo.findOne({
+                    where: { id: requestId },
+                    relations: ["athlete", "coachProfile"]
+                });
+
+                if (!request) {
+                    return res.status(404).json({ message: "Request not found" });
+                }
+
+                const coachProfile = await coachRepo.findOne({ where: { userId } });
+                const athleteProfile = await athleteRepo.findOne({ where: { userId } });
+
+                const isCoachOfRequest = coachProfile && request.coachProfileId === coachProfile.id;
+                const isAthleteOfRequest = athleteProfile && request.athleteId === athleteProfile.id;
+
+                if (!isCoachOfRequest && !isAthleteOfRequest) {
+                    return res.status(403).json({ message: "You are not authorized to terminate this connection" });
+                }
+
+                targetAthleteId = request.athleteId;
+                targetCoachProfileId = request.coachProfileId;
+
+                await requestRepo.remove(request);
             }
 
-            await requestRepo.remove(request);
+            // Unlink all programs assigned to this athlete by this coach.
+            // Programs may reference the coach by userId (coachId) OR by profile UUID (coachProfileId),
+            // so we must match on EITHER to fully remove the relationship.
+            if (targetAthleteId !== null && targetCoachProfileId !== null) {
+                // Resolve the coach's user ID from their profile so we can match on coachId too
+                const coachProfileForUnlink = await coachRepo.findOne({ where: { id: targetCoachProfileId } });
+                const coachUserIdForUnlink = coachProfileForUnlink?.userId ?? null;
+
+                let whereClause = `"athleteId" = :athleteId AND "coachProfileId" = :coachProfileId`;
+                const whereParams: any = { athleteId: targetAthleteId, coachProfileId: targetCoachProfileId };
+
+                if (coachUserIdForUnlink !== null) {
+                    whereClause = `"athleteId" = :athleteId AND ("coachId" = :coachUserId OR "coachProfileId" = :coachProfileId)`;
+                    whereParams.coachUserId = coachUserIdForUnlink;
+                }
+
+                const sessionRepo = AppDataSource.getRepository(Session);
+
+                await programRepo
+                    .createQueryBuilder()
+                    .update(Program)
+                    .set({ athleteId: null as any }) // TypeORM requires null to emit SET athleteId = NULL; undefined is ignored
+                    .where(whereClause, whereParams)
+                    .execute();
+
+                // Also delete upcoming sessions scheduled by this coach for this athlete.
+                // We match on coachId directly OR on programId (if the session came from one of this coach's programs).
+                // We check programs matching either the coach's userId OR their profileId to be safe.
+                if (coachUserIdForUnlink !== null) {
+                    await sessionRepo
+                        .createQueryBuilder()
+                        .delete()
+                        .from(Session)
+                        .where(
+                            `"athleteId" = :athleteId AND "date" >= CURRENT_DATE AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                            { 
+                                athleteId: targetAthleteId, 
+                                coachId: coachUserIdForUnlink, 
+                                coachProfileId: targetCoachProfileId 
+                            }
+                        )
+                        .execute();
+                }
+            }
+
             res.json({ message: "Connection terminated successfully" });
 
         } catch (error) {
             console.error("Error deleting coaching request:", error);
             res.status(500).json({ message: "Error terminating connection" });
+        }
+    };
+
+    // DELETE /api/coaching-requests/disconnect-athlete/:athleteId - Coach disconnects an athlete
+    static disconnectAthlete = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user.id;
+            const role = (req as any).user.role;
+            const athleteId = parseInt(req.params.athleteId as string);
+
+            if (role !== "coach") {
+                return res.status(403).json({ message: "Only coaches can use this endpoint" });
+            }
+
+            const coachRepo = AppDataSource.getRepository(CoachProfile);
+            const coachProfile = await coachRepo.findOne({ where: { userId } });
+            if (!coachProfile) {
+                return res.status(404).json({ message: "Coach profile not found" });
+            }
+
+            const requestRepo = AppDataSource.getRepository(CoachingRequest);
+            const programRepo = AppDataSource.getRepository(Program);
+
+            // Remove all coaching requests between this coach and athlete
+            await requestRepo
+                .createQueryBuilder()
+                .delete()
+                .from(CoachingRequest)
+                .where(`"athleteId" = :athleteId AND "coachProfileId" = :coachProfileId`, {
+                    athleteId,
+                    coachProfileId: coachProfile.id
+                })
+                .execute();
+
+            // Unlink all programs assigned to this athlete by this coach.
+            // Programs may reference the coach by userId (coachId) OR by profile UUID (coachProfileId),
+            // so we must match on EITHER column to fully remove the relationship.
+            await programRepo
+                .createQueryBuilder()
+                .update(Program)
+                .set({ athleteId: null as any }) // TypeORM requires null to emit SET athleteId = NULL; undefined is ignored
+                .where(
+                    `"athleteId" = :athleteId AND ("coachId" = :coachUserId OR "coachProfileId" = :coachProfileId)`,
+                    { athleteId, coachUserId: userId, coachProfileId: coachProfile.id }
+                )
+                .execute();
+
+            // Also delete upcoming sessions scheduled by this coach for this athlete.
+            // We match on coachId directly OR on programId (if the session came from one of this coach's programs).
+            // We check programs matching either the coach's userId OR their profileId to be safe.
+            const sessionRepo = AppDataSource.getRepository(Session);
+            await sessionRepo
+                .createQueryBuilder()
+                .delete()
+                .from(Session)
+                .where(
+                    `"athleteId" = :athleteId AND "date" >= CURRENT_DATE AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                    { 
+                        athleteId, 
+                        coachId: userId, 
+                        coachProfileId: coachProfile.id 
+                    }
+                )
+                .execute();
+
+            res.json({ message: "Athlete disconnected successfully" });
+
+        } catch (error) {
+            console.error("Error disconnecting athlete:", error);
+            res.status(500).json({ message: "Error disconnecting athlete" });
         }
     };
 }

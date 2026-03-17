@@ -121,7 +121,12 @@ export class TrainingCalendarComponent implements OnInit {
                 this.athlete = data;
                 this.loadSessions();
             },
-            error: (err) => console.error('Error loading athlete:', err)
+            error: (err) => {
+                console.error('Error loading athlete:', err);
+                if (err.status === 403) {
+                    this.router.navigate(['/dashboard']);
+                }
+            }
         });
     }
 
@@ -143,6 +148,9 @@ export class TrainingCalendarComponent implements OnInit {
             error: (err) => {
                 console.error('Error loading sessions:', err);
                 this.isLoading = false;
+                if (err.status === 403) {
+                    this.router.navigate(['/dashboard']);
+                }
             }
         });
     }
@@ -311,6 +319,8 @@ export class TrainingCalendarComponent implements OnInit {
                 const anchorDate = this.selectedDate || this.days[0];
                 const preferredDays = this.athlete?.preferredTrainingDays || [0, 1, 2, 3, 4, 5, 6];
 
+                const coach = JSON.parse(localStorage.getItem('user') || '{}');
+
                 let currentDate = new Date(anchorDate);
                 fullTemplate.days.forEach(day => {
                     // Smart Mapping: Find next available preferred day
@@ -319,7 +329,8 @@ export class TrainingCalendarComponent implements OnInit {
                         if (preferredDays.includes(dayOfWeek)) {
                             const sessionPayload = {
                                 athleteId: this.athleteId,
-                                coachId: fullTemplate.coachId,
+                                coachId: coach.id,
+                                programId: fullTemplate.id,
                                 date: format(currentDate, 'yyyy-MM-dd'),
                                 title: day.title,
                                 workoutData: {
