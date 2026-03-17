@@ -21,7 +21,7 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
     overallRating = 5;
     completionNotes = '';
 
-    // Set logging
+
     currentSetLogs: { reps: number; weightKg: number }[] = [];
 
     constructor(

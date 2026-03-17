@@ -40,7 +40,7 @@ export class AuthService {
 
         const savedUser = await this.userRepository.create(user);
 
-        // If user is a coach, create their profile and specializations
+
         if (userData.role === 'coach') {
             await AppDataSource.transaction(async transactionalEntityManager => {
                 const coachProfile = new CoachProfile();
@@ -132,9 +132,9 @@ export class AuthService {
 
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
         user.verification_code = verificationCode;
-        user.code_expires_at = new Date(Date.now() + 3600000); // 1 hour
+        user.code_expires_at = new Date(Date.now() + 3600000);
 
-        await this.userRepository.create(user); // Save updates
+        await this.userRepository.create(user);
 
         const greetingName = user.first_name || user.username || 'Sportif';
         EmailService.sendVerificationEmail(user.email, verificationCode, greetingName)

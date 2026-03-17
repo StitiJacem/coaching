@@ -1,15 +1,15 @@
-<div 
+<div
   class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group"
   [style.animation-delay]="delay + 's'"
   [@fadeInUp]>
-  <!-- Background Icon -->
+
   <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500">
     <ng-container *ngIf="iconName">
       <lucide-icon [name]="iconName" class="w-24 h-24 text-white" />
     </ng-container>
   </div>
 
-  <!-- Content -->
+
   <div class="relative z-10">
     <div class="flex items-center gap-2 mb-2">
       <div class="p-2 bg-slate-800 rounded-lg border border-slate-700">

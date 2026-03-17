@@ -28,7 +28,7 @@ export class OAuthService {
 
             const payload = response.data;
 
-            // Verify the token is for our client ID
+
             const clientId = process.env.GOOGLE_CLIENT_ID;
             if (payload.aud !== clientId) {
                 return null;
@@ -72,7 +72,7 @@ export class OAuthService {
         firstName?: string,
         lastName?: string
     ): Promise<User> {
-        // Try to find user by OAuth ID first
+
         let user = await this.userRepository.findOne({
             where: { oauth_provider: provider, oauth_id: oauthId }
         });
@@ -81,19 +81,19 @@ export class OAuthService {
             return user;
         }
 
-        // Try to find by email (user might have registered with email before)
+
         user = await this.userRepository.findOne({ where: { email } });
 
         if (user) {
-            // Link OAuth account to existing user
+
             user.oauth_provider = provider;
             user.oauth_id = oauthId;
-            user.is_verified = true; // OAuth accounts are pre-verified
+            user.is_verified = true;
             await this.userRepository.save(user);
             return user;
         }
 
-        // Create new user
+
         const newUser = new User({
             email,
             first_name: firstName,
@@ -102,8 +102,8 @@ export class OAuthService {
             oauth_provider: provider,
             oauth_id: oauthId,
             is_verified: true,
-            profile_completed: false, // Will need to complete profile (select role, etc.)
-            role: 'athlete' // Default, will be updated in onboarding
+            profile_completed: false,
+            role: 'athlete'
         });
 
         return await this.userRepository.save(newUser);

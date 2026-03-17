@@ -10,7 +10,7 @@ export interface WorkoutLog {
     programDayId?: number;
     scheduledDate: Date | string;
     completedAt?: Date | string;
-    status: string; // scheduled | in_progress | completed | missed
+    status: string;
     durationMinutes?: number;
     notes?: string;
     overallRating?: number;

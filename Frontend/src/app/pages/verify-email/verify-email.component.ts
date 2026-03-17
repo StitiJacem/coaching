@@ -14,7 +14,7 @@ export class VerifyEmailComponent implements OnInit {
   email: string = '';
   errorMessage: string = '';
   successMessage: string = '';
-  timeLeft: number = 300; // 5 minutes in seconds
+  timeLeft: number = 300;
   timerInterval: any;
   resending: boolean = false;
 

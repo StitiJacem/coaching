@@ -49,7 +49,7 @@ import { Program, ProgramService } from '../../../services/program.service';
                 <span class="text-[10px] font-bold text-gosport-orange uppercase tracking-widest">{{ selectedDays.length }} Days Selected</span>
               </div>
               <div class="grid grid-cols-7 gap-3">
-                <button *ngFor="let day of days; let i = index" 
+                <button *ngFor="let day of days; let i = index"
                   (click)="toggleDay(i)"
                   [class.bg-gosport-orange]="selectedDays.includes(i)"
                   [class.text-white]="selectedDays.includes(i)"
@@ -67,7 +67,7 @@ import { Program, ProgramService } from '../../../services/program.service';
             <div class="grid grid-cols-2 gap-8">
               <div class="space-y-4">
                 <label class="block text-xs font-black text-white uppercase tracking-[0.2em]">Start Date</label>
-                <input type="date" [(ngModel)]="startDate" 
+                <input type="date" [(ngModel)]="startDate"
                   class="w-full bg-slate-800 border-2 border-slate-700 rounded-2xl px-6 py-4 text-white font-bold focus:outline-none focus:border-gosport-orange transition-all">
               </div>
               <div class="space-y-4">
@@ -80,7 +80,7 @@ import { Program, ProgramService } from '../../../services/program.service';
 
           <!-- Footer Actions -->
           <div class="flex gap-4 pt-4">
-            <button (click)="onClose()" 
+            <button (click)="onClose()"
               class="flex-1 py-5 rounded-2xl font-black uppercase tracking-widest text-sm border-2 border-slate-800 text-slate-400 hover:text-white hover:border-slate-600 transition-all">
               Later
             </button>

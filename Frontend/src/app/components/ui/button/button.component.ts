@@ -18,10 +18,10 @@ export class ButtonComponent {
   @Input() isLoading: boolean = false;
   @Input() disabled: boolean = false;
   @Input() className: string = '';
-  @Input() leftIcon: any = null; // For backward compatibility
-  @Input() leftIconName?: string; // Icon name for lucide-angular
-  @Input() rightIcon: any = null; // For backward compatibility
-  @Input() rightIconName?: string; // Icon name for lucide-angular
+  @Input() leftIcon: any = null;
+  @Input() leftIconName?: string;
+  @Input() rightIcon: any = null;
+  @Input() rightIconName?: string;
   @Output() clicked = new EventEmitter<void>();
 
   get baseStyles(): string {

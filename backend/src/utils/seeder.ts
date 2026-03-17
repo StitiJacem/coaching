@@ -16,7 +16,7 @@ export const seedDatabase = async () => {
         const sessionRepo = AppDataSource.getRepository(Session);
         const goalRepo = AppDataSource.getRepository(Goal);
 
-        // check if data exists
+
         const count = await userRepo.count();
         if (count > 0) {
             console.log("Database already seeded");
@@ -25,7 +25,7 @@ export const seedDatabase = async () => {
 
         console.log("Seeding database...");
 
-        // Create Coach
+
         const coach = new User();
         coach.first_name = "Alex";
         coach.last_name = "Martin";
@@ -36,7 +36,7 @@ export const seedDatabase = async () => {
         coach.onboarding_completed = true;
         await userRepo.save(coach);
 
-        // Create Coach Profile
+
         const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
         const specRepo = AppDataSource.getRepository(CoachSpecialization);
 
@@ -56,7 +56,7 @@ export const seedDatabase = async () => {
             await specRepo.save(spec);
         }
 
-        // Create Athletes
+
         const athletesData = [
             { first: "Sarah", last: "Connor", sport: "CrossFit" },
             { first: "Mike", last: "Ross", sport: "Musculation" },
@@ -77,10 +77,10 @@ export const seedDatabase = async () => {
             const athlete = new Athlete();
             athlete.user = user;
             athlete.sport = data.sport;
-            athlete.lastActive = new Date(); // now
+            athlete.lastActive = new Date();
             await athleteRepo.save(athlete);
 
-            // Create Program
+
             const program = new Program();
             program.name = `${data.sport} Training`;
             program.athlete = athlete;
@@ -89,11 +89,11 @@ export const seedDatabase = async () => {
             program.startDate = new Date();
             await programRepo.save(program);
 
-            // Create Sessions
+
             const session = new Session();
             session.program = program;
             session.athlete = athlete;
-            session.date = new Date(); // today
+            session.date = new Date();
             session.time = "10:00";
             session.type = data.sport;
             session.status = "upcoming";

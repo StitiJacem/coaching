@@ -18,14 +18,14 @@
             </div>
         </header>
 
-        <!-- Main Dashboard View -->
+
         <div class="space-y-6">
-            <!-- Loading State -->
+
             <div *ngIf="isLoadingPrograms" class="flex justify-center py-20">
                 <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gosport-orange"></div>
             </div>
 
-            <!-- Empty State -->
+
             <div *ngIf="!isLoadingPrograms && programs.length === 0"
                 class="bg-gosport-surface border border-gosport-border rounded-2xl p-8 text-center py-20">
                 <div class="max-w-md mx-auto">
@@ -44,7 +44,7 @@
                 </div>
             </div>
 
-            <!-- Programs List -->
+
             <div *ngIf="!isLoadingPrograms && programs.length > 0"
                 class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 <div *ngFor="let program of programs"
@@ -95,7 +95,7 @@
     </div>
 </app-dashboard-layout>
 
-<!-- Assign Modal (Simple) -->
+
 <div *ngIf="showAssignModal"
     class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
     <div

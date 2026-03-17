@@ -15,10 +15,10 @@ export class ProgramDay {
     program!: Program;
 
     @Column()
-    day_number!: number; // 1 to 7 or more
+    day_number!: number;
 
     @Column({ nullable: true })
-    title!: string; // e.g., "Leg Day", "Push A"
+    title!: string;
 
     @OneToMany(() => ProgramExercise, (programExercise) => programExercise.programDay, { cascade: true })
     exercises!: ProgramExercise[];

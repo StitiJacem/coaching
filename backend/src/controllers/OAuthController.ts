@@ -13,14 +13,14 @@ export class OAuthController {
                 return res.status(400).json({ message: 'ID token is required' });
             }
 
-            // Verify Google token
+
             const payload = await oauthService.verifyGoogleToken(id_token);
 
             if (!payload) {
                 return res.status(401).json({ message: 'Invalid Google token' });
             }
 
-            // Find or create user
+
             const user = await oauthService.findOrCreateOAuthUser(
                 'google',
                 payload.sub,
@@ -29,7 +29,7 @@ export class OAuthController {
                 payload.family_name
             );
 
-            // Generate JWT
+
             const token = jwt.sign(
                 { id: user.id, email: user.email, role: user.role },
                 process.env.JWT_SECRET || 'your-secret-key',
@@ -61,14 +61,14 @@ export class OAuthController {
                 return res.status(400).json({ message: 'Access token is required' });
             }
 
-            // Verify Facebook token
+
             const payload = await oauthService.verifyFacebookToken(access_token);
 
             if (!payload) {
                 return res.status(401).json({ message: 'Invalid Facebook token' });
             }
 
-            // Find or create user
+
             const user = await oauthService.findOrCreateOAuthUser(
                 'facebook',
                 payload.id,
@@ -77,7 +77,7 @@ export class OAuthController {
                 payload.last_name
             );
 
-            // Generate JWT
+
             const token = jwt.sign(
                 { id: user.id, email: user.email, role: user.role },
                 process.env.JWT_SECRET || 'your-secret-key',

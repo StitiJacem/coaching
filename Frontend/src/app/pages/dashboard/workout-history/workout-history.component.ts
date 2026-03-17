@@ -30,8 +30,8 @@ export class WorkoutHistoryComponent implements OnInit {
         const user = this.authService.getUser();
         if (!user) return;
 
-        // We need the athleteId, but we only have userId here.
-        // Load today's workout to resolve athleteId, then load history.
+
+
         this.workoutLogService.getTodayWorkout(user.id).subscribe({
             next: (data: TodayWorkout) => {
                 if (data.athleteId) {

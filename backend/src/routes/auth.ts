@@ -12,7 +12,7 @@ router.post('/login', authController.login);
 router.post('/verify-email', authController.verifyEmail);
 router.post('/resend-code', authController.resendCode);
 
-// OAuth routes
+
 router.post('/google', oauthController.googleAuth);
 router.post('/facebook', oauthController.facebookAuth);
 router.post('/complete-profile', authenticateToken, oauthController.completeProfile);

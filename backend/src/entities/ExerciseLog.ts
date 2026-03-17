@@ -26,10 +26,10 @@ export class ExerciseLog {
     setsCompleted!: number;
 
     @Column({ type: "simple-json", nullable: true })
-    repsPerSet?: number[]; // actual reps done per set e.g. [12, 10, 9]
+    repsPerSet?: number[];
 
     @Column({ type: "simple-json", nullable: true })
-    weightKgPerSet?: number[]; // weight used per set e.g. [60, 65, 65]
+    weightKgPerSet?: number[];
 
     @Column({ type: "text", nullable: true })
     notes?: string;

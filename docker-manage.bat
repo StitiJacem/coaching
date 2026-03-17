@@ -29,11 +29,11 @@ if "%1"=="init-dev" (
     echo.
     echo [1/2] Installing Backend dependencies...
     docker run --rm -v "%cd%\backend:/app" -w /app node:18-alpine npm install
-    
+
     echo.
     echo [2/2] Installing Frontend dependencies...
     docker run --rm -v "%cd%\Frontend:/app" -w /app node:18-alpine npm install
-    
+
     echo.
     echo [OK] Done! Your IDE should now recognize the node_modules.
     exit /b 0

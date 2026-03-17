@@ -35,7 +35,7 @@
     }
 }
 
-/* Grid helper for bi-weekly view if needed */
+
 .grid-cols-7 {
     grid-template-columns: repeat(7, minmax(0, 1fr));
 }

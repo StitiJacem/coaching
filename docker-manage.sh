@@ -84,7 +84,7 @@ case "$1" in
             echo "Example: $0 restore car_repair_backup_20240210_123456.sql"
             exit 1
         fi
-        
+
         if [ ! -f "$2" ]; then
             echo -e "${RED}Backup file not found: $2${NC}"
             exit 1

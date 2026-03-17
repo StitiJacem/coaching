@@ -79,7 +79,7 @@
             </button>
         </div>
 
-        <!-- Simplified Athlete Preview Banner -->
+
         <div *ngIf="isPreviewMode"
             class="bg-gosport-orange p-8 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-10 shadow-gosport-orange/20 shadow-2xl animate-slide-down">
             <div class="flex-1">
@@ -143,7 +143,7 @@
                             {{ session.title || 'Workout Session' }}
                         </h4>
 
-                        <!-- Exercise Summary -->
+
                         <div *ngIf="session.workoutData?.exercises?.length > 0" class="space-y-1">
                             <div *ngFor="let ex of session.workoutData.exercises | slice:0:3"
                                 class="flex items-center gap-2 text-[8px] text-slate-400 capitalize bg-white/5 px-2 py-1 rounded">
@@ -172,7 +172,7 @@
         (saved)="onWorkoutSaved($event)">
     </app-workout-builder-modal>
 
-    <!-- Master Planner Meta Modal -->
+
     <div *ngIf="showSaveModal"
         class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
         <div
@@ -207,7 +207,7 @@
         </div>
     </div>
 
-    <!-- Template Library Modal -->
+
     <div *ngIf="showTemplateLibrary"
         class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[300] flex items-center justify-center p-4">
         <div

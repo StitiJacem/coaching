@@ -14,7 +14,7 @@ export class ProgramExercise {
     programDay!: ProgramDay;
 
     @Column()
-    exercise_id!: string; // From External API (ExerciseDB)
+    exercise_id!: string;
 
     @Column()
     exercise_name!: string;

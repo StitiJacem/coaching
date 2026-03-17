@@ -4,7 +4,7 @@ import { authenticateToken } from "../middleware/authenticateToken";
 
 const router = Router();
 
-// All routes require authentication
+
 router.use(authenticateToken);
 
 router.get("/", SessionController.getAll);

@@ -95,7 +95,7 @@ export class RoleService {
         if (userStr) {
             try {
                 const user = JSON.parse(userStr);
-                // Priority: Use role from user object if it exists
+
                 const role = (user.role as UserRole) || 'athlete';
                 if (this.roleSubject.value !== role) {
                     this.setCurrentRole(role);

@@ -3,7 +3,7 @@
     <img *ngIf="src" [src]="src" [alt]="alt || fallback" class="w-full h-full object-cover" />
     <span *ngIf="!src" class="font-bold text-white">{{ fallback }}</span>
   </div>
-  <span 
+  <span
     *ngIf="status"
     [class]="'absolute bottom-0 right-0 block h-2.5 w-2.5 rounded-full ring-2 ring-gosport-surface ' + statusColors">
   </span>

@@ -1,7 +1,7 @@
-/** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
-    "./src/**/*.{html,ts}",
+    "./src*.{html,ts}",
   ],
   theme: {
     extend: {
@@ -18,7 +18,7 @@ module.exports = {
           lime: '#84CC16',
           danger: '#EF4444',
         },
-        // Keep galio and escd for backward compatibility during migration
+
         escd: {
           dark: '#0F172A',
           surface: '#1E293B',

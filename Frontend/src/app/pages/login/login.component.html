@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-galio-dark flex items-center justify-center p-4 relative overflow-hidden">
-    <!-- Background Elements -->
+
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-galio-orange/10 rounded-full blur-[120px]"></div>
         <div class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-galio-lime/10 rounded-full blur-[120px]">
@@ -10,7 +10,7 @@
     </div>
 
     <div class="w-full max-w-md relative z-10 animate-fade-in">
-        <!-- Logo + Title -->
+
         <div class="text-center mb-8">
             <div
                 class="inline-flex items-center justify-center w-16 h-16 bg-galio-orange rounded-2xl transform -skew-x-12 mb-6 shadow-lg shadow-galio-orange/20">
@@ -20,10 +20,10 @@
             <p class="text-slate-400">Sign in to access your workspace</p>
         </div>
 
-        <!-- Card -->
+
         <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 shadow-2xl">
             <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
-                <!-- Email -->
+
                 <div class="w-full">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email
                         Address</label>
@@ -40,7 +40,7 @@
                     </div>
                 </div>
 
-                <!-- Password -->
+
                 <div>
                     <div class="w-full">
                         <label
@@ -65,13 +65,13 @@
                     </div>
                 </div>
 
-                <!-- Error -->
+
                 <div *ngIf="errorMessage"
                     class="bg-galio-danger/10 border border-galio-danger/20 text-galio-danger text-center text-sm p-3 rounded-xl font-medium">
                     {{ errorMessage }}
                 </div>
 
-                <!-- Sign In -->
+
                 <button type="submit" [disabled]="loginForm.invalid"
                     class="w-full inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-galio-dark focus:ring-galio-orange disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
                     Sign In
@@ -81,7 +81,7 @@
                     </svg>
                 </button>
 
-                <!-- Divider -->
+
                 <div class="relative my-6">
                     <div class="absolute inset-0 flex items-center">
                         <div class="w-full border-t border-slate-700"></div>
@@ -92,7 +92,7 @@
                     </div>
                 </div>
 
-                <!-- Social Buttons -->
+
                 <div class="grid grid-cols-2 gap-4">
                     <button type="button" (click)="loginWithGoogle()" [disabled]="socialLoading"
                         class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-3 py-2.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition-all duration-200 w-full disabled:opacity-50 disabled:cursor-not-allowed">
@@ -122,7 +122,7 @@
                     </button>
                 </div>
 
-                <!-- Sign Up Link -->
+
                 <p class="text-center text-sm text-slate-400 mt-6">
                     Don't have an account?
                     <a routerLink="/signup"
@@ -131,7 +131,7 @@
             </form>
         </div>
 
-        <!-- Footer -->
+
         <div class="mt-8 text-center">
             <p class="text-xs text-slate-500 uppercase tracking-widest">GALIOSPORT Sport Science Platform</p>
         </div>

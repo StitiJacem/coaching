@@ -47,7 +47,7 @@ export class SocialAuthService {
         script.onload = () => {
             (window as any).fbAsyncInit = () => {
                 FB.init({
-                    appId: 'your_facebook_app_id_here', // Replace with env var or config
+                    appId: 'your_facebook_app_id_here',
                     cookie: true,
                     xfbml: true,
                     version: 'v18.0'
@@ -65,7 +65,7 @@ export class SocialAuthService {
             }
 
             google.accounts.id.initialize({
-                client_id: 'your_google_client_id_here', // Replace with env var or config
+                client_id: 'your_google_client_id_here',
                 callback: (response: any) => {
                     this.handleGoogleCallback(response.credential)
                         .subscribe({

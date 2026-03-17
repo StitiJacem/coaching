@@ -7,7 +7,7 @@ import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
 
 export class CoachingRequestController {
-    // POST /api/coaching-requests - Athlete sends a request to a coach
+
     static sendRequest = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.id;
@@ -41,7 +41,7 @@ export class CoachingRequestController {
 
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
 
-            // Check for existing request (pending or accepted)
+
             const existing = await requestRepo.findOne({
                 where: [
                     { athleteId: athlete.id, coachProfileId: coachProfileId, status: "pending" },
@@ -77,7 +77,7 @@ export class CoachingRequestController {
         }
     };
 
-    // GET /api/coaching-requests/coach/:coachId - Get requests for a coach
+
     static getRequestsByCoach = async (req: Request, res: Response) => {
         try {
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
@@ -94,7 +94,7 @@ export class CoachingRequestController {
         }
     };
 
-    // GET /api/coaching-requests/athlete/:athleteId - Get requests sent by an athlete
+
     static getRequestsByAthlete = async (req: Request, res: Response) => {
         try {
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
@@ -111,7 +111,7 @@ export class CoachingRequestController {
         }
     };
 
-    // PATCH /api/coaching-requests/:id - Update status (Accept/Reject)
+
     static updateStatus = async (req: Request, res: Response) => {
         try {
             const { status } = req.body;
@@ -139,7 +139,7 @@ export class CoachingRequestController {
         }
     };
 
-    // GET /api/coaching-requests/me - Get requests for the current authenticated user
+
     static getMyRequests = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.id;
@@ -165,7 +165,7 @@ export class CoachingRequestController {
                     order: { created_at: "DESC" }
                 });
 
-                // Deduplicate by coachProfileId (OR query can return same coach twice)
+
                 const seenCoachIds = new Set<string>();
                 const requests: typeof rawRequests = [];
                 for (const r of rawRequests) {
@@ -175,7 +175,7 @@ export class CoachingRequestController {
                     }
                 }
 
-                // Synthesize requests for coaches with active programs
+
                 const programRepo = AppDataSource.getRepository(Program);
                 const programs = await programRepo.find({
                     where: { athleteId: athlete.id },
@@ -212,7 +212,7 @@ export class CoachingRequestController {
                 const requests = await requestRepo.find({
                     where: {
                         coachProfileId: coachProfile.id,
-                        initiator: "athlete" // Coaches only see requests FROM athletes
+                        initiator: "athlete"
                     },
                     relations: ["athlete", "athlete.user"],
                     order: { created_at: "DESC" }
@@ -225,7 +225,7 @@ export class CoachingRequestController {
         }
     };
 
-    // DELETE /api/coaching-requests/:id - Terminate a connection or cancel a request
+
     static deleteRequest = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.id;
@@ -239,7 +239,7 @@ export class CoachingRequestController {
             let targetAthleteId: number | null = null;
             let targetCoachProfileId: string | null = null;
 
-            // Handle synthetic IDs from program-based connections (e.g. "prog-5")
+
             const syntheticMatch = requestId.match(/^prog-(\d+)$/);
             if (syntheticMatch) {
                 const programId = parseInt(syntheticMatch[1]);
@@ -265,7 +265,7 @@ export class CoachingRequestController {
                 targetAthleteId = prog.athleteId ?? null;
                 targetCoachProfileId = prog.coachProfileId ?? null;
             } else {
-                // Real CoachingRequest record
+
                 const request = await requestRepo.findOne({
                     where: { id: requestId },
                     relations: ["athlete", "coachProfile"]
@@ -291,11 +291,11 @@ export class CoachingRequestController {
                 await requestRepo.remove(request);
             }
 
-            // Unlink all programs assigned to this athlete by this coach.
-            // Programs may reference the coach by userId (coachId) OR by profile UUID (coachProfileId),
-            // so we must match on EITHER to fully remove the relationship.
+
+
+
             if (targetAthleteId !== null && targetCoachProfileId !== null) {
-                // Resolve the coach's user ID from their profile so we can match on coachId too
+
                 const coachProfileForUnlink = await coachRepo.findOne({ where: { id: targetCoachProfileId } });
                 const coachUserIdForUnlink = coachProfileForUnlink?.userId ?? null;
 
@@ -312,13 +312,13 @@ export class CoachingRequestController {
                 await programRepo
                     .createQueryBuilder()
                     .update(Program)
-                    .set({ athleteId: null as any }) // TypeORM requires null to emit SET athleteId = NULL; undefined is ignored
+                    .set({ athleteId: null as any })
                     .where(whereClause, whereParams)
                     .execute();
 
-                // Also delete upcoming sessions scheduled by this coach for this athlete.
-                // We match on coachId directly OR on programId (if the session came from one of this coach's programs).
-                // We check programs matching either the coach's userId OR their profileId to be safe.
+
+
+
                 if (coachUserIdForUnlink !== null) {
                     await sessionRepo
                         .createQueryBuilder()
@@ -326,10 +326,10 @@ export class CoachingRequestController {
                         .from(Session)
                         .where(
                             `"athleteId" = :athleteId AND "date" >= CURRENT_DATE AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
-                            { 
-                                athleteId: targetAthleteId, 
-                                coachId: coachUserIdForUnlink, 
-                                coachProfileId: targetCoachProfileId 
+                            {
+                                athleteId: targetAthleteId,
+                                coachId: coachUserIdForUnlink,
+                                coachProfileId: targetCoachProfileId
                             }
                         )
                         .execute();
@@ -344,7 +344,7 @@ export class CoachingRequestController {
         }
     };
 
-    // DELETE /api/coaching-requests/disconnect-athlete/:athleteId - Coach disconnects an athlete
+
     static disconnectAthlete = async (req: Request, res: Response) => {
         try {
             const userId = (req as any).user.id;
@@ -364,7 +364,7 @@ export class CoachingRequestController {
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
             const programRepo = AppDataSource.getRepository(Program);
 
-            // Remove all coaching requests between this coach and athlete
+
             await requestRepo
                 .createQueryBuilder()
                 .delete()
@@ -375,22 +375,22 @@ export class CoachingRequestController {
                 })
                 .execute();
 
-            // Unlink all programs assigned to this athlete by this coach.
-            // Programs may reference the coach by userId (coachId) OR by profile UUID (coachProfileId),
-            // so we must match on EITHER column to fully remove the relationship.
+
+
+
             await programRepo
                 .createQueryBuilder()
                 .update(Program)
-                .set({ athleteId: null as any }) // TypeORM requires null to emit SET athleteId = NULL; undefined is ignored
+                .set({ athleteId: null as any })
                 .where(
                     `"athleteId" = :athleteId AND ("coachId" = :coachUserId OR "coachProfileId" = :coachProfileId)`,
                     { athleteId, coachUserId: userId, coachProfileId: coachProfile.id }
                 )
                 .execute();
 
-            // Also delete upcoming sessions scheduled by this coach for this athlete.
-            // We match on coachId directly OR on programId (if the session came from one of this coach's programs).
-            // We check programs matching either the coach's userId OR their profileId to be safe.
+
+
+
             const sessionRepo = AppDataSource.getRepository(Session);
             await sessionRepo
                 .createQueryBuilder()
@@ -398,10 +398,10 @@ export class CoachingRequestController {
                 .from(Session)
                 .where(
                     `"athleteId" = :athleteId AND "date" >= CURRENT_DATE AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
-                    { 
-                        athleteId, 
-                        coachId: userId, 
-                        coachProfileId: coachProfile.id 
+                    {
+                        athleteId,
+                        coachId: userId,
+                        coachProfileId: coachProfile.id
                     }
                 )
                 .execute();

@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-galio-dark flex items-center justify-center p-4 relative overflow-hidden">
-    <!-- Background Elements -->
+
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-galio-orange/10 rounded-full blur-[120px]"></div>
         <div class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-galio-lime/10 rounded-full blur-[120px]">
@@ -10,7 +10,7 @@
     </div>
 
     <div class="w-full max-w-md relative z-10 animate-fade-in">
-        <!-- Logo + Title -->
+
         <div class="text-center mb-8">
             <div
                 class="inline-flex items-center justify-center w-16 h-16 bg-galio-orange rounded-2xl transform -skew-x-12 mb-6 shadow-lg shadow-galio-orange/20">
@@ -20,10 +20,10 @@
             <p class="text-slate-400">Join the elite performance platform</p>
         </div>
 
-        <!-- Card -->
+
         <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 shadow-2xl">
             <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-6">
-                <!-- Role Selection -->
+
                 <div class="space-y-3">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Select Your
                         Role</label>
@@ -42,7 +42,7 @@
                     </div>
                 </div>
 
-                <!-- Coach Specializations -->
+
                 <div *ngIf="signupForm.get('role')?.value === 'coach'" class="space-y-3 animate-fade-in">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Your
                         Specializations (Select multi)</label>
@@ -58,7 +58,7 @@
                     </div>
                 </div>
 
-                <!-- First / Last Name -->
+
                 <div class="grid grid-cols-2 gap-4">
                     <div class="w-full">
                         <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First
@@ -76,7 +76,7 @@
                     </div>
                 </div>
 
-                <!-- Email -->
+
                 <div class="w-full">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email
                         Address</label>
@@ -93,7 +93,7 @@
                     </div>
                 </div>
 
-                <!-- Password -->
+
                 <div class="w-full">
                     <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
                     <div class="relative">
@@ -109,19 +109,19 @@
                     </div>
                 </div>
 
-                <!-- Error -->
+
                 <div *ngIf="errorMessage"
                     class="bg-galio-danger/10 border border-galio-danger/20 text-galio-danger text-center text-sm p-3 rounded-xl font-medium">
                     {{ errorMessage }}
                 </div>
 
-                <!-- Create Account -->
+
                 <button type="submit" [disabled]="signupForm.invalid || !signupForm.get('role')?.value"
                     class="w-full inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-galio-dark focus:ring-galio-orange disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
                     Create Account
                 </button>
 
-                <!-- Sign In Link -->
+
                 <p class="text-center text-sm text-slate-400 mt-6">
                     Already have an account?
                     <a routerLink="/login"
@@ -130,7 +130,7 @@
             </form>
         </div>
 
-        <!-- Footer -->
+
         <div class="mt-8 text-center">
             <p class="text-xs text-slate-500 uppercase tracking-widest">GALIOSPORT Sport Science Platform</p>
         </div>

@@ -4,10 +4,10 @@ import { authenticateToken } from "../middleware/authenticateToken";
 
 const router = Router();
 
-// All routes require authentication
+
 router.use(authenticateToken);
 
-// Specific routes before generic /:id
+
 router.get("/athlete/:userId/today", ProgramController.getTodayWorkout);
 
 router.get("/", ProgramController.getAll);

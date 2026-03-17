@@ -4,7 +4,7 @@ import { Goal } from "../entities/Goal";
 import { Athlete } from "../entities/Athlete";
 
 export class GoalController {
-    // GET /api/goals - Get all goals (with filters)
+
     static getAll = async (req: Request, res: Response) => {
         try {
             const goalRepo = AppDataSource.getRepository(Goal);
@@ -31,7 +31,7 @@ export class GoalController {
         }
     };
 
-    // GET /api/goals/:id - Get single goal
+
     static getById = async (req: Request, res: Response) => {
         try {
             const goalRepo = AppDataSource.getRepository(Goal);
@@ -51,7 +51,7 @@ export class GoalController {
         }
     };
 
-    // POST /api/goals - Create new goal
+
     static create = async (req: Request, res: Response) => {
         try {
             const goalRepo = AppDataSource.getRepository(Goal);
@@ -63,7 +63,7 @@ export class GoalController {
                 return res.status(400).json({ message: "Missing required fields" });
             }
 
-            // Verify athlete exists
+
             const athlete = await athleteRepo.findOne({ where: { id: athleteId } });
             if (!athlete) {
                 return res.status(404).json({ message: "Athlete not found" });
@@ -92,7 +92,7 @@ export class GoalController {
         }
     };
 
-    // PUT /api/goals/:id - Update goal
+
     static update = async (req: Request, res: Response) => {
         try {
             const goalRepo = AppDataSource.getRepository(Goal);
@@ -127,7 +127,7 @@ export class GoalController {
         }
     };
 
-    // DELETE /api/goals/:id - Delete goal
+
     static delete = async (req: Request, res: Response) => {
         try {
             const goalRepo = AppDataSource.getRepository(Goal);

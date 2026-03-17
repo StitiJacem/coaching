@@ -22,7 +22,7 @@ import { DashboardLayoutComponent } from '../../../components/dashboard-layout/d
             <div>
               <h3 class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-6">Availability</h3>
               <div class="space-y-3">
-                <button *ngFor="let day of days; let i = index" 
+                <button *ngFor="let day of days; let i = index"
                   (click)="toggleDay(i)"
                   [ngClass]="{
                     'bg-gosport-orange text-white shadow-gosport-orange/20': selectedDays.includes(i),
@@ -85,9 +85,9 @@ export class AthleteScheduleComponent implements OnInit {
         const user = this.roleService.user;
         if (!user || user.role !== 'athlete') return;
 
-        // We need to find the athlete ID for this user.
-        // Assuming getById for an athlete uses the athlete's ID, but we might need a "getByUserId" or similar.
-        // For now, let's look at the current user object which usually has the profile info.
+
+
+
         this.athleteService.getAll().subscribe(athletes => {
             const found = athletes.find(a => a.userId === user.id);
             if (found) {

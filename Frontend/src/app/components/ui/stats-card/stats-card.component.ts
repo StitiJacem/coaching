@@ -24,8 +24,8 @@ export class StatsCardComponent {
   @Input() label: string = '';
   @Input() value: string = '';
   @Input() subtext?: string;
-  @Input() icon: any; // Can be icon name string or component
-  @Input() iconName?: string; // Icon name for lucide-angular
+  @Input() icon: any;
+  @Input() iconName?: string;
   @Input() trend: TrendType = 'neutral';
   @Input() delay: number = 0;
 }

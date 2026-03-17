@@ -1,8 +1,8 @@
 <app-dashboard-layout>
-    <!-- COACH & MANAGER VIEW -->
+
     <div *ngIf="roleService.currentRole === 'coach' || roleService.currentRole === 'manager' || roleService.currentRole === 'doctor' || roleService.currentRole === 'nutritionist'"
         class="space-y-8">
-        <!-- Header -->
+
         <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
                 <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">{{ dashboardLabel }}</p>
@@ -14,7 +14,7 @@
             </app-button>
         </header>
 
-        <!-- Stats Grid -->
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div *ngFor="let stat of currentStats"
                 class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 hover:border-slate-600 transition-colors">
@@ -34,7 +34,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
-                <!-- Today's Schedule -->
+
                 <section>
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-2xl font-display font-bold text-white tracking-wide">Today's Schedule</h2>
@@ -61,7 +61,7 @@
                     </app-card>
                 </section>
 
-                <!-- Pending Connection Requests (Coach Only) -->
+
                 <section *ngIf="roleService.currentRole === 'coach' && pendingRequests.length > 0"
                     class="animate-slide-up">
                     <div class="flex items-center justify-between mb-4">
@@ -105,7 +105,7 @@
                     </div>
                 </section>
 
-                <!-- Recent Athletes -->
+
                 <section>
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-2xl font-display font-bold text-white tracking-wide">Recent Athletes</h2>
@@ -137,7 +137,7 @@
                 </section>
             </div>
 
-            <!-- Sidebar: Weekly Calendar -->
+
             <div class="space-y-8">
                 <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6">
                     <h3 class="text-lg font-display font-bold text-white tracking-wide mb-4">This Week</h3>
@@ -184,9 +184,9 @@
         </div>
     </div>
 
-    <!-- ATHLETE VIEW -->
+
     <div *ngIf="roleService.currentRole === 'athlete'" class="space-y-8">
-        <!-- New Program Assignments Notification -->
+
         <section *ngIf="pendingPrograms.length > 0" class="animate-slide-up">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-2xl font-display font-bold text-white tracking-wide">New Program Assignments</h2>
@@ -230,7 +230,7 @@
             </div>
         </section>
 
-        <!-- Header -->
+
         <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
                 <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Today</p>
@@ -249,7 +249,7 @@
             </div>
         </header>
 
-        <!-- Stats Grid -->
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div
                 class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 hover:border-slate-600 transition-colors">
@@ -283,7 +283,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div class="lg:col-span-2 space-y-8">
-                <!-- Pending Connection Requests (Athlete View) -->
+
                 <section *ngIf="pendingRequests.length > 0" class="animate-slide-up">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-2xl font-display font-bold text-white tracking-wide">New Invitations</h2>
@@ -328,7 +328,7 @@
                     </div>
                 </section>
 
-                <!-- Discovery CTA (For Athletes without coaches) -->
+
                 <section class="animate-slide-up">
                     <div class="p-8 bg-gradient-to-br from-galio-orange to-orange-700 rounded-3xl relative overflow-hidden group cursor-pointer"
                         routerLink="/dashboard/discovery">
@@ -353,7 +353,7 @@
                     </div>
                 </section>
 
-                <!-- Today's Workout -->
+
                 <section>
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-2xl font-display font-bold text-white tracking-wide">Today's Workout</h2>
@@ -409,7 +409,7 @@
                                 </div>
                             </div>
 
-                            <!-- Progress Ring -->
+
                             <div class="relative w-32 h-32 flex-shrink-0">
                                 <svg class="w-full h-full transform -rotate-90">
                                     <circle cx="64" cy="64" r="60" stroke="currentColor" stroke-width="8"
@@ -429,7 +429,7 @@
                 </section>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Nutrition -->
+
                     <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-white flex items-center gap-2">
@@ -462,7 +462,7 @@
                         </div>
                     </div>
 
-                    <!-- Medical Status -->
+
                     <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6">
                         <div class="flex items-center justify-between mb-4">
                             <h3 class="font-bold text-white flex items-center gap-2">
@@ -485,7 +485,7 @@
                     </div>
                 </div>
 
-                <!-- Recent PRs -->
+
                 <section>
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-2xl font-display font-bold text-white tracking-wide">Recent PRs</h2>
@@ -501,9 +501,9 @@
                 </section>
             </div>
 
-            <!-- Sidebar: Weekly Calendar & Leaderboard -->
+
             <div class="space-y-8">
-                <!-- Dynamic Weekly Schedule -->
+
                 <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-display font-bold text-white tracking-wide">Weekly Schedule</h3>
@@ -519,7 +519,7 @@
                                 [ngClass]="isToday(day) ? 'bg-gosport-orange text-white shadow-lg shadow-gosport-orange/20 scale-110' : 'bg-slate-800 text-slate-400'">
                                 {{ day | date:'d' }}
                             </div>
-                            <!-- Dot indicators for sessions -->
+
                             <div class="w-1.5 h-1.5 rounded-full transition-all"
                                 [ngClass]="hasSessionOn(day) ? 'bg-gosport-lime' : 'bg-transparent border border-white/10'">
                             </div>
@@ -528,7 +528,7 @@
                 </div>
 
 
-                <!-- Achievements -->
+
                 <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6">
                     <h3 class="text-lg font-display font-bold text-white tracking-wide mb-4">Achievements</h3>
                     <div class="grid grid-cols-3 gap-2">
@@ -554,7 +554,7 @@
     </div>
 </app-dashboard-layout>
 
-<!-- Program Configuration Modal -->
+
 <app-program-config-modal *ngIf="showConfigModal && selectedProgramForConfig" [program]="selectedProgramForConfig"
     (accepted)="onProgramAccepted($any($event))" (close)="showConfigModal = false">
 </app-program-config-modal>

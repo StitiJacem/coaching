@@ -9,7 +9,7 @@ import { EmailService } from "../utils/EmailService";
 import { Brackets } from "typeorm";
 
 export class AthleteController {
-    // GET /api/athletes - Get all athletes
+
     static getAll = async (req: Request, res: Response) => {
         try {
             console.log(`[DEBUG] AthleteController.getAll called by user:`, (req as any).user);
@@ -19,22 +19,22 @@ export class AthleteController {
             const queryBuilder = athleteRepo.createQueryBuilder("athlete")
                 .leftJoinAndSelect("athlete.user", "user");
 
-            // Filter by role
+
             const user = (req as any).user;
             if (user && user.role === 'coach') {
                 const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
                 const coachProfile = await coachProfileRepo.findOne({ where: { userId: user.id } });
 
                 if (!coachProfile) {
-                    // Auto-fix for coaches without profiles
+
                     console.log(`[DEBUG] Auto-creating missing coach profile for user ${user.id} in getAll`);
                     const newProfile = coachProfileRepo.create({ userId: user.id });
                     await coachProfileRepo.save(newProfile);
                     return res.json([]);
                 }
 
-                // Strictly filter: Athletes who are either in a program with this coach
-                // OR have an accepted coaching request with this coach
+
+
                 queryBuilder.andWhere(new Brackets(qb => {
                     qb.where(
                         `EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)`,
@@ -46,7 +46,7 @@ export class AthleteController {
                     );
                 }));
             } else if (user && user.role === 'athlete') {
-                // IMPORTANT: Athletes should ONLY be able to see their own profile in this list
+
                 queryBuilder.andWhere("athlete.userId = :userId", { userId: user.id });
             } else {
                 return res.status(403).json({ message: "Access denied: Unauthorized role" });
@@ -73,7 +73,7 @@ export class AthleteController {
         }
     };
 
-    // GET /api/athletes/:id - Get single athlete
+
     static getById = async (req: Request, res: Response) => {
         try {
             const athleteRepo = AppDataSource.getRepository(Athlete);
@@ -93,7 +93,7 @@ export class AthleteController {
         }
     };
 
-    // POST /api/athletes/invite - Invite an athlete via email
+
     static invite = async (req: Request, res: Response) => {
         try {
             const { email, message } = req.body;
@@ -114,7 +114,7 @@ export class AthleteController {
             const inviteRepo = AppDataSource.getRepository(UserInvitation);
             const athleteRepo = AppDataSource.getRepository(Athlete);
 
-            // Auto-ensure coach profile exists
+
             let coachProfile = await coachProfileRepo.findOne({ where: { userId: coachId } });
             if (!coachProfile) {
                 console.log(`[DEBUG] Auto-creating missing coach profile for user ${coachId} during invitation`);
@@ -122,7 +122,7 @@ export class AthleteController {
                 await coachProfileRepo.save(coachProfile);
             }
 
-            // Check if user already exists
+
             const existingUser = await userRepo.findOne({ where: { email } });
 
             if (existingUser) {
@@ -130,7 +130,7 @@ export class AthleteController {
                     return res.status(400).json({ message: "This user is already a coach and cannot be invited as an athlete" });
                 }
 
-                // Create or find athlete profile for existing user
+
                 let athlete = await athleteRepo.findOne({ where: { userId: existingUser.id } });
 
                 if (!athlete) {
@@ -142,7 +142,7 @@ export class AthleteController {
                     await athleteRepo.save(athlete);
                 }
 
-                // CRITICAL: Check for existing request FROM THIS SPECIFIC COACH
+
                 const existingRequest = await coachingRequestRepo.findOne({
                     where: {
                         athleteId: athlete.id,
@@ -171,7 +171,7 @@ export class AthleteController {
                 });
             }
 
-            // User does not exist, create an invitation
+
             const existingInvite = await inviteRepo.findOne({ where: { email, coachId, status: 'pending' } });
             if (existingInvite) {
                 return res.status(400).json({ message: "An invitation has already been sent to this email address" });
@@ -196,7 +196,7 @@ export class AthleteController {
         }
     };
 
-    // PUT /api/athletes/:id - Update athlete profile
+
     static update = async (req: Request, res: Response) => {
         try {
             const athleteRepo = AppDataSource.getRepository(Athlete);
@@ -235,7 +235,7 @@ export class AthleteController {
         }
     };
 
-    // GET /api/athletes/:id/stats - Get athlete statistics
+
     static getStats = async (req: Request, res: Response) => {
         try {
             const athleteId = parseInt(req.params.id as string);
@@ -253,7 +253,7 @@ export class AthleteController {
                 return res.status(404).json({ message: "Athlete not found" });
             }
 
-            // Get stats
+
             const totalPrograms = await programRepo.count({ where: { athleteId } });
             const totalSessions = await sessionRepo.count({ where: { athleteId } });
             const completedSessions = await sessionRepo.count({
@@ -263,7 +263,7 @@ export class AthleteController {
                 where: { athleteId, status: "active" }
             });
 
-            // Calculate adherence (completed sessions / total sessions)
+
             const adherence = totalSessions > 0
                 ? Math.round((completedSessions / totalSessions) * 100)
                 : 0;

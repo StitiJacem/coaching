@@ -11,7 +11,7 @@ const getStringParam = (param: string | string[] | undefined): string => {
 };
 
 export class SessionController {
-    // Helper to check if user has access to athlete's sessions
+
     private static isAuthorized = async (user: any, athleteId: number): Promise<boolean> => {
         if (user.role === 'athlete') {
             const athleteRepo = AppDataSource.getRepository(Athlete);
@@ -24,7 +24,7 @@ export class SessionController {
             const coachProfile = await coachProfileRepo.findOne({ where: { userId: user.id } });
             if (!coachProfile) return false;
 
-            // Check for accepted coaching request
+
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
             const hasRequest = await requestRepo.findOne({
                 where: {
@@ -35,7 +35,7 @@ export class SessionController {
             });
             if (hasRequest) return true;
 
-            // Also check for active program link
+
             const programRepo = AppDataSource.getRepository(Program);
             const hasProgram = await programRepo.findOne({
                 where: [
@@ -49,7 +49,7 @@ export class SessionController {
         return false;
     };
 
-    // GET /api/sessions - Get all sessions (with filters)
+
     static getAll = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -104,7 +104,7 @@ export class SessionController {
         }
     };
 
-    // GET /api/sessions/:id - Get single session
+
     static getById = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -129,7 +129,7 @@ export class SessionController {
         }
     };
 
-    // POST /api/sessions - Create new session
+
     static create = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -147,13 +147,13 @@ export class SessionController {
                 return res.status(403).json({ message: "Access denied: You do not have permission to create sessions for this athlete" });
             }
 
-            // Verify athlete exists
+
             const athlete = await athleteRepo.findOne({ where: { id: athleteId } });
             if (!athlete) {
                 return res.status(404).json({ message: "Athlete not found" });
             }
 
-            // Verify program exists if provided
+
             if (programId) {
                 const program = await programRepo.findOne({ where: { id: programId } });
                 if (!program) {
@@ -189,7 +189,7 @@ export class SessionController {
         }
     };
 
-    // PUT /api/sessions/:id - Update session
+
     static update = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -231,7 +231,7 @@ export class SessionController {
         }
     };
 
-    // DELETE /api/sessions/:id - Delete session
+
     static delete = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;

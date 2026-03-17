@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-galio-dark flex items-center justify-center p-4 relative overflow-hidden">
-    <!-- Background Elements -->
+
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
         <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-galio-orange/10 rounded-full blur-[120px]"></div>
         <div class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-galio-lime/10 rounded-full blur-[120px]">
@@ -10,7 +10,7 @@
     </div>
 
     <div class="w-full max-w-2xl relative z-10 animate-fade-in">
-        <!-- Logo + Title -->
+
         <div class="text-center mb-8">
             <div
                 class="inline-flex items-center justify-center w-16 h-16 bg-galio-orange rounded-2xl transform -skew-x-12 mb-6 shadow-lg shadow-galio-orange/20">
@@ -20,7 +20,7 @@
             <p class="text-slate-400">Just a few more details to get started</p>
         </div>
 
-        <!-- Progress Indicator -->
+
         <div class="flex items-center justify-center gap-2 mb-8">
             <div class="flex items-center">
                 <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-bold"
@@ -41,10 +41,10 @@
             </div>
         </div>
 
-        <!-- Card -->
+
         <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 shadow-2xl">
             <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
-                <!-- Step 1: Role Selection -->
+
                 <div *ngIf="step === 1" class="space-y-6">
                     <div>
                         <h3 class="text-xl font-display font-bold text-white mb-2">SELECT YOUR ROLE</h3>
@@ -76,7 +76,7 @@
                     </button>
                 </div>
 
-                <!-- Step 2: Name Details -->
+
                 <div *ngIf="step === 2" class="space-y-6">
                     <div>
                         <h3 class="text-xl font-display font-bold text-white mb-2">YOUR DETAILS</h3>
@@ -100,7 +100,7 @@
                         </div>
                     </div>
 
-                    <!-- Error -->
+
                     <div *ngIf="errorMessage"
                         class="bg-galio-danger/10 border border-galio-danger/20 text-galio-danger text-center text-sm p-3 rounded-xl font-medium">
                         {{ errorMessage }}
@@ -125,7 +125,7 @@
             </form>
         </div>
 
-        <!-- Footer -->
+
         <div class="mt-8 text-center">
             <p class="text-xs text-slate-500 uppercase tracking-widest">GALIOSPORT Sport Science Platform</p>
         </div>

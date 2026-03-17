@@ -30,12 +30,12 @@ export class DashboardService {
     }
 
     getTodaySessions(): Observable<any> {
-        // Use the session service to get today's sessions with proper formatting
+
         return this.sessionService.getToday().pipe(
             map(sessions => sessions.map(session => ({
                 id: session.id,
                 time: session.time,
-                athlete: session.athlete?.user 
+                athlete: session.athlete?.user
                     ? `${session.athlete.user.first_name} ${session.athlete.user.last_name}`
                     : 'Unknown',
                 type: session.type,

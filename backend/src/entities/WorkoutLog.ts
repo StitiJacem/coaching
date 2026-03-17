@@ -35,7 +35,7 @@ export class WorkoutLog {
     @Column({ type: "timestamp", nullable: true })
     completedAt?: Date;
 
-    @Column({ default: "scheduled" }) // scheduled | in_progress | completed | missed
+    @Column({ default: "scheduled" })
     status!: string;
 
     @Column({ type: "int", nullable: true })
@@ -44,7 +44,7 @@ export class WorkoutLog {
     @Column({ type: "text", nullable: true })
     notes?: string;
 
-    @Column({ type: "int", nullable: true }) // 1-5 rating
+    @Column({ type: "int", nullable: true })
     overallRating?: number;
 
     @CreateDateColumn()

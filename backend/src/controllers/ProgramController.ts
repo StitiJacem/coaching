@@ -10,7 +10,7 @@ import { EmailService } from "../utils/EmailService";
 import { CoachProfile } from "../entities/Coach";
 
 export class ProgramController {
-    // Helper to check if user has access to athlete's programs
+
     private static isAuthorized = async (user: any, athleteId: number): Promise<boolean> => {
         if (user.role === 'athlete') {
             const athleteRepo = AppDataSource.getRepository(Athlete);
@@ -23,7 +23,7 @@ export class ProgramController {
             const coachProfile = await coachProfileRepo.findOne({ where: { userId: user.id } });
             if (!coachProfile) return false;
 
-            // Check for accepted coaching request
+
             const { CoachingRequest } = await import("../entities/CoachingRequest");
             const requestRepo = AppDataSource.getRepository(CoachingRequest);
             const hasRequest = await requestRepo.findOne({
@@ -35,7 +35,7 @@ export class ProgramController {
             });
             if (hasRequest) return true;
 
-            // Also check for active program link (if they already have a program)
+
             const programRepo = AppDataSource.getRepository(Program);
             const hasProgram = await programRepo.findOne({
                 where: [
@@ -49,29 +49,29 @@ export class ProgramController {
         return false;
     };
 
-    // GET /api/programs/athlete/:userId/today – returns the current day's workout for an athlete
+
     static getTodayWorkout = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
             let userId = parseInt(req.params.userId as string);
 
-            // SECURITY: Athletes can only fetch their own today's workout
+
             if (user.role === 'athlete' && user.id !== userId) {
                 console.warn(`Security Warning: User ${user.id} attempted to access workout for user ${userId}`);
-                userId = user.id; // Force to their own ID
+                userId = user.id;
             }
 
             const programRepo = AppDataSource.getRepository(Program);
             const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
 
-            // Find the user's athlete record
+
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const athlete = await athleteRepo.findOne({ where: { userId } });
             if (!athlete) {
                 return res.json({ program: null, day: null, workoutLog: null, message: "No athlete profile found" });
             }
 
-            // Find active program for this athlete
+
             const program = await programRepo.findOne({
                 where: { athleteId: athlete.id, status: "active", isConfigured: true },
                 relations: ["days", "days.exercises", "coach"],
@@ -82,10 +82,10 @@ export class ProgramController {
                 return res.json({ program: null, day: null, workoutLog: null, message: "No active, configured program found" });
             }
 
-            // Sort days by day_number
+
             const sortedDays = [...program.days].sort((a, b) => a.day_number - b.day_number);
 
-            // Compute which day in the cycle to show
+
             const start = new Date(program.startDate);
             start.setHours(0, 0, 0, 0);
             const today = new Date();
@@ -94,7 +94,7 @@ export class ProgramController {
             const dayIndex = daysSinceStart % sortedDays.length;
             const currentDay = sortedDays[dayIndex];
 
-            // Check for existing workout log today
+
             const todayStr = today.toISOString().split("T")[0];
             const existingLog = await workoutLogRepo.findOne({
                 where: { athleteId: athlete.id, scheduledDate: today },
@@ -113,7 +113,7 @@ export class ProgramController {
         }
     };
 
-    // GET /api/programs - Get all programs (with filters)
+
     static getAll = async (req: Request, res: Response) => {
         try {
             const programRepo = AppDataSource.getRepository(Program);
@@ -128,7 +128,7 @@ export class ProgramController {
                 .leftJoinAndSelect("program.days", "days")
                 .leftJoinAndSelect("days.exercises", "exercises");
 
-            // SECURITY: If user is an athlete, force filter by their own athleteId
+
             if (user.role === 'athlete') {
                 let athlete = await athleteRepo.findOne({ where: { userId: user.id } });
                 if (!athlete) {
@@ -138,7 +138,7 @@ export class ProgramController {
                 }
                 queryBuilder.andWhere("program.athleteId = :myAthleteId", { myAthleteId: athlete.id });
             } else {
-                // If not an athlete (e.g., coach), allow provided filters but check authorization
+
                 if (coachId) {
                     queryBuilder.andWhere("program.coachId = :coachId", { coachId });
                 }
@@ -163,7 +163,7 @@ export class ProgramController {
         }
     };
 
-    // GET /api/programs/:id - Get single program
+
     static getById = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -180,7 +180,7 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            // SECURITY: Verify authorization
+
             if (!(await this.isAuthorized(user, program.athleteId!))) {
                 return res.status(403).json({ message: "Access denied: You do not have permission to access this program" });
             }
@@ -192,7 +192,7 @@ export class ProgramController {
         }
     };
 
-    // POST /api/programs - Create new program
+
     static create = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -209,7 +209,7 @@ export class ProgramController {
             program.athleteId = athleteId || undefined;
             program.coachId = coachId;
 
-            // Auto-resolve coachProfileId if missing
+
             if (!req.body.coachProfileId && coachId) {
                 const coachRepo = AppDataSource.getRepository(CoachProfile);
                 const profile = await coachRepo.findOne({ where: { userId: coachId } });
@@ -221,7 +221,7 @@ export class ProgramController {
             program.startDate = new Date(startDate);
             program.endDate = endDate ? new Date(endDate) : undefined;
             program.type = type;
-            program.status = athleteId ? "active" : "draft"; // Changed default status to active if athleteId is present
+            program.status = athleteId ? "active" : "draft";
             program.isConfigured = false;
 
             if (days && Array.isArray(days)) {
@@ -262,7 +262,7 @@ export class ProgramController {
         }
     };
 
-    // PUT /api/programs/:id - Update program
+
     static update = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -293,7 +293,7 @@ export class ProgramController {
             if (endDate) program.endDate = new Date(endDate);
             if (type) program.type = type;
 
-            // Ensure coachProfileId is populated if we have coachId
+
             if (!program.coachProfileId && program.coachId) {
                 const coachRepo = AppDataSource.getRepository(CoachProfile);
                 const profile = await coachRepo.findOne({ where: { userId: program.coachId } });
@@ -307,7 +307,7 @@ export class ProgramController {
             }
 
             if (days && Array.isArray(days)) {
-                // Clear existing days to rebuild hierarchy (prevents orphaned records in this MVP)
+
                 if (program.days && program.days.length > 0) {
                     await dayRepo.remove(program.days);
                 }
@@ -350,7 +350,7 @@ export class ProgramController {
         }
     };
 
-    // DELETE /api/programs/:id - Delete program
+
     static delete = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -375,7 +375,7 @@ export class ProgramController {
         }
     };
 
-    // PATCH /api/programs/:id/accept - Athlete accepts and configures a program
+
     static acceptProgram = async (req: Request, res: Response) => {
         try {
             const programRepo = AppDataSource.getRepository(Program);
@@ -400,7 +400,7 @@ export class ProgramController {
 
             await programRepo.save(program);
 
-            // Send notification to coach if possible
+
             if (program.coach?.email && program.athlete?.user) {
                 const athleteName = `${program.athlete.user.first_name || ''} ${program.athlete.user.last_name || ''}`.trim() || program.athlete.user.email;
                 EmailService.sendProgramAcceptanceNotification(

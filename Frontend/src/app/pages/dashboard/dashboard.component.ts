@@ -53,17 +53,17 @@ export class DashboardComponent implements OnInit {
     error: string | null = null;
     isStartingWorkout = false;
 
-    // Athlete-specific real data
+
     todayWorkout: TodayWorkout | null = null;
     workoutStats: AthleteWorkoutStats | null = null;
     weekDays: Date[] = [];
     weekSessions: Session[] = [];
     currentWeekRange: string = '';
-    // Coach-specific real data
+
     pendingRequests: CoachingRequest[] = [];
     isUpdatingRequest = false;
 
-    // Athlete-side program acceptance
+
     pendingPrograms: Program[] = [];
     showConfigModal = false;
     selectedProgramForConfig: Program | null = null;
@@ -105,7 +105,7 @@ export class DashboardComponent implements OnInit {
             error: (err) => { console.error('Error loading athletes', err); this.loading = false; }
         });
 
-        // Load role-specific data
+
         if (role === 'coach') {
             this.loadCoachData();
         } else if (role === 'athlete') {
@@ -127,7 +127,7 @@ export class DashboardComponent implements OnInit {
 
     initializeWeeklySchedule(athleteId: number) {
         const now = new Date();
-        const start = startOfWeek(now, { weekStartsOn: 1 }); // Monday
+        const start = startOfWeek(now, { weekStartsOn: 1 });
         const end = endOfWeek(now, { weekStartsOn: 1 });
 
         this.weekDays = eachDayOfInterval({ start, end });
@@ -163,7 +163,7 @@ export class DashboardComponent implements OnInit {
         const user = this.authService.getUser();
         if (!user) return;
 
-        // Load today's workout
+
         this.workoutLogService.getTodayWorkout(user.id).subscribe({
             next: (data: TodayWorkout) => {
                 this.todayWorkout = data;
@@ -192,7 +192,7 @@ export class DashboardComponent implements OnInit {
             next: () => {
                 this.pendingRequests = this.pendingRequests.filter(r => r.id !== requestId);
                 this.isUpdatingRequest = false;
-                // Refresh athletes list if accepted
+
                 if (status === 'accepted') {
                     this.loadDashboardData();
                 }

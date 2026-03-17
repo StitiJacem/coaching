@@ -21,11 +21,11 @@ export class ProgramsComponent implements OnInit {
   programs: Program[] = [];
   isLoadingPrograms = false;
 
-  // Athlete assignment (for the assignment modal)
+
   athletes: Athlete[] = [];
   isLoadingAthletes = false;
 
-  // Assign modal state (assigning existing programs)
+
   showAssignModal = false;
   assigningProgram: Program | null = null;
   assignModalAthleteId: number | null = null;
@@ -49,7 +49,7 @@ export class ProgramsComponent implements OnInit {
   checkQueryParameters(): void {
     this.route.queryParams.subscribe(params => {
       if (params['athleteId']) {
-        // Future: Handle deep linking to assignment
+
       }
     });
   }
@@ -105,7 +105,7 @@ export class ProgramsComponent implements OnInit {
     this.programService.update(this.assigningProgram.id!, {
       athleteId: this.assignModalAthleteId,
       status: 'active',
-      isConfigured: true // Auto-configure when assigned from template
+      isConfigured: true
     }).subscribe({
       next: () => {
         this.isAssigning = false;

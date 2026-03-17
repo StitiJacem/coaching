@@ -50,7 +50,7 @@ export class ExerciseController {
         }
     };
 
-    // GET /api/exercises/video?name=barbell+squat
+
     static getVideo = async (req: Request, res: Response) => {
         try {
             const name = req.query.name as string;

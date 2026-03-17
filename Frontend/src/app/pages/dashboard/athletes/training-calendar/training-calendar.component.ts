@@ -45,7 +45,7 @@ export class TrainingCalendarComponent implements OnInit {
     selectedDate: Date | null = null;
     selectedSession: any = null;
 
-    // Master Planner State
+
     isMasterMode = false;
     masterProgramId: number | null = null;
     programTitle = 'New Training Program';
@@ -53,18 +53,18 @@ export class TrainingCalendarComponent implements OnInit {
     showSaveModal = false;
     isSavingTemplate = false;
 
-    // Template Library State
+
     showTemplateLibrary = false;
     templates: Program[] = [];
     isLoadingTemplates = false;
     isApplyingTemplate = false;
 
-    // Preview Mode State (Athlete consulting a new assignment)
+
     isPreviewMode = false;
     previewProgramId: number | null = null;
     previewProgram: Program | null = null;
 
-    // Acceptance Configuration (within Preview Mode)
+
     acceptStartDate: string = new Date().toISOString().split('T')[0];
     acceptSelectedDays: number[] = [];
     isAccepting = false;
@@ -221,13 +221,13 @@ export class TrainingCalendarComponent implements OnInit {
 
         const start = new Date(this.acceptStartDate);
 
-        // Sync calendar view with start date
+
         this.currentDate = new Date(start);
         this.generateCalendar();
 
         this.sessions = [];
 
-        // If no days selected, we fall back to sequential or empty
+
         if (this.acceptSelectedDays.length === 0) {
             this.previewProgram.days.forEach(day => {
                 const date = addDays(start, day.day_number - 1);
@@ -236,12 +236,12 @@ export class TrainingCalendarComponent implements OnInit {
             return;
         }
 
-        // Logic: Map program days to selected week days
+
         let currentDate = new Date(start);
         this.previewProgram.days.forEach(day => {
-            // Find next available training day
+
             while (true) {
-                const dayOfWeek = (getDay(currentDate) + 6) % 7; // Map to 0 (Mon) - 6 (Sun)
+                const dayOfWeek = (getDay(currentDate) + 6) % 7;
                 if (this.acceptSelectedDays.includes(dayOfWeek)) {
                     this.sessions.push(this.mapDayToSession(day, currentDate));
                     currentDate = addDays(currentDate, 1);
@@ -275,8 +275,8 @@ export class TrainingCalendarComponent implements OnInit {
     onAcceptProgram(): void {
         if (!this.previewProgramId) return;
         this.isAccepting = true;
-        // In the new flow, the coach has already scheduled it on valid days.
-        // We just need to activate the program.
+
+
         this.programService.acceptProgram(this.previewProgramId, {}).subscribe({
             next: () => {
                 this.isAccepting = false;
@@ -323,7 +323,7 @@ export class TrainingCalendarComponent implements OnInit {
 
                 let currentDate = new Date(anchorDate);
                 fullTemplate.days.forEach(day => {
-                    // Smart Mapping: Find next available preferred day
+
                     while (true) {
                         const dayOfWeek = (getDay(currentDate) + 6) % 7;
                         if (preferredDays.includes(dayOfWeek)) {
@@ -354,8 +354,8 @@ export class TrainingCalendarComponent implements OnInit {
                     }
                 });
 
-                // Batch create sessions (simulated via multiple calls for now, ideally one endpoint)
-                // For simplicity in this demo, we'll just alert and reload
+
+
                 if (newSessions.length > 0) {
                     import('rxjs').then(({ forkJoin }) => {
                         forkJoin(newSessions).subscribe({
@@ -424,20 +424,20 @@ export class TrainingCalendarComponent implements OnInit {
 
     openWorkoutBuilder(day: Date): void {
         this.selectedDate = day;
-        // Find existing session on this day
+
         this.selectedSession = this.sessions.find(s => isSameDay(new Date(s.date), day));
         this.showWorkoutBuilder = true;
     }
 
     onWorkoutSaved(newSession: any): void {
-        // Find existing session on this day and replace it, or add new
+
         const index = this.sessions.findIndex(s => isSameDay(new Date(s.date), this.selectedDate!));
         if (index > -1 && !this.isMasterMode) {
-            // In athlete mode, we might want to reload or update specific session
+
             this.loadSessions();
         } else {
             if (newSession) {
-                // In master mode, we store dates relative to the view's start
+
                 this.sessions = [...this.sessions.filter(s => !isSameDay(new Date(s.date), this.selectedDate!)), newSession];
             }
         }
@@ -451,7 +451,7 @@ export class TrainingCalendarComponent implements OnInit {
     confirmSaveMaster(): void {
         this.isSavingTemplate = true;
 
-        // Convert dummy Sessions back to ProgramDays
+
         const firstDay = this.days[0];
         const days: any[] = this.sessions.map(s => {
             const date = new Date(s.date);
@@ -473,8 +473,8 @@ export class TrainingCalendarComponent implements OnInit {
             };
         });
 
-        // Filter out logic: only keep days that actually have exercises (if needed)
-        // or just send all that were added to the calendar.
+
+
 
         const coach = JSON.parse(localStorage.getItem('user') || '{}');
         const payload: Partial<Program> = {
@@ -510,13 +510,13 @@ export class TrainingCalendarComponent implements OnInit {
     }
 
     isDayAvailable(day: Date): boolean {
-        // If not in athlete calendar mode (e.g. master planner), all days are visible
+
         if (!this.athleteId || this.isMasterMode) return true;
 
-        // If athlete hasn't set preferences, all days available by default
+
         if (!this.athlete?.preferredTrainingDays || this.athlete.preferredTrainingDays.length === 0) return true;
 
-        const dayOfWeek = (getDay(day) + 6) % 7; // Map to 0 (Mon) - 6 (Sun)
+        const dayOfWeek = (getDay(day) + 6) % 7;
         return this.athlete.preferredTrainingDays.includes(dayOfWeek);
     }
 

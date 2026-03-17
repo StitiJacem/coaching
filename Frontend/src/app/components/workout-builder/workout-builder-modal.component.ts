@@ -27,10 +27,10 @@ export class WorkoutBuilderModalComponent implements OnInit {
     workoutDuration = 45;
     workoutNotes = '';
 
-    // Canvas exercises
+
     exercises: any[] = [];
 
-    // Library state
+
     library: Exercise[] = [];
     searchQuery = '';
     activeBodyPart = 'ALL';
@@ -51,7 +51,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
         { id: 'waist', label: 'Abs' }
     ];
 
-    // Video preview state
+
     playingVideoId: string | null = null;
 
     get safeVideoUrl(): SafeResourceUrl | null {
@@ -166,7 +166,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
             athleteId: this.athleteId,
             coachId: coach.id,
             date: this.date ? format(this.date, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd'),
-            time: '08:00', // Default time
+            time: '08:00',
             type: this.workoutType,
             title: this.workoutTitle,
             notes: this.workoutNotes,
@@ -195,7 +195,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
                 }
             });
         } else {
-            // Emitting locally for Template / Master Planner
+
             this.saved.emit(sessionData);
         }
     }

@@ -14,7 +14,7 @@ export class CoachSpecialization {
     coachProfile!: CoachProfile;
 
     @Column()
-    specialization!: string; //  'PADEL', 'PILATES'
+    specialization!: string;
 
     @Column({ default: false })
     is_primary!: boolean;
