@@ -11,6 +11,13 @@ export interface Athlete {
   weight?: number;
   sport?: string;
   goals?: string;
+  primaryObjective?: string;
+  targetMetric?: string;
+  deadline?: Date | string;
+  timePerSession?: string;
+  injuries?: string;
+  experienceLevel?: string;
+  equipment?: string;
   profilePicture?: string;
   preferredTrainingDays?: number[];
   lastActive?: Date | string;

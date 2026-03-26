@@ -96,6 +96,10 @@ export class ProgramService {
     });
   }
 
+  quitProgram(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/quit`, {}, { headers: this.getHeaders() });
+  }
+
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, {
       headers: this.getHeaders()

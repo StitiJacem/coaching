@@ -28,6 +28,9 @@ export class ProgramExercise {
     @Column({ default: 12 })
     reps!: number;
 
+    @Column({ type: "simple-json", nullable: true })
+    targetWeights?: number[];
+
     @Column({ type: "float", nullable: true })
     rpe?: number;
 

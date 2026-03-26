@@ -2,21 +2,28 @@ import { Request, Response } from "express";
 import { AppDataSource } from "../orm/data-source";
 import { Goal } from "../entities/Goal";
 import { Athlete } from "../entities/Athlete";
+import { canAccessAthlete } from "../utils/authorization";
 
 export class GoalController {
-
     static getAll = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const goalRepo = AppDataSource.getRepository(Goal);
             const { athleteId, status } = req.query;
+
+            if (!athleteId) {
+                return res.status(400).json({ message: "athleteId is required" });
+            }
+            const targetAthleteId = parseInt(athleteId as string);
+            if (!(await canAccessAthlete(user, targetAthleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to view these goals" });
+            }
 
             const queryBuilder = goalRepo.createQueryBuilder("goal")
                 .leftJoinAndSelect("goal.athlete", "athlete")
                 .leftJoinAndSelect("athlete.user", "athleteUser");
 
-            if (athleteId) {
-                queryBuilder.where("goal.athleteId = :athleteId", { athleteId });
-            }
+            queryBuilder.where("goal.athleteId = :athleteId", { athleteId: targetAthleteId });
             if (status) {
                 queryBuilder.andWhere("goal.status = :status", { status });
             }
@@ -34,6 +41,7 @@ export class GoalController {
 
     static getById = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const goalRepo = AppDataSource.getRepository(Goal);
             const goal = await goalRepo.findOne({
                 where: { id: parseInt(req.params.id as string) },
@@ -42,6 +50,9 @@ export class GoalController {
 
             if (!goal) {
                 return res.status(404).json({ message: "Goal not found" });
+            }
+            if (!(await canAccessAthlete(user, goal.athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to view this goal" });
             }
 
             res.json(goal);
@@ -54,6 +65,7 @@ export class GoalController {
 
     static create = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const goalRepo = AppDataSource.getRepository(Goal);
             const athleteRepo = AppDataSource.getRepository(Athlete);
 
@@ -62,7 +74,9 @@ export class GoalController {
             if (!athleteId || !name) {
                 return res.status(400).json({ message: "Missing required fields" });
             }
-
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to create goals for this athlete" });
+            }
 
             const athlete = await athleteRepo.findOne({ where: { id: athleteId } });
             if (!athlete) {
@@ -95,6 +109,7 @@ export class GoalController {
 
     static update = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const goalRepo = AppDataSource.getRepository(Goal);
             const goal = await goalRepo.findOne({
                 where: { id: parseInt(req.params.id as string) }
@@ -102,6 +117,9 @@ export class GoalController {
 
             if (!goal) {
                 return res.status(404).json({ message: "Goal not found" });
+            }
+            if (!(await canAccessAthlete(user, goal.athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to update this goal" });
             }
 
             const { name, targetValue, currentValue, unit, deadline, status } = req.body;
@@ -130,6 +148,7 @@ export class GoalController {
 
     static delete = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const goalRepo = AppDataSource.getRepository(Goal);
             const goal = await goalRepo.findOne({
                 where: { id: parseInt(req.params.id as string) }
@@ -137,6 +156,9 @@ export class GoalController {
 
             if (!goal) {
                 return res.status(404).json({ message: "Goal not found" });
+            }
+            if (!(await canAccessAthlete(user, goal.athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to delete this goal" });
             }
 
             await goalRepo.remove(goal);

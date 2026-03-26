@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { Router } from '@angular/router';
 import { RoleService, UserRole } from '../../services/role.service';
+import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
@@ -21,7 +22,7 @@ export class SidebarComponent {
         manager: 'M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4'
     };
 
-    constructor(public roleService: RoleService, private router: Router) { }
+    constructor(public roleService: RoleService, private router: Router, private authService: AuthService) { }
 
     isActive(path: string): boolean {
         return this.router.url === path;
@@ -29,6 +30,8 @@ export class SidebarComponent {
 
 
     signOut(): void {
-        this.router.navigate(['/login']);
+        this.authService.logout();
+        this.roleService.refreshRole();
+        this.router.navigate(['/login'], { replaceUrl: true });
     }
 }

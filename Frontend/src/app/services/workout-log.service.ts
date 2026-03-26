@@ -16,6 +16,7 @@ export interface WorkoutLog {
     overallRating?: number;
     program?: any;
     programDay?: any;
+    exerciseLogs?: any[];
 }
 
 export interface ExerciseLog {
@@ -45,6 +46,9 @@ export interface TodayWorkout {
     workoutLog: WorkoutLog | null;
     athleteId: number | null;
     daysSinceStart: number;
+    isRestDay?: boolean;
+    nextDay?: any;
+    daysUntilNext?: number;
     message?: string;
 }
 
@@ -105,6 +109,10 @@ export class WorkoutLogService {
         return this.http.put<WorkoutLog>(`${this.apiUrl}/${id}`, { status: 'missed' }, { headers: this.getHeaders() });
     }
 
+    quitWorkout(id: number): Observable<WorkoutLog> {
+        return this.http.patch<WorkoutLog>(`${this.apiUrl}/${id}/quit`, {}, { headers: this.getHeaders() });
+    }
+
     logExercise(workoutLogId: number, data: Partial<ExerciseLog>): Observable<ExerciseLog> {
         return this.http.post<ExerciseLog>(`${this.apiUrl}/${workoutLogId}/exercises`, data, { headers: this.getHeaders() });
     }
@@ -113,5 +121,13 @@ export class WorkoutLogService {
         return this.http.get<WorkoutLog & { exerciseLogs: ExerciseLog[] }>(`${this.apiUrl}/${id}`, {
             headers: this.getHeaders()
         });
+    }
+
+    triggerWorkoutStart(id: number): Observable<WorkoutLog> {
+        return this.http.post<WorkoutLog>(`${this.apiUrl}/${id}/start`, {}, { headers: this.getHeaders() });
+    }
+
+    emitWorkoutEvent(id: number, type: string, payload?: Record<string, unknown>): Observable<any> {
+        return this.http.post(`${this.apiUrl}/${id}/event`, { type, payload }, { headers: this.getHeaders() });
     }
 }

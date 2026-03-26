@@ -39,13 +39,34 @@
 
             <div class="flex items-center gap-4">
 
-                <button class="relative p-2 text-slate-400 hover:text-white transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                    </svg>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-gosport-orange rounded-full"></span>
-                </button>
+                <div class="relative">
+                    <button (click)="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-white transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span *ngIf="unreadCount > 0"
+                            class="absolute top-1 right-1 min-w-[18px] h-[18px] px-1 flex items-center justify-center bg-gosport-orange text-white text-xs font-bold rounded-full">
+                            {{ unreadCount > 9 ? '9+' : unreadCount }}
+                        </span>
+                    </button>
+                    <div *ngIf="notificationsOpen"
+                        class="absolute right-0 mt-1 w-80 max-h-96 overflow-y-auto bg-gosport-surface border border-gosport-border rounded-xl shadow-xl z-50">
+                        <div class="p-3 border-b border-gosport-border">
+                            <h3 class="font-bold text-white">Notifications</h3>
+                        </div>
+                        <div *ngIf="notifications.length === 0" class="p-6 text-center text-slate-500 text-sm">
+                            No notifications
+                        </div>
+                        <div *ngFor="let n of notifications" (click)="markAsRead(n)"
+                            class="p-4 border-b border-gosport-border hover:bg-white/5 cursor-pointer"
+                            [ngClass]="{'bg-orange-500/10': !n.read}">
+                            <p class="font-medium text-white text-sm">{{ n.title }}</p>
+                            <p *ngIf="n.body" class="text-slate-400 text-xs mt-0.5">{{ n.body }}</p>
+                            <p class="text-slate-500 text-[10px] mt-1">{{ formatNotificationDate(n.created_at) }}</p>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="h-8 w-px bg-slate-800 mx-1 hidden md:block"></div>
 

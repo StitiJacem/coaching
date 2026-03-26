@@ -112,7 +112,13 @@
                                 d="M3 6h2m0 0V4m0 2v2M19 6h2m0 0V4m0 2v2M7 6h10M5 12h14M5 18h14M7 18h0m10 0h0" />
                         </svg>
                     </button>
-
+                    <button [routerLink]="['/dashboard/athletes', athlete.id, 'timeline']" title="Activity Timeline"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
                     <button [routerLink]="['/dashboard/messaging']" [queryParams]="{athleteId: athlete.id}"
                         title="Send Message"
                         class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">

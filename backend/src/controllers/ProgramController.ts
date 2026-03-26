@@ -8,48 +8,10 @@ import { ProgramExercise } from "../entities/ProgramExercise";
 import { WorkoutLog } from "../entities/WorkoutLog";
 import { EmailService } from "../utils/EmailService";
 import { CoachProfile } from "../entities/Coach";
+import { canAccessAthlete } from "../utils/authorization";
+import { notifyUser } from "../utils/notificationHelper";
 
 export class ProgramController {
-
-    private static isAuthorized = async (user: any, athleteId: number): Promise<boolean> => {
-        if (user.role === 'athlete') {
-            const athleteRepo = AppDataSource.getRepository(Athlete);
-            const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
-            return athlete?.id === athleteId;
-        }
-
-        if (user.role === 'coach') {
-            const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
-            const coachProfile = await coachProfileRepo.findOne({ where: { userId: user.id } });
-            if (!coachProfile) return false;
-
-
-            const { CoachingRequest } = await import("../entities/CoachingRequest");
-            const requestRepo = AppDataSource.getRepository(CoachingRequest);
-            const hasRequest = await requestRepo.findOne({
-                where: {
-                    athleteId,
-                    coachProfileId: coachProfile.id,
-                    status: 'accepted'
-                }
-            });
-            if (hasRequest) return true;
-
-
-            const programRepo = AppDataSource.getRepository(Program);
-            const hasProgram = await programRepo.findOne({
-                where: [
-                    { athleteId, coachId: user.id },
-                    { athleteId, coachProfileId: coachProfile.id }
-                ]
-            });
-            return !!hasProgram;
-        }
-
-        return false;
-    };
-
-
     static getTodayWorkout = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
@@ -79,21 +41,36 @@ export class ProgramController {
             });
 
             if (!program || !program.days || program.days.length === 0) {
-                return res.json({ program: null, day: null, workoutLog: null, message: "No active, configured program found" });
+                return res.json({ program: null, day: null, workoutLog: null, athleteId: athlete.id, message: "No active, configured program found" });
             }
 
 
             const sortedDays = [...program.days].sort((a, b) => a.day_number - b.day_number);
-
 
             const start = new Date(program.startDate);
             start.setHours(0, 0, 0, 0);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const daysSinceStart = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-            const dayIndex = daysSinceStart % sortedDays.length;
-            const currentDay = sortedDays[dayIndex];
+            
+            const maxDay = sortedDays[sortedDays.length - 1].day_number;
+            const cycleDay = (daysSinceStart % maxDay) + 1;
 
+            const currentDay = sortedDays.find(d => d.day_number === cycleDay);
+
+            let nextDay = null;
+            let daysUntilNext = 0;
+            if (!currentDay) {
+                for (let i = 1; i <= maxDay; i++) {
+                    const checkDay = ((cycleDay - 1 + i) % maxDay) + 1;
+                    const found = sortedDays.find(d => d.day_number === checkDay);
+                    if (found) {
+                        nextDay = found;
+                        daysUntilNext = i;
+                        break;
+                    }
+                }
+            }
 
             const todayStr = today.toISOString().split("T")[0];
             const existingLog = await workoutLogRepo.findOne({
@@ -102,7 +79,10 @@ export class ProgramController {
 
             res.json({
                 program: { id: program.id, name: program.name, description: program.description, type: program.type, startDate: program.startDate, coachName: program.coach ? `Coach` : null },
-                day: currentDay,
+                day: currentDay || null,
+                isRestDay: !currentDay,
+                nextDay: nextDay,
+                daysUntilNext: daysUntilNext,
                 workoutLog: existingLog || null,
                 athleteId: athlete.id,
                 daysSinceStart,
@@ -144,7 +124,7 @@ export class ProgramController {
                 }
                 if (athleteId) {
                     const targetAthleteId = parseInt(athleteId as string);
-                    if (!(await this.isAuthorized(user, targetAthleteId))) {
+                    if (!(await canAccessAthlete(user, targetAthleteId))) {
                         return res.status(403).json({ message: "Access denied: You do not have permission to view this athlete's programs" });
                     }
                     queryBuilder.andWhere("program.athleteId = :athleteId", { athleteId });
@@ -181,7 +161,7 @@ export class ProgramController {
             }
 
 
-            if (!(await this.isAuthorized(user, program.athleteId!))) {
+            if (!(await canAccessAthlete(user, program.athleteId!))) {
                 return res.status(403).json({ message: "Access denied: You do not have permission to access this program" });
             }
 
@@ -199,7 +179,7 @@ export class ProgramController {
             const programRepo = AppDataSource.getRepository(Program);
             const { name, description, athleteId, coachId, startDate, endDate, type, days } = req.body;
 
-            if (athleteId && !(await this.isAuthorized(user, athleteId))) {
+            if (athleteId && !(await canAccessAthlete(user, athleteId))) {
                 return res.status(403).json({ message: "Access denied: You cannot create a program for this athlete" });
             }
 
@@ -221,7 +201,7 @@ export class ProgramController {
             program.startDate = new Date(startDate);
             program.endDate = endDate ? new Date(endDate) : undefined;
             program.type = type;
-            program.status = athleteId ? "active" : "draft";
+            program.status = req.body.status || (athleteId ? "assigned" : "draft");
             program.isConfigured = false;
 
             if (days && Array.isArray(days)) {
@@ -238,6 +218,7 @@ export class ProgramController {
                             ex.exercise_gif = exData.exercise_gif;
                             ex.sets = exData.sets || 3;
                             ex.reps = exData.reps || 12;
+                            ex.targetWeights = exData.targetWeights || [];
                             ex.rest_seconds = exData.rest_seconds || 60;
                             ex.order = exData.order !== undefined ? exData.order : index;
                             ex.programDay = day;
@@ -279,17 +260,18 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            if (!(await this.isAuthorized(user, program.athleteId!))) {
+            const { name, description, status, endDate, type, days, athleteId, isConfigured, startDate } = req.body;
+            const targetAthleteId = athleteId ?? program.athleteId;
+            if (targetAthleteId && !(await canAccessAthlete(user, targetAthleteId))) {
                 return res.status(403).json({ message: "Access denied: You do not have permission to update this program" });
             }
-
-            const { name, description, status, endDate, type, days, athleteId, isConfigured } = req.body;
 
             if (name) program.name = name;
             if (description !== undefined) program.description = description;
             if (status) program.status = status;
             if (athleteId !== undefined) program.athleteId = athleteId;
             if (isConfigured !== undefined) program.isConfigured = isConfigured;
+            if (startDate) program.startDate = new Date(startDate);
             if (endDate) program.endDate = new Date(endDate);
             if (type) program.type = type;
 
@@ -302,8 +284,9 @@ export class ProgramController {
                 }
             }
 
-            if (program.athleteId && program.status === 'active' && !program.isConfigured) {
-                program.status = 'assigned';
+            const wasAssigning = athleteId && (!program.athleteId || program.status === 'draft' || program.status === 'quit');
+            if (program.athleteId && (program.status === 'active' && !program.isConfigured || program.status === 'assigned')) {
+                if (program.status === 'active') program.status = 'assigned';
             }
 
             if (days && Array.isArray(days)) {
@@ -326,6 +309,7 @@ export class ProgramController {
                             ex.exercise_gif = exData.exercise_gif;
                             ex.sets = exData.sets || 3;
                             ex.reps = exData.reps || 12;
+                            ex.targetWeights = exData.targetWeights || [];
                             ex.rest_seconds = exData.rest_seconds || 60;
                             ex.order = exData.order !== undefined ? exData.order : index;
                             ex.programDay = day;
@@ -338,6 +322,31 @@ export class ProgramController {
 
             const updatedProgram = await programRepo.save(program);
 
+            if (wasAssigning && updatedProgram.athleteId && updatedProgram.status === "assigned") {
+                const athleteWithUser = await AppDataSource.getRepository(Athlete).findOne({
+                    where: { id: updatedProgram.athleteId },
+                    relations: ["user"],
+                });
+                if (athleteWithUser?.user?.id) {
+                    notifyUser(
+                        athleteWithUser.user.id,
+                        "program_assigned",
+                        "New program assigned",
+                        `Your coach assigned you the program "${updatedProgram.name}". Review and accept it to get started.`,
+                        { programId: updatedProgram.id }
+                    );
+                }
+                const { ActivityEvent } = await import("../entities/ActivityEvent");
+                const eventRepo = AppDataSource.getRepository(ActivityEvent);
+                await eventRepo.save(
+                    eventRepo.create({
+                        athleteId: updatedProgram.athleteId,
+                        type: "program_assigned",
+                        payload: { programId: updatedProgram.id, programName: updatedProgram.name },
+                    })
+                );
+            }
+
             const programWithRelations = await programRepo.findOne({
                 where: { id: updatedProgram.id },
                 relations: ["athlete", "athlete.user", "coach", "days", "days.exercises"]
@@ -347,6 +356,44 @@ export class ProgramController {
         } catch (error) {
             console.error("Error updating program:", error);
             res.status(500).json({ message: "Error updating program" });
+        }
+    };
+
+
+    static quit = async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            const programRepo = AppDataSource.getRepository(Program);
+            const program = await programRepo.findOne({
+                where: { id: parseInt(req.params.id as string) },
+                relations: ["athlete", "athlete.user"]
+            });
+
+            if (!program) {
+                return res.status(404).json({ message: "Program not found" });
+            }
+
+            if (program.athlete?.user?.id !== user.id && user.role !== 'coach' && user.role !== 'manager') {
+                return res.status(403).json({ message: "Access denied" });
+            }
+
+            program.status = "draft"; // Reverting back to draft or creating a new "quit" state
+            await programRepo.save(program);
+
+            if (program.coachId && program.athlete?.user?.first_name) {
+                notifyUser(
+                    program.coachId,
+                    "program_quit",
+                    "Program Quit",
+                    `The athlete ${program.athlete.user.first_name} has quit the program "${program.name}".`,
+                    { programId: program.id }
+                ).catch(err => console.error("Notification Error:", err));
+            }
+
+            res.json({ message: "Program quit successfully", program });
+        } catch (error) {
+            console.error("Error quitting program:", error);
+            res.status(500).json({ message: "Error quitting program" });
         }
     };
 
@@ -363,7 +410,7 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            if (!(await this.isAuthorized(user, program.athleteId!))) {
+            if (!(await canAccessAthlete(user, program.athleteId!))) {
                 return res.status(403).json({ message: "Access denied: You do not have permission to delete this program" });
             }
 

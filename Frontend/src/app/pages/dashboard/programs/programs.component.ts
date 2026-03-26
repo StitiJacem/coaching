@@ -102,10 +102,12 @@ export class ProgramsComponent implements OnInit {
   confirmAssign(): void {
     if (!this.assigningProgram || !this.assignModalAthleteId) return;
     this.isAssigning = true;
+    const startDate = new Date().toISOString().split('T')[0];
     this.programService.update(this.assigningProgram.id!, {
       athleteId: this.assignModalAthleteId,
-      status: 'active',
-      isConfigured: true
+      status: 'assigned',
+      isConfigured: false,
+      startDate
     }).subscribe({
       next: () => {
         this.isAssigning = false;

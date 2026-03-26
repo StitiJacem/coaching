@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { authGuard } from './guards/auth.guard';
 import { HomeComponent } from './pages/home/home.component';
 import { LoginComponent } from './pages/login/login.component';
 import { SignupComponent } from './pages/signup/signup.component';
@@ -22,6 +23,7 @@ import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
 import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
 import { TrainingCalendarComponent } from './pages/dashboard/athletes/training-calendar/training-calendar.component';
+import { TimelineComponent } from './pages/dashboard/timeline/timeline.component';
 
 import { CompleteProfileComponent } from './pages/complete-profile/complete-profile.component';
 import { AthleteScheduleComponent } from './pages/dashboard/athlete-schedule/athlete-schedule.component';
@@ -34,26 +36,28 @@ const routes: Routes = [
   { path: 'forgot-password', component: ForgotPasswordComponent },
   { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'complete-profile', component: CompleteProfileComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'dashboard/athletes', component: AthletesComponent },
-  { path: 'dashboard/programs', component: ProgramsComponent },
-  { path: 'dashboard/exercises', component: ExercisesComponent },
-  { path: 'dashboard/goals', component: GoalsComponent },
-  { path: 'dashboard/sessions', component: SessionsComponent },
-  { path: 'dashboard/appointments', component: AppointmentsComponent },
-  { path: 'dashboard/messaging', component: MessagingComponent },
-  { path: 'dashboard/analytics', component: AnalyticsComponent },
-  { path: 'dashboard/nutrition', component: NutritionComponent },
-  { path: 'dashboard/medical', component: MedicalComponent },
-  { path: 'dashboard/discovery', component: DiscoveryComponent },
-  { path: 'dashboard/coaches', component: MyCoachesComponent },
-  { path: 'dashboard/athletes/:id/calendar', component: TrainingCalendarComponent },
-  { path: 'dashboard/program-preview/:id', component: TrainingCalendarComponent },
-  { path: 'dashboard/master-planner', component: TrainingCalendarComponent },
-  { path: 'dashboard/master-planner/:id', component: TrainingCalendarComponent },
-  { path: 'dashboard/workout/:id', component: WorkoutPlayerComponent },
-  { path: 'dashboard/workout-history', component: WorkoutHistoryComponent },
-  { path: 'dashboard/schedule', component: AthleteScheduleComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'dashboard/athletes', component: AthletesComponent, canActivate: [authGuard] },
+  { path: 'dashboard/programs', component: ProgramsComponent, canActivate: [authGuard] },
+  { path: 'dashboard/exercises', component: ExercisesComponent, canActivate: [authGuard] },
+  { path: 'dashboard/goals', component: GoalsComponent, canActivate: [authGuard] },
+  { path: 'dashboard/sessions', component: SessionsComponent, canActivate: [authGuard] },
+  { path: 'dashboard/appointments', component: AppointmentsComponent, canActivate: [authGuard] },
+  { path: 'dashboard/messaging', component: MessagingComponent, canActivate: [authGuard] },
+  { path: 'dashboard/analytics', component: AnalyticsComponent, canActivate: [authGuard] },
+  { path: 'dashboard/nutrition', component: NutritionComponent, canActivate: [authGuard] },
+  { path: 'dashboard/medical', component: MedicalComponent, canActivate: [authGuard] },
+  { path: 'dashboard/discovery', component: DiscoveryComponent, canActivate: [authGuard] },
+  { path: 'dashboard/coaches', component: MyCoachesComponent, canActivate: [authGuard] },
+  { path: 'dashboard/athletes/:id/calendar', component: TrainingCalendarComponent, canActivate: [authGuard] },
+  { path: 'dashboard/athletes/:id/timeline', component: TimelineComponent, canActivate: [authGuard] },
+  { path: 'dashboard/timeline', component: TimelineComponent, canActivate: [authGuard] },
+  { path: 'dashboard/program-preview/:id', component: TrainingCalendarComponent, canActivate: [authGuard] },
+  { path: 'dashboard/master-planner', component: TrainingCalendarComponent, canActivate: [authGuard] },
+  { path: 'dashboard/master-planner/:id', component: TrainingCalendarComponent, canActivate: [authGuard] },
+  { path: 'dashboard/workout/:id', component: WorkoutPlayerComponent, canActivate: [authGuard] },
+  { path: 'dashboard/workout-history', component: WorkoutHistoryComponent, canActivate: [authGuard] },
+  { path: 'dashboard/schedule', component: AthleteScheduleComponent, canActivate: [authGuard] },
   { path: 'home', component: HomeComponent },
   { path: '**', redirectTo: '/login' }
 ];

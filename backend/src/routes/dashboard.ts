@@ -16,4 +16,6 @@ router.get("/sessions/today", DashboardController.getTodaySessions);
 
 router.get("/athletes/recent", DashboardController.getRecentAthletes);
 
+router.get("/prs/recent", DashboardController.getRecentPRs);
+
 export default router;

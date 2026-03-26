@@ -88,6 +88,16 @@ export class WorkoutBuilderModalComponent implements OnInit {
         this.workoutNotes = this.existingSession.notes || '';
         if (this.existingSession.workoutData?.exercises) {
             this.exercises = JSON.parse(JSON.stringify(this.existingSession.workoutData.exercises));
+            this.exercises.forEach(ex => {
+                if (!ex.targetWeights) ex.targetWeights = [];
+                const sets = ex.sets || 1;
+                while(ex.targetWeights.length < sets) {
+                    ex.targetWeights.push(0);
+                }
+                if(ex.targetWeights.length > sets) {
+                    ex.targetWeights.length = sets;
+                }
+            });
         }
     }
 
@@ -146,8 +156,21 @@ export class WorkoutBuilderModalComponent implements OnInit {
             sets: 3,
             reps: 12,
             rest: 60,
+            targetWeights: [0, 0, 0],
             notes: ''
         });
+    }
+
+    onSetsChange(item: any): void {
+        const newSets = item.sets || 1;
+        if (!item.targetWeights) item.targetWeights = [];
+        
+        while (item.targetWeights.length < newSets) {
+            item.targetWeights.push(0);
+        }
+        if (item.targetWeights.length > newSets) {
+            item.targetWeights.length = newSets;
+        }
     }
 
     removeExercise(index: number): void {

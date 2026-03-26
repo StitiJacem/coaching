@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { AthleteService, Athlete } from '../../../../services/athlete.service';
 import { SessionService, Session } from '../../../../services/session.service';
 import { ProgramService, Program } from '../../../../services/program.service';
+import { WorkoutLogService } from '../../../../services/workout-log.service';
 import {
     startOfWeek,
     endOfWeek,
@@ -58,11 +59,21 @@ export class TrainingCalendarComponent implements OnInit {
     templates: Program[] = [];
     isLoadingTemplates = false;
     isApplyingTemplate = false;
+    blueprintRepeatWeeks: number = 1;
+    draggedSession: any | null = null;
+
+    completedLogs: any[] = [];
 
 
     isPreviewMode = false;
     previewProgramId: number | null = null;
     previewProgram: Program | null = null;
+
+
+    showAssignModal = false;
+    assignablePrograms: Program[] = [];
+    selectedProgramIdToAssign: number | null = null;
+    isAssigning = false;
 
 
     acceptStartDate: string = new Date().toISOString().split('T')[0];
@@ -84,7 +95,8 @@ export class TrainingCalendarComponent implements OnInit {
         public router: Router,
         private athleteService: AthleteService,
         private sessionService: SessionService,
-        private programService: ProgramService
+        private programService: ProgramService,
+        private workoutLogService: WorkoutLogService
     ) { }
 
     ngOnInit(): void {
@@ -153,6 +165,14 @@ export class TrainingCalendarComponent implements OnInit {
                 }
             }
         });
+
+        if (this.athleteId) {
+            this.workoutLogService.getAthleteHistory(this.athleteId, 100, 0).subscribe({
+                next: (res: any) => {
+                    this.completedLogs = res.logs.filter((l: any) => l.status === 'completed');
+                }
+            });
+        }
     }
 
     loadMasterProgram(): void {
@@ -276,8 +296,9 @@ export class TrainingCalendarComponent implements OnInit {
         if (!this.previewProgramId) return;
         this.isAccepting = true;
 
+        const startDate = new Date().toISOString().split('T')[0];
 
-        this.programService.acceptProgram(this.previewProgramId, {}).subscribe({
+        this.programService.acceptProgram(this.previewProgramId, { startDate }).subscribe({
             next: () => {
                 this.isAccepting = false;
                 alert('Success! Your program is now active.');
@@ -309,6 +330,61 @@ export class TrainingCalendarComponent implements OnInit {
         this.loadTemplates();
     }
 
+    bundleCurrentCalendarIntoProgram(): void {
+        const coach = JSON.parse(localStorage.getItem('user') || '{}');
+        if (!coach.id || !this.athleteId) return;
+
+        if (this.sessions.length === 0) {
+            alert('No sessions found in the current calendar view to assign.');
+            return;
+        }
+
+        this.isAssigning = true;
+        const sortedSessions = [...this.sessions].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const firstSessionDate = new Date(sortedSessions[0].date);
+
+        const payload: Partial<Program> = {
+            name: `Custom Routine - ${format(firstSessionDate, 'MMM d, yyyy')}`,
+            description: 'Custom routine built directly in the calendar.',
+            coachId: coach.id,
+            athleteId: this.athleteId,
+            status: 'assigned',
+            startDate: new Date(),
+            isConfigured: false,
+            days: sortedSessions.map((s) => {
+                const date = new Date(s.date);
+                const dayNum = Math.floor((date.getTime() - firstSessionDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                return {
+                    day_number: dayNum,
+                    title: s.title || 'Workout Session',
+                    exercises: s.workoutData?.exercises.map((ex: any, idx: number) => ({
+                        exercise_id: ex.id || ex.exercise_id,
+                        exercise_name: ex.name,
+                        exercise_gif: ex.gifUrl || ex.exercise_gif,
+                        videoId: ex.videoId,
+                        videoTitle: ex.videoTitle,
+                        sets: ex.sets,
+                        reps: ex.reps,
+                        rest_seconds: ex.rest,
+                        order: ex.order !== undefined ? ex.order : idx
+                    })) || []
+                };
+            })
+        };
+
+        this.programService.create(payload).subscribe({
+            next: () => {
+                this.isAssigning = false;
+                alert('Success! Custom program bundled and assigned to athlete.');
+            },
+            error: (err: any) => {
+                console.error('Assign failed:', err);
+                this.isAssigning = false;
+                alert('Failed to bundle and assign program.');
+            }
+        });
+    }
+
     applyTemplate(template: Program): void {
         if (!this.athleteId || !template.id) return;
         this.isApplyingTemplate = true;
@@ -320,39 +396,44 @@ export class TrainingCalendarComponent implements OnInit {
                 const preferredDays = this.athlete?.preferredTrainingDays || [0, 1, 2, 3, 4, 5, 6];
 
                 const coach = JSON.parse(localStorage.getItem('user') || '{}');
+                const weeksCount = this.blueprintRepeatWeeks || 1;
 
-                let currentDate = new Date(anchorDate);
-                fullTemplate.days.forEach(day => {
-
-                    while (true) {
-                        const dayOfWeek = (getDay(currentDate) + 6) % 7;
-                        if (preferredDays.includes(dayOfWeek)) {
-                            const sessionPayload = {
-                                athleteId: this.athleteId,
-                                coachId: coach.id,
-                                programId: fullTemplate.id,
-                                date: format(currentDate, 'yyyy-MM-dd'),
-                                title: day.title,
-                                workoutData: {
-                                    exercises: day.exercises.map(e => ({
-                                        exercise_id: e.exercise_id,
-                                        name: e.exercise_name,
-                                        gifUrl: e.exercise_gif,
-                                        videoId: (e as any).videoId,
-                                        videoTitle: (e as any).videoTitle,
-                                        sets: e.sets,
-                                        reps: e.reps,
-                                        order: e.order
-                                    }))
-                                }
-                            };
-                            newSessions.push(this.sessionService.create(sessionPayload));
+                for (let w = 0; w < weeksCount; w++) {
+                    let currentDate = addDays(new Date(anchorDate), w * 7);
+                    
+                    fullTemplate.days.forEach(day => {
+                        while (true) {
+                            const dayOfWeek = (getDay(currentDate) + 6) % 7;
+                            if (preferredDays.includes(dayOfWeek)) {
+                                const sessionPayload = {
+                                    athleteId: this.athleteId,
+                                    coachId: coach.id,
+                                    programId: fullTemplate.id,
+                                    date: format(currentDate, 'yyyy-MM-dd'),
+                                    title: day.title,
+                                    time: '12:00',
+                                    type: fullTemplate.type || 'Strength',
+                                    workoutData: {
+                                        exercises: day.exercises.map(e => ({
+                                            exercise_id: e.exercise_id,
+                                            name: e.exercise_name,
+                                            gifUrl: e.exercise_gif,
+                                            videoId: (e as any).videoId,
+                                            videoTitle: (e as any).videoTitle,
+                                            sets: e.sets,
+                                            reps: e.reps,
+                                            order: e.order
+                                        }))
+                                    }
+                                };
+                                newSessions.push(this.sessionService.create(sessionPayload));
+                                currentDate = addDays(currentDate, 1);
+                                break;
+                            }
                             currentDate = addDays(currentDate, 1);
-                            break;
                         }
-                        currentDate = addDays(currentDate, 1);
-                    }
-                });
+                    });
+                }
 
 
 
@@ -420,6 +501,73 @@ export class TrainingCalendarComponent implements OnInit {
 
     getSessionsForDay(day: Date): Session[] {
         return this.sessions.filter(s => isSameDay(new Date(s.date), day));
+    }
+
+    isSessionCompleted(session: Session): boolean {
+        // Find if a completed log exists for this session's date
+        return this.completedLogs.some(log => {
+            return isSameDay(new Date(log.scheduledDate), new Date(session.date));
+        });
+    }
+
+    onDragStart(event: DragEvent, session: Session) {
+        if (!this.isMasterMode && !this.isPreviewMode) {
+            this.draggedSession = session;
+            if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = 'copyMove';
+                event.dataTransfer.setData('text/plain', session.id?.toString() || '');
+            }
+        }
+    }
+
+    onDragOver(event: DragEvent) {
+        if (!this.isMasterMode && !this.isPreviewMode) {
+            event.preventDefault(); // allow drop
+            if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = event.ctrlKey ? 'copy' : 'move';
+            }
+        }
+    }
+
+    onDrop(event: DragEvent, targetDate: Date) {
+        if (this.isMasterMode || this.isPreviewMode) return;
+        event.preventDefault();
+        
+        if (!this.draggedSession || !this.athleteId) return;
+
+        const isCopy = event.ctrlKey;
+        const newDateStr = format(targetDate, 'yyyy-MM-dd');
+        
+        const coach = JSON.parse(localStorage.getItem('user') || '{}');
+
+        if (isCopy) {
+            // Duplicate session
+            const payload = {
+                athleteId: this.athleteId,
+                coachId: coach.id,
+                programId: this.draggedSession.programId,
+                date: newDateStr,
+                time: this.draggedSession.time || '12:00',
+                title: this.draggedSession.title,
+                type: this.draggedSession.type || 'Strength',
+                duration: this.draggedSession.duration || 45,
+                status: 'upcoming',
+                workoutData: this.draggedSession.workoutData
+            };
+            this.sessionService.create(payload).subscribe({
+                next: () => this.loadSessions(),
+                error: (err) => console.error('Error duplicating session', err)
+            });
+        } else {
+            // Move session
+            if (!this.draggedSession.id) return;
+            this.sessionService.update(this.draggedSession.id, { date: newDateStr }).subscribe({
+                next: () => this.loadSessions(),
+                error: (err) => console.error('Error moving session', err)
+            });
+        }
+        
+        this.draggedSession = null;
     }
 
     openWorkoutBuilder(day: Date): void {

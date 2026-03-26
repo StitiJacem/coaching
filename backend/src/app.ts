@@ -14,6 +14,8 @@ import exerciseRoutes from './routes/exercises';
 import workoutLogRoutes from './routes/workoutLogs';
 import coachRoutes from './routes/coaches';
 import coachingRequestRoutes from './routes/coachingRequests';
+import notificationRoutes from './routes/notifications';
+import reportRoutes from './routes/reports';
 
 const app = express();
 
@@ -34,5 +36,7 @@ app.use('/api/exercises', exerciseRoutes);
 app.use('/api/workout-logs', workoutLogRoutes);
 app.use('/api/coaches', coachRoutes);
 app.use('/api/coaching-requests', coachingRequestRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/reports', reportRoutes);
 
 export default app;

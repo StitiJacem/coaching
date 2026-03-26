@@ -29,6 +29,27 @@ export class Athlete {
     goals?: string;
 
     @Column({ nullable: true })
+    primaryObjective?: string;
+
+    @Column({ nullable: true })
+    targetMetric?: string;
+
+    @Column({ type: "date", nullable: true })
+    deadline?: Date;
+
+    @Column({ nullable: true })
+    timePerSession?: string;
+
+    @Column({ type: "text", nullable: true })
+    injuries?: string;
+
+    @Column({ nullable: true })
+    experienceLevel?: string;
+
+    @Column({ nullable: true })
+    equipment?: string;
+
+    @Column({ nullable: true })
     profilePicture?: string;
 
     @Column({ type: "jsonb", nullable: true })

@@ -59,6 +59,8 @@ export class DashboardComponent implements OnInit {
     weekDays: Date[] = [];
     weekSessions: Session[] = [];
     currentWeekRange: string = '';
+    
+    recentPRs: any[] = [];
 
     pendingRequests: CoachingRequest[] = [];
     isUpdatingRequest = false;
@@ -108,6 +110,7 @@ export class DashboardComponent implements OnInit {
 
         if (role === 'coach') {
             this.loadCoachData();
+            this.loadRecentPRs();
         } else if (role === 'athlete') {
             this.athleteService.getAll().subscribe({
                 next: (athletes) => {
@@ -115,6 +118,7 @@ export class DashboardComponent implements OnInit {
                         const athlete = athletes[0];
                         this.athleteId = athlete.id!;
                         this.loadAthleteData(this.athleteId);
+                        this.loadRecentPRs();
                         this.loadCoachData();
                         this.loadPendingPrograms(this.athleteId);
                         this.initializeWeeklySchedule(this.athleteId);
@@ -176,6 +180,13 @@ export class DashboardComponent implements OnInit {
         });
     }
 
+    loadRecentPRs() {
+        this.dashboardService.getRecentPRs(this.roleService.currentRole).subscribe({
+            next: (data) => { this.recentPRs = data; },
+            error: (err) => { console.error('Error loading PRs', err); }
+        });
+    }
+
     loadCoachData() {
         this.coachService.getMyRequests().subscribe({
             next: (requests) => {
@@ -227,13 +238,70 @@ export class DashboardComponent implements OnInit {
         });
     }
 
+    quitWorkout() {
+        if (!this.todayWorkout?.workoutLog?.id) return;
+        if (confirm('Are you sure you want to quit this workout? Your coach will be notified.')) {
+            this.workoutLogService.quitWorkout(this.todayWorkout.workoutLog.id).subscribe({
+                next: () => this.loadDashboardData(),
+                error: (err) => console.error('Error quitting workout', err)
+            });
+        }
+    }
+
+    quitProgram() {
+        if (!this.todayWorkout?.program?.id) return;
+        if (confirm('Are you sure you want to quit your current program? Your coach will be notified.')) {
+            this.programService.quitProgram(this.todayWorkout.program.id).subscribe({
+                next: () => this.loadDashboardData(),
+                error: (err) => console.error('Error quitting program', err)
+            });
+        }
+    }
+
+    consultProgram() {
+        if (this.athleteId) {
+            this.router.navigate(['/dashboard/athletes', this.athleteId, 'calendar']);
+        }
+    }
+
     get todayExerciseCount(): number {
         return this.todayWorkout?.day?.exercises?.length || 0;
     }
 
     get todayWorkoutName(): string {
+        if (this.todayWorkout?.isRestDay) return 'Rest Day';
         if (this.todayWorkout?.day) return this.todayWorkout.day.title;
         return 'No Workout Assigned';
+    }
+
+    get isRestDay(): boolean {
+        return !!this.todayWorkout?.isRestDay;
+    }
+
+    get daysUntilNext(): number {
+        return this.todayWorkout?.daysUntilNext || 0;
+    }
+
+    get nextWorkoutName(): string {
+        return this.todayWorkout?.nextDay?.title || 'Next Session';
+    }
+
+    get targetMuscleGroups(): string[] {
+        if (!this.todayWorkout) return [];
+        const exercises = this.isRestDay ? this.todayWorkout.nextDay?.exercises : this.todayWorkout.day?.exercises;
+        if (!exercises) return [];
+        
+        const parts = new Set<string>();
+        exercises.forEach((ex: any) => {
+            if (ex.exercise_name) {
+                parts.add(ex.exercise_name.split(' ')[0]);
+            }
+        });
+        return Array.from(parts).slice(0, 3);
+    }
+    
+    get upcomingExercises(): any[] {
+        return this.todayWorkout?.day?.exercises?.slice(0, 3) || [];
     }
 
     get currentStreak(): number {

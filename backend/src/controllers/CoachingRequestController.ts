@@ -5,6 +5,8 @@ import { Athlete } from "../entities/Athlete";
 import { CoachProfile } from "../entities/Coach";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
+import { WorkoutLog } from "../entities/WorkoutLog";
+import { notifyUser } from "../utils/notificationHelper";
 
 export class CoachingRequestController {
 
@@ -131,6 +133,33 @@ export class CoachingRequestController {
 
             request.status = status;
             await requestRepo.save(request);
+
+            if (status === "accepted") {
+                const reqUser = (req as any).user;
+                const withRelations = await requestRepo.findOne({
+                    where: { id: request.id },
+                    relations: ["coachProfile", "coachProfile.user", "athlete", "athlete.user"],
+                });
+                if (withRelations?.coachProfile?.userId && withRelations?.athlete?.user?.id) {
+                    if (reqUser?.role === "coach") {
+                        notifyUser(
+                            withRelations.athlete.user.id,
+                            "coaching_accepted",
+                            "Coaching request accepted",
+                            "Your coach has accepted your request. You're now connected!",
+                            { coachProfileId: withRelations.coachProfileId }
+                        );
+                    } else {
+                        notifyUser(
+                            withRelations.coachProfile.userId,
+                            "athlete_connected",
+                            "New athlete connected",
+                            "An athlete has accepted your invitation.",
+                            { athleteId: withRelations.athleteId }
+                        );
+                    }
+                }
+            }
 
             res.json({ message: `Request ${status} successfully`, request });
         } catch (error) {
@@ -325,7 +354,22 @@ export class CoachingRequestController {
                         .delete()
                         .from(Session)
                         .where(
-                            `"athleteId" = :athleteId AND "date" >= CURRENT_DATE AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                            `"athleteId" = :athleteId AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                            {
+                                athleteId: targetAthleteId,
+                                coachId: coachUserIdForUnlink,
+                                coachProfileId: targetCoachProfileId
+                            }
+                        )
+                        .execute();
+
+                    const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
+                    await workoutLogRepo
+                        .createQueryBuilder()
+                        .delete()
+                        .from(WorkoutLog)
+                        .where(
+                            `"athleteId" = :athleteId AND "status" = 'scheduled' AND "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId)`,
                             {
                                 athleteId: targetAthleteId,
                                 coachId: coachUserIdForUnlink,
@@ -397,7 +441,22 @@ export class CoachingRequestController {
                 .delete()
                 .from(Session)
                 .where(
-                    `"athleteId" = :athleteId AND "date" >= CURRENT_DATE AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                    `"athleteId" = :athleteId AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                    {
+                        athleteId,
+                        coachId: userId,
+                        coachProfileId: coachProfile.id
+                    }
+                )
+                .execute();
+
+            const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
+            await workoutLogRepo
+                .createQueryBuilder()
+                .delete()
+                .from(WorkoutLog)
+                .where(
+                    `"athleteId" = :athleteId AND "status" = 'scheduled' AND "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId)`,
                     {
                         athleteId,
                         coachId: userId,

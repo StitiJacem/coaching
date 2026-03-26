@@ -7,6 +7,7 @@ import { UserInvitation } from "../entities/UserInvitation";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { EmailService } from "../utils/EmailService";
 import { Brackets } from "typeorm";
+import { canAccessAthlete } from "../utils/authorization";
 
 export class AthleteController {
 
@@ -76,9 +77,14 @@ export class AthleteController {
 
     static getById = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
+            const athleteId = parseInt(req.params.id as string);
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to view this athlete" });
+            }
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const athlete = await athleteRepo.findOne({
-                where: { id: parseInt(req.params.id as string) },
+                where: { id: athleteId },
                 relations: ["user"]
             });
 
@@ -199,9 +205,14 @@ export class AthleteController {
 
     static update = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
+            const athleteId = parseInt(req.params.id as string);
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to update this athlete" });
+            }
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const athlete = await athleteRepo.findOne({
-                where: { id: parseInt(req.params.id as string) },
+                where: { id: athleteId },
                 relations: ["user"]
             });
 
@@ -209,7 +220,10 @@ export class AthleteController {
                 return res.status(404).json({ message: "Athlete not found" });
             }
 
-            const { age, height, weight, sport, goals, profilePicture, preferredTrainingDays } = req.body;
+            const { 
+                age, height, weight, sport, goals, profilePicture, preferredTrainingDays,
+                primaryObjective, targetMetric, deadline, timePerSession, injuries, experienceLevel, equipment
+            } = req.body;
 
             if (age !== undefined) athlete.age = age;
             if (height !== undefined) athlete.height = height;
@@ -218,6 +232,14 @@ export class AthleteController {
             if (goals !== undefined) athlete.goals = goals;
             if (profilePicture !== undefined) athlete.profilePicture = profilePicture;
             if (preferredTrainingDays !== undefined) athlete.preferredTrainingDays = preferredTrainingDays;
+            
+            if (primaryObjective !== undefined) athlete.primaryObjective = primaryObjective;
+            if (targetMetric !== undefined) athlete.targetMetric = targetMetric;
+            if (deadline !== undefined) athlete.deadline = deadline ? new Date(deadline) : undefined;
+            if (timePerSession !== undefined) athlete.timePerSession = timePerSession;
+            if (injuries !== undefined) athlete.injuries = injuries;
+            if (experienceLevel !== undefined) athlete.experienceLevel = experienceLevel;
+            if (equipment !== undefined) athlete.equipment = equipment;
 
             athlete.lastActive = new Date();
 
@@ -238,7 +260,11 @@ export class AthleteController {
 
     static getStats = async (req: Request, res: Response) => {
         try {
+            const user = (req as any).user;
             const athleteId = parseInt(req.params.id as string);
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied: You do not have permission to view this athlete's stats" });
+            }
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const { Program } = await import("../entities/Program");
             const { Session } = await import("../entities/Session");

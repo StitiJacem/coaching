@@ -40,6 +40,7 @@ import { InviteModalComponent } from './pages/dashboard/athletes/invite-modal/in
 import { ProgramConfigModalComponent } from './pages/dashboard/programs/program-config-modal.component';
 import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
 import { TrainingCalendarComponent } from './pages/dashboard/athletes/training-calendar/training-calendar.component';
+import { TimelineComponent } from './pages/dashboard/timeline/timeline.component';
 import { WorkoutBuilderModalComponent } from './components/workout-builder/workout-builder-modal.component';
 
 @NgModule({
@@ -63,7 +64,8 @@ import { WorkoutBuilderModalComponent } from './components/workout-builder/worko
     DiscoveryComponent,
     WorkoutPlayerComponent,
     WorkoutHistoryComponent,
-    MyCoachesComponent
+    MyCoachesComponent,
+    TimelineComponent
   ],
   imports: [
     BrowserModule,

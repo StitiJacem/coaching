@@ -45,6 +45,10 @@ export class DashboardService {
         );
     }
 
+    getRecentPRs(role: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/prs/recent?role=${role}`, { headers: this.getHeaders() });
+    }
+
     getRecentAthletes(): Observable<any> {
         return this.http.get<any[]>(`${this.apiUrl}/athletes/recent`, { headers: this.getHeaders() }).pipe(
             map((athletes: any[]) => athletes.map(athlete => ({

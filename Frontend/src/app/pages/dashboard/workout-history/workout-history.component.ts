@@ -96,4 +96,17 @@ export class WorkoutHistoryComponent implements OnInit {
         if (!date) return '—';
         return new Date(date).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     }
+
+    getVolume(log: WorkoutLog): number {
+        if (!log.exerciseLogs) return 0;
+        return log.exerciseLogs.reduce((total: number, el: any) => {
+            let exerciseVolume = 0;
+            if (el.repsPerSet && el.weightKgPerSet) {
+                for (let i = 0; i < el.repsPerSet.length; i++) {
+                    exerciseVolume += (el.repsPerSet[i] || 0) * (el.weightKgPerSet[i] || 0);
+                }
+            }
+            return total + exerciseVolume;
+        }, 0);
+    }
 }

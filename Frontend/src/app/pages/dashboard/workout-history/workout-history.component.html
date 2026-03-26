@@ -42,6 +42,10 @@
 
                     <div class="hidden md:flex items-center gap-6 text-center">
                         <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Volume</p>
+                            <p class="font-bold text-white">{{ getVolume(log) | number }} kg</p>
+                        </div>
+                        <div>
                             <p class="text-xs text-slate-500 uppercase font-bold">Duration</p>
                             <p class="font-bold text-white">{{ log.durationMinutes ? log.durationMinutes + 'm' : '—' }}
                             </p>

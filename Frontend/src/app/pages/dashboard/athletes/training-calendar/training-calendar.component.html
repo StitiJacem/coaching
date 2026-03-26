@@ -65,6 +65,14 @@
                 </svg>
                 Back
             </button>
+            <button *ngIf="!isMasterMode && !isPreviewMode" (click)="bundleCurrentCalendarIntoProgram()" [disabled]="isAssigning"
+                class="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs bg-gosport-orange text-white hover:bg-orange-600 transition-all shadow-md shadow-gosport-orange/20">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                        d="M12 4v16m8-8H4" />
+                </svg>
+                Assign Program
+            </button>
             <button *ngIf="!isMasterMode && !isPreviewMode" (click)="openTemplateLibrary()"
                 class="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs bg-gosport-orange/10 text-gosport-orange hover:bg-gosport-orange hover:text-white transition-all shadow-md">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -112,6 +120,7 @@
                     'bg-slate-900/40 opacity-50 cursor-not-allowed': !isDayAvailable(day),
                     'bg-black/10 hover:bg-white/5': isDayAvailable(day)
                 }"
+                (dragover)="onDragOver($event)" (drop)="onDrop($event, day)"
                 class="relative min-h-[150px] border-r border-b border-gosport-border last:border-r-0 p-4 transition-all group">
 
                 <div class="flex items-center justify-between mb-4">
@@ -130,7 +139,9 @@
 
                 <div class="space-y-2">
                     <div *ngFor="let session of getSessionsForDay(day)" (click)="openWorkoutBuilder(day)"
-                        class="bg-black/40 border border-white/5 rounded-xl p-3 hover:border-gosport-orange/30 transition-all cursor-pointer group/item mb-2 last:mb-0">
+                        draggable="true" (dragstart)="onDragStart($event, $any(session))"
+                        [ngClass]="isSessionCompleted($any(session)) ? 'bg-gosport-lime/10 border-gosport-lime/50' : 'bg-black/40 border-white/5 hover:border-gosport-orange/30'"
+                        class="border rounded-xl p-3 transition-all cursor-pointer group/item mb-2 last:mb-0">
                         <div class="flex items-center justify-between mb-2">
                             <span
                                 class="bg-gosport-orange/20 text-gosport-orange text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-tighter">
@@ -157,9 +168,9 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2 mt-2 opacity-60">
-                            <span class="text-[9px] text-slate-400">{{ session.duration || '45' }}m</span>
-                            <div class="w-1 h-1 rounded-full bg-slate-700"></div>
-                            <span class="text-[9px] text-slate-400">{{ session.status }}</span>
+                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime' : 'text-slate-400'">{{ session.duration || '45' }}m</span>
+                            <div class="w-1 h-1 rounded-full" [ngClass]="isSessionCompleted($any(session)) ? 'bg-gosport-lime' : 'bg-slate-700'"></div>
+                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime font-black' : 'text-slate-400'">{{ isSessionCompleted($any(session)) ? 'COMPLETED' : session.status }}</span>
                         </div>
                     </div>
                 </div>
@@ -274,8 +285,10 @@
 
             <div
                 class="px-10 py-8 bg-black/20 border-t border-gosport-border flex justify-between items-center backdrop-blur-md">
-                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Select a blueprint to apply
-                    it onto the calendar</p>
+                <div class="flex items-center gap-4">
+                     <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Repeat Blueprint (Weeks):</p>
+                     <input type="number" [(ngModel)]="blueprintRepeatWeeks" min="1" max="52" class="w-20 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold text-center outline-none focus:border-gosport-orange">
+                </div>
                 <button (click)="router.navigate(['/dashboard/master-planner'])"
                     class="bg-white/5 hover:bg-white/10 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all border border-white/10">Build
                     New Template</button>
@@ -290,4 +303,5 @@
         </div>
         <p class="text-white font-black uppercase tracking-[0.3em] text-sm animate-pulse">Applying Blueprint...</p>
     </div>
+
 </app-dashboard-layout>

@@ -101,9 +101,10 @@
     <div
         class="bg-gosport-surface border border-gosport-border rounded-3xl p-8 max-w-md w-full animate-in zoom-in duration-300">
         <h3 class="text-xl font-bold text-white mb-2">Assign Program</h3>
-        <p class="text-slate-400 text-sm mb-6">Choose an athlete to assign
+        <p class="text-slate-400 text-sm mb-2">Choose an athlete to assign
             <strong class="text-white">{{ assigningProgram?.name }}</strong> to.
         </p>
+        <p class="text-amber-400/90 text-xs mb-4">The athlete will receive a notification and must accept the program before it becomes active.</p>
         <select [(ngModel)]="assignModalAthleteId"
             class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-gosport-orange mb-6 outline-none">
             <option [ngValue]="null" disabled>Select athlete...</option>

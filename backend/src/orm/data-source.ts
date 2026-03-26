@@ -14,6 +14,8 @@ import { WorkoutLog } from "../entities/WorkoutLog";
 import { ExerciseLog } from "../entities/ExerciseLog";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { UserInvitation } from "../entities/UserInvitation";
+import { ActivityEvent } from "../entities/ActivityEvent";
+import { Notification } from "../entities/Notification";
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -31,7 +33,7 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME || "coaching_db",
     synchronize: true,
     logging: false,
-    entities: [User, Athlete, Program, Session, Goal, CoachProfile, CoachSpecialization, CoachCertification, ProgramDay, ProgramExercise, WorkoutLog, ExerciseLog, CoachingRequest, UserInvitation],
+    entities: [User, Athlete, Program, Session, Goal, CoachProfile, CoachSpecialization, CoachCertification, ProgramDay, ProgramExercise, WorkoutLog, ExerciseLog, CoachingRequest, UserInvitation, ActivityEvent, Notification],
     migrations: [],
     subscribers: [],
 });
