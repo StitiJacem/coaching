@@ -160,9 +160,13 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-
-            if (!(await canAccessAthlete(user, program.athleteId!))) {
-                return res.status(403).json({ message: "Access denied: You do not have permission to access this program" });
+            // A coach who owns this program can always view it.
+            // An athlete can only view if it's assigned to them. Other roles: check relationship.
+            const coachOwnsProgram = user.role === 'coach' && program.coachId === user.id;
+            if (!coachOwnsProgram) {
+                if (!(await canAccessAthlete(user, program.athleteId!))) {
+                    return res.status(403).json({ message: "Access denied: You do not have permission to access this program" });
+                }
             }
 
             res.json(program);
@@ -261,10 +265,17 @@ export class ProgramController {
             }
 
             const { name, description, status, endDate, type, days, athleteId, isConfigured, startDate } = req.body;
-            const targetAthleteId = athleteId ?? program.athleteId;
-            if (targetAthleteId && !(await canAccessAthlete(user, targetAthleteId))) {
-                return res.status(403).json({ message: "Access denied: You do not have permission to update this program" });
+
+            // Authorization: A coach who OWNS this program can assign it to any athlete.
+            // A non-owner (e.g., different coach) still needs canAccessAthlete.
+            const coachOwnsProgram = user.role === 'coach' && program.coachId === user.id;
+            if (!coachOwnsProgram) {
+                const targetAthleteId = athleteId ?? program.athleteId;
+                if (targetAthleteId && !(await canAccessAthlete(user, targetAthleteId))) {
+                    return res.status(403).json({ message: "Access denied: You do not have permission to update this program" });
+                }
             }
+
 
             if (name) program.name = name;
             if (description !== undefined) program.description = description;
