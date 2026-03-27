@@ -6,6 +6,7 @@ const router = Router();
 
 
 router.get('/', authenticateToken, CoachController.getAll);
+router.put('/me', authenticateToken, CoachController.update);
 router.get('/:id', authenticateToken, CoachController.getById);
 
 export default router;

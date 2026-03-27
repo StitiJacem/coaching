@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../orm/data-source";
 import { CoachProfile } from "../entities/Coach";
+import { CoachSpecialization } from "../entities/CoachSpecialization";
 import { Athlete } from "../entities/Athlete";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { User } from "../entities/User";
@@ -95,6 +96,55 @@ export class CoachController {
         } catch (error) {
             console.error("Error fetching coach:", error);
             res.status(500).json({ message: "Error fetching coach" });
+        }
+    };
+
+    static update = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user?.id;
+            const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+            const userRepo = AppDataSource.getRepository(User);
+
+            const profile = await coachProfileRepo.findOne({
+                where: { userId: userId },
+                relations: ["specializations", "user"]
+            });
+
+            if (!profile) {
+                return res.status(404).json({ message: "Coach profile not found" });
+            }
+
+            const { bio, experience_years, specializations, first_name, last_name } = req.body;
+
+            if (bio !== undefined) profile.bio = bio;
+            if (experience_years !== undefined) profile.experience_years = experience_years;
+
+            // Handle User name updates if provided
+            if (first_name || last_name) {
+                const user = profile.user;
+                if (first_name) user.first_name = first_name;
+                if (last_name) user.last_name = last_name;
+                await userRepo.save(user);
+            }
+
+            if (specializations !== undefined && Array.isArray(specializations)) {
+                // Clear existing and add new
+                const specRepo = AppDataSource.getRepository(CoachSpecialization);
+                await specRepo.delete({ coachProfileId: profile.id });
+                
+                profile.specializations = specializations.map(s => {
+                    const spec = new CoachSpecialization();
+                    spec.coachProfileId = profile.id;
+                    spec.specialization = s;
+                    return spec;
+                });
+            }
+
+            const updatedProfile = await coachProfileRepo.save(profile);
+            res.json(updatedProfile);
+        } catch (error) {
+            console.error("Error updating coach profile:", error);
+            res.status(500).json({ message: "Error updating coach profile" });
         }
     };
 }

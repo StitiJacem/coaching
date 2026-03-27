@@ -55,7 +55,7 @@ export class CoachService {
         return this.http.get<Coach[]>(url, { headers: this.getHeaders() });
     }
 
-    getCoachById(id: string): Observable<Coach> {
+    getById(id: string): Observable<Coach> {
         return this.http.get<Coach>(`${this.coachUrl}/${id}`, { headers: this.getHeaders() });
     }
 
@@ -85,5 +85,9 @@ export class CoachService {
 
     disconnectAthlete(athleteId: number): Observable<any> {
         return this.http.delete(`${this.requestUrl}/disconnect-athlete/${athleteId}`, { headers: this.getHeaders() });
+    }
+
+    updateProfile(data: any): Observable<any> {
+        return this.http.put(`${this.coachUrl}/me`, data, { headers: this.getHeaders() });
     }
 }

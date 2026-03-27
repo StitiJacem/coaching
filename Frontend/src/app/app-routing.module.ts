@@ -24,7 +24,7 @@ import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/worko
 import { MyCoachesComponent } from './pages/dashboard/coaches/my-coaches.component';
 import { TrainingCalendarComponent } from './pages/dashboard/athletes/training-calendar/training-calendar.component';
 import { TimelineComponent } from './pages/dashboard/timeline/timeline.component';
-
+import { ProfileComponent } from './pages/dashboard/profile/profile.component';
 import { CompleteProfileComponent } from './pages/complete-profile/complete-profile.component';
 import { AthleteScheduleComponent } from './pages/dashboard/athlete-schedule/athlete-schedule.component';
 
@@ -49,6 +49,7 @@ const routes: Routes = [
   { path: 'dashboard/medical', component: MedicalComponent, canActivate: [authGuard] },
   { path: 'dashboard/discovery', component: DiscoveryComponent, canActivate: [authGuard] },
   { path: 'dashboard/coaches', component: MyCoachesComponent, canActivate: [authGuard] },
+  { path: 'dashboard/profile', component: ProfileComponent, canActivate: [authGuard] },
   { path: 'dashboard/athletes/:id/calendar', component: TrainingCalendarComponent, canActivate: [authGuard] },
   { path: 'dashboard/athletes/:id/timeline', component: TimelineComponent, canActivate: [authGuard] },
   { path: 'dashboard/timeline', component: TimelineComponent, canActivate: [authGuard] },

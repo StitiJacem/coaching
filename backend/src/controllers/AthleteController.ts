@@ -222,7 +222,8 @@ export class AthleteController {
 
             const { 
                 age, height, weight, sport, goals, profilePicture, preferredTrainingDays,
-                primaryObjective, targetMetric, deadline, timePerSession, injuries, experienceLevel, equipment
+                primaryObjective, targetMetric, deadline, timePerSession, injuries, experienceLevel, equipment,
+                first_name, last_name
             } = req.body;
 
             if (age !== undefined) athlete.age = age;
@@ -232,6 +233,15 @@ export class AthleteController {
             if (goals !== undefined) athlete.goals = goals;
             if (profilePicture !== undefined) athlete.profilePicture = profilePicture;
             if (preferredTrainingDays !== undefined) athlete.preferredTrainingDays = preferredTrainingDays;
+
+            // Update linked User info
+            if (first_name || last_name) {
+                const userRepo = AppDataSource.getRepository(User);
+                const userEntity = athlete.user;
+                if (first_name) userEntity.first_name = first_name;
+                if (last_name) userEntity.last_name = last_name;
+                await userRepo.save(userEntity);
+            }
             
             if (primaryObjective !== undefined) athlete.primaryObjective = primaryObjective;
             if (targetMetric !== undefined) athlete.targetMetric = targetMetric;
