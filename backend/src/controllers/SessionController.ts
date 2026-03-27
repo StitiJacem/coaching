@@ -38,14 +38,9 @@ export class SessionController {
                 queryBuilder.andWhere("session.programId = :programId", { programId });
             }
             if (date) {
-                const targetDate = new Date(date as string);
-                const nextDay = new Date(targetDate);
-                nextDay.setDate(nextDay.getDate() + 1);
-                queryBuilder.andWhere("session.date >= :date AND session.date < :nextDay", {
-                    date: targetDate,
-                    nextDay
-                });
-            } else if (req.query.startDate && req.query.endDate) {
+                queryBuilder.andWhere("CAST(session.date AS DATE) = :date", { date });
+            }
+ else if (req.query.startDate && req.query.endDate) {
                 queryBuilder.andWhere("session.date >= :startDate AND session.date <= :endDate", {
                     startDate: req.query.startDate,
                     endDate: req.query.endDate
@@ -213,7 +208,54 @@ export class SessionController {
             res.json({ message: "Session deleted successfully" });
         } catch (error) {
             console.error("Error deleting session:", error);
-            res.status(500).json({ message: "Error deleting session" });
+        }
+    };
+
+    static sync = async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            const { athleteId, sessions } = req.body;
+
+            if (!athleteId) {
+                return res.status(400).json({ message: "athleteId is required" });
+            }
+
+            if (!(await canAccessAthlete(user, parseInt(athleteId)))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+
+            await AppDataSource.transaction(async transactionalEntityManager => {
+                // 1. Delete all upcoming sessions for this athlete
+                // Note: We only delete upcoming ones to preserve history/logs
+                await transactionalEntityManager.delete(Session, {
+                    athleteId: athleteId,
+                    status: "upcoming"
+                });
+
+                // 2. Insert new sessions
+                if (sessions && sessions.length > 0) {
+                    const sessionsToSave = sessions.map((s: any) => {
+                        const newSession = new Session();
+                        newSession.athleteId = athleteId;
+                        newSession.coachId = s.coachId || user.id;
+                        newSession.programId = s.programId;
+                        newSession.date = new Date(s.date);
+                        newSession.time = s.time || "08:00";
+                        newSession.title = s.title;
+                        newSession.type = s.type;
+                        newSession.duration = s.duration || 45;
+                        newSession.status = "upcoming";
+                        newSession.workoutData = s.workoutData;
+                        return newSession;
+                    });
+                    await transactionalEntityManager.save(Session, sessionsToSave);
+                }
+            });
+
+            res.json({ message: "Sessions synchronized successfully" });
+        } catch (error) {
+            console.error("Error syncing sessions:", error);
+            res.status(500).json({ message: "Error syncing sessions" });
         }
     };
 }

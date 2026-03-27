@@ -19,6 +19,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
     @Input() athleteId: number | null = null;
     @Input() date!: Date | null;
     @Input() existingSession: any = null;
+    @Input() isDraft: boolean = false;
     @Output() close = new EventEmitter<void>();
     @Output() saved = new EventEmitter<any>();
 
@@ -200,7 +201,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
             }
         };
 
-        if (this.athleteId) {
+        if (this.athleteId && !this.isDraft) {
             this.isSaving = true;
             const request = this.existingSession?.id
                 ? this.sessionService.update(this.existingSession.id, sessionData)
@@ -218,7 +219,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
                 }
             });
         } else {
-
+            // Emitting to parent for local staging
             this.saved.emit(sessionData);
         }
     }

@@ -100,6 +100,12 @@ export class ProgramService {
     return this.http.patch(`${this.apiUrl}/${id}/quit`, {}, { headers: this.getHeaders() });
   }
 
+  assign(id: number, athleteId: number): Observable<Program> {
+    return this.http.post<Program>(`${this.apiUrl}/${id}/assign`, { athleteId }, {
+      headers: this.getHeaders()
+    });
+  }
+
   delete(id: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, {
       headers: this.getHeaders()

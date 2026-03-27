@@ -275,7 +275,21 @@ export class DashboardComponent implements OnInit {
     }
 
     get isRestDay(): boolean {
-        return !!this.todayWorkout?.isRestDay;
+        return !!this.todayWorkout?.isRestDay || !!this.todayWorkout?.notStarted;
+    }
+
+    get isProgramNotStarted(): boolean {
+        return !!this.todayWorkout?.notStarted;
+    }
+
+    get daysUntilStart(): number {
+        return this.todayWorkout?.daysUntilStart || 0;
+    }
+
+    get nextSessionCountdown(): string {
+        const days = this.daysUntilNext;
+        if (days === 1) return 'starts tomorrow';
+        return `starts in ${days} days`;
     }
 
     get daysUntilNext(): number {

@@ -65,22 +65,23 @@
                 </svg>
                 Back
             </button>
-            <button *ngIf="!isMasterMode && !isPreviewMode" (click)="bundleCurrentCalendarIntoProgram()" [disabled]="isAssigning"
-                class="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs bg-gosport-orange text-white hover:bg-orange-600 transition-all shadow-md shadow-gosport-orange/20">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M12 4v16m8-8H4" />
-                </svg>
-                Assign Program
-            </button>
-            <button *ngIf="!isMasterMode && !isPreviewMode" (click)="openTemplateLibrary()"
-                class="flex items-center gap-2 px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs bg-gosport-orange/10 text-gosport-orange hover:bg-gosport-orange hover:text-white transition-all shadow-md">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                Apply Blueprint
-            </button>
+            <!-- Coach-only Management Actions -->
+            <ng-container *ngIf="roleService.currentRole === 'coach'">
+                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="bundleCurrentCalendarIntoProgram()" [disabled]="isAssigning"
+                    class="h-10 px-6 rounded-xl bg-gosport-orange text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-gosport-orange/20 hover:scale-105 transition-all">
+                    + Assign Program
+                </button>
+                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="clearCalendar()"
+                    class="h-10 px-6 rounded-xl border-2 border-red-500 text-red-500 font-black uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"
+                    title="Clear all upcoming sessions to fix duplicates or start over">
+                    Clear Calendar
+                </button>
+                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="openTemplateLibrary()"
+                    class="h-10 px-6 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-black uppercase tracking-widest text-xs hover:border-gosport-orange hover:text-white transition-all">
+                    <lucide-icon name="library" class="w-4 h-4 mr-2 inline-block"></lucide-icon>
+                    Apply Blueprint
+                </button>
+            </ng-container>
             <button *ngIf="isMasterMode" (click)="saveMasterPlanner()"
                 class="bg-gosport-orange text-white px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-gosport-orange/20 hover:bg-orange-600 active:scale-95 transition-all">
                 Save Template
@@ -115,39 +116,48 @@
         </div>
 
         <div class="grid grid-cols-7 min-h-[600px]">
-            <div *ngFor="let day of days" [ngClass]="{
-                    'bg-gosport-orange/5 ring-1 ring-inset ring-gosport-orange/20': isDayToday(day),
-                    'bg-slate-900/40 opacity-50 cursor-not-allowed': !isDayAvailable(day),
-                    'bg-black/10 hover:bg-white/5': isDayAvailable(day)
-                }"
-                (dragover)="onDragOver($event)" (drop)="onDrop($event, day)"
-                class="relative min-h-[150px] border-r border-b border-gosport-border last:border-r-0 p-4 transition-all group">
+            <div *ngFor="let day of days" class="min-h-[160px] bg-black/10 border-b border-r border-gosport-border p-3 transition-all relative group"
+                    [ngClass]="{'bg-slate-900/40 opacity-40 grayscale': isPast(day) && !isMasterMode}"
+                    (dragover)="$event.preventDefault()" (drop)="onDrop($event, day)">
 
-                <div class="flex items-center justify-between mb-4">
-                    <span class="flex items-center justify-center text-xs font-black p-2"
-                        [ngClass]="isDayToday(day) ? 'h-8 w-8 bg-gosport-orange text-white rounded-full shadow-lg' : 'text-slate-500'">
-                        {{ day | date:'d' }}
-                    </span>
-
-                    <button *ngIf="!isPreviewMode && isDayAvailable(day)" (click)="openWorkoutBuilder(day)"
-                        class="opacity-0 group-hover:opacity-100 p-1.5 bg-gosport-orange hover:bg-orange-600 text-white rounded-lg transition-all transform scale-90 group-hover:scale-100">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
-                        </svg>
-                    </button>
-                </div>
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black tracking-widest"
+                            [ngClass]="isDayToday(day) ? 'text-gosport-orange bg-gosport-orange/20 px-2 py-1 rounded-lg' : 'text-slate-500'">
+                            {{ day | date:'d' }}
+                        </span>
+                        <button (click)="openWorkoutBuilder(day)" *ngIf="roleService.currentRole === 'coach' && !isPast(day)"
+                            class="opacity-0 group-hover:opacity-100 p-1.5 bg-gosport-orange hover:bg-orange-600 text-white rounded-lg transition-all transform scale-90 group-hover:scale-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
 
                 <div class="space-y-2">
                     <div *ngFor="let session of getSessionsForDay(day)" (click)="openWorkoutBuilder(day)"
                         draggable="true" (dragstart)="onDragStart($event, $any(session))"
-                        [ngClass]="isSessionCompleted($any(session)) ? 'bg-gosport-lime/10 border-gosport-lime/50' : 'bg-black/40 border-white/5 hover:border-gosport-orange/30'"
-                        class="border rounded-xl p-3 transition-all cursor-pointer group/item mb-2 last:mb-0">
-                        <div class="flex items-center justify-between mb-2">
-                            <span
-                                class="bg-gosport-orange/20 text-gosport-orange text-[8px] font-black uppercase px-2 py-0.5 rounded-full tracking-tighter">
-                                {{ session.type }}
-                            </span>
-                            <span class="text-[9px] font-bold text-slate-500">{{ session.time }}</span>
+                        [ngClass]="{
+                            'bg-gosport-lime/10 border-gosport-lime/50': isSessionCompleted($any(session)),
+                            'bg-red-500/10 border-red-500/50': !isSessionCompleted($any(session)) && isSessionMissed($any(session)),
+                            'bg-black/40 border-white/5 hover:border-gosport-orange/30': !isSessionCompleted($any(session)) && !isSessionMissed($any(session))
+                        }"
+                        class="border rounded-xl p-3 transition-all cursor-pointer group/item mb-2 last:mb-0 relative min-h-[140px]">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[7px] font-black uppercase tracking-[0.2em]" [ngClass]="{
+                                'text-gosport-lime': isSessionCompleted($any(session)),
+                                'text-red-500': !isSessionCompleted($any(session)) && isSessionMissed($any(session)),
+                                'text-gosport-orange': !isSessionCompleted($any(session)) && !isSessionMissed($any(session))
+                            }">{{ session.type || 'STRENGTH' }}</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[8px] font-bold text-slate-500">{{ session.time ? session.time : 'Anytime' }}</span>
+                                <button *ngIf="roleService.currentRole === 'coach' && !isMasterMode && !isPreviewMode" 
+                                    (click)="deleteSession(session, $event)"
+                                    class="opacity-0 group-hover/item:opacity-100 p-1 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded transition-all">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                         <h4
                             class="text-[11px] font-black text-white hover:text-gosport-orange transition-colors truncate mb-2">
@@ -168,9 +178,9 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-2 mt-2 opacity-60">
-                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime' : 'text-slate-400'">{{ session.duration || '45' }}m</span>
-                            <div class="w-1 h-1 rounded-full" [ngClass]="isSessionCompleted($any(session)) ? 'bg-gosport-lime' : 'bg-slate-700'"></div>
-                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime font-black' : 'text-slate-400'">{{ isSessionCompleted($any(session)) ? 'COMPLETED' : session.status }}</span>
+                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime' : (isSessionMissed($any(session)) ? 'text-red-500' : 'text-slate-400')">{{ session.duration || '45' }}m</span>
+                            <div class="w-1 h-1 rounded-full" [ngClass]="isSessionCompleted($any(session)) ? 'bg-gosport-lime' : (isSessionMissed($any(session)) ? 'bg-red-500' : 'bg-slate-700')"></div>
+                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime font-black' : (isSessionMissed($any(session)) ? 'text-red-500 font-black' : 'text-slate-400')">{{ isSessionCompleted($any(session)) ? 'COMPLETED' : (isSessionMissed($any(session)) ? 'MISSED' : session.status) }}</span>
                         </div>
                     </div>
                 </div>
@@ -179,8 +189,8 @@
     </div>
 
     <app-workout-builder-modal *ngIf="showWorkoutBuilder" [athleteId]="isMasterMode ? null : athleteId"
-        [date]="selectedDate" [existingSession]="selectedSession" (close)="showWorkoutBuilder = false"
-        (saved)="onWorkoutSaved($event)">
+        [date]="selectedDate" [existingSession]="selectedSession"
+        (close)="showWorkoutBuilder = false" (saved)="onWorkoutSaved($event)">
     </app-workout-builder-modal>
 
 

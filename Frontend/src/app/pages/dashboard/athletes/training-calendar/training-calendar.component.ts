@@ -4,6 +4,8 @@ import { AthleteService, Athlete } from '../../../../services/athlete.service';
 import { SessionService, Session } from '../../../../services/session.service';
 import { ProgramService, Program } from '../../../../services/program.service';
 import { WorkoutLogService } from '../../../../services/workout-log.service';
+import { AuthService } from '../../../../services/auth.service';
+import { RoleService } from '../../../../services/role.service';
 import {
     startOfWeek,
     endOfWeek,
@@ -16,19 +18,21 @@ import {
     endOfMonth,
     isToday,
     addDays,
+    isBefore,
     getDay
 } from 'date-fns';
 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { DashboardLayoutComponent } from '../../../../components/dashboard-layout/dashboard-layout.component';
 import { WorkoutBuilderModalComponent } from '../../../../components/workout-builder/workout-builder-modal.component';
 
 @Component({
     selector: 'app-training-calendar',
     standalone: true,
-    imports: [CommonModule, RouterModule, FormsModule, DashboardLayoutComponent, WorkoutBuilderModalComponent],
+    imports: [CommonModule, RouterModule, FormsModule, LucideAngularModule, DashboardLayoutComponent, WorkoutBuilderModalComponent],
     templateUrl: './training-calendar.component.html',
     styleUrls: ['./training-calendar.component.css']
 })
@@ -96,7 +100,9 @@ export class TrainingCalendarComponent implements OnInit {
         private athleteService: AthleteService,
         private sessionService: SessionService,
         private programService: ProgramService,
-        private workoutLogService: WorkoutLogService
+        private workoutLogService: WorkoutLogService,
+        private authService: AuthService,
+        public roleService: RoleService
     ) { }
 
     ngOnInit(): void {
@@ -116,6 +122,20 @@ export class TrainingCalendarComponent implements OnInit {
                 } else if (path.includes('program-preview')) {
                     this.isPreviewMode = true;
                     this.previewProgramId = +params['id'];
+                    
+                    // Identify the athlete
+                    const currentUser = this.authService.getUser();
+                    if (currentUser && currentUser.role === 'athlete') {
+                        this.athleteService.getAll().subscribe(athletes => {
+                            const found = athletes.find(a => a.userId === currentUser.id);
+                            if (found && found.id) {
+                                this.athleteId = found.id;
+                                this.athlete = found;
+                                this.acceptSelectedDays = found.preferredTrainingDays || [];
+                            }
+                        });
+                    }
+                    
                     this.generateCalendar();
                     this.loadPreviewProgram();
                 } else {
@@ -145,6 +165,7 @@ export class TrainingCalendarComponent implements OnInit {
     loadSessions(): void {
         if (this.isMasterMode) return;
         this.isLoading = true;
+        this.sessions = []; // Clear previous sessions to avoid data-leak across athletes
         const startDate = format(this.days[0], 'yyyy-MM-dd');
         const endDate = format(this.days[this.days.length - 1], 'yyyy-MM-dd');
 
@@ -187,6 +208,11 @@ export class TrainingCalendarComponent implements OnInit {
                 this.previewProgram = program;
                 this.programTitle = program.name;
                 this.programDescription = program.description || '';
+                
+                if (program.startDate) {
+                    this.acceptStartDate = format(new Date(program.startDate), 'yyyy-MM-dd');
+                }
+                
                 this.updateDynamicPreview();
             },
             error: () => this.isLoading = false
@@ -296,18 +322,23 @@ export class TrainingCalendarComponent implements OnInit {
         if (!this.previewProgramId) return;
         this.isAccepting = true;
 
-        const startDate = new Date().toISOString().split('T')[0];
+        const payload = {
+            startDate: this.acceptStartDate || new Date().toISOString().split('T')[0],
+            scheduleConfig: {
+                trainingDays: this.acceptSelectedDays
+            }
+        };
 
-        this.programService.acceptProgram(this.previewProgramId, { startDate }).subscribe({
+        this.programService.acceptProgram(this.previewProgramId, payload).subscribe({
             next: () => {
                 this.isAccepting = false;
                 alert('Success! Your program is now active.');
-                this.router.navigate(['/dashboard']);
+                this.router.navigate(['/dashboard/programs']);
             },
             error: (err) => {
                 console.error('Error accepting program:', err);
                 this.isAccepting = false;
-                alert('Failed to activate program. Please try again.');
+                alert('Failed to activate program: ' + (err?.error?.message || 'Please try again.'));
             }
         });
     }
@@ -349,11 +380,15 @@ export class TrainingCalendarComponent implements OnInit {
             coachId: coach.id,
             athleteId: this.athleteId,
             status: 'assigned',
-            startDate: new Date(),
+            startDate: firstSessionDate,
             isConfigured: false,
             days: sortedSessions.map((s) => {
                 const date = new Date(s.date);
-                const dayNum = Math.floor((date.getTime() - firstSessionDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+                date.setHours(0, 0, 0, 0);
+                const firstDate = new Date(firstSessionDate);
+                firstDate.setHours(0, 0, 0, 0);
+                
+                const dayNum = Math.round((date.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
                 return {
                     day_number: dayNum,
                     title: s.title || 'Workout Session',
@@ -387,75 +422,95 @@ export class TrainingCalendarComponent implements OnInit {
 
     applyTemplate(template: Program): void {
         if (!this.athleteId || !template.id) return;
-        this.isApplyingTemplate = true;
 
-        this.programService.getById(template.id).subscribe({
-            next: (fullTemplate) => {
-                const newSessions: any[] = [];
-                const anchorDate = this.selectedDate || this.days[0];
-                const preferredDays = this.athlete?.preferredTrainingDays || [0, 1, 2, 3, 4, 5, 6];
+        const proceed = () => {
+            this.isApplyingTemplate = true;
+            this.programService.getById(template.id!).subscribe({
+                next: (fullTemplate) => {
+                    const newSessions: any[] = [];
+                    const anchorDate = this.selectedDate || this.days[0];
+                    const preferredDays = this.athlete?.preferredTrainingDays || [0, 1, 2, 3, 4, 5, 6];
 
-                const coach = JSON.parse(localStorage.getItem('user') || '{}');
-                const weeksCount = this.blueprintRepeatWeeks || 1;
+                    const coach = JSON.parse(localStorage.getItem('user') || '{}');
+                    const weeksCount = this.blueprintRepeatWeeks || 1;
 
-                for (let w = 0; w < weeksCount; w++) {
-                    let currentDate = addDays(new Date(anchorDate), w * 7);
-                    
-                    fullTemplate.days.forEach(day => {
-                        while (true) {
-                            const dayOfWeek = (getDay(currentDate) + 6) % 7;
-                            if (preferredDays.includes(dayOfWeek)) {
-                                const sessionPayload = {
-                                    athleteId: this.athleteId,
-                                    coachId: coach.id,
-                                    programId: fullTemplate.id,
-                                    date: format(currentDate, 'yyyy-MM-dd'),
-                                    title: day.title,
-                                    time: '12:00',
-                                    type: fullTemplate.type || 'Strength',
-                                    workoutData: {
-                                        exercises: day.exercises.map(e => ({
-                                            exercise_id: e.exercise_id,
-                                            name: e.exercise_name,
-                                            gifUrl: e.exercise_gif,
-                                            videoId: (e as any).videoId,
-                                            videoTitle: (e as any).videoTitle,
-                                            sets: e.sets,
-                                            reps: e.reps,
-                                            order: e.order
-                                        }))
-                                    }
-                                };
-                                newSessions.push(this.sessionService.create(sessionPayload));
+                    for (let w = 0; w < weeksCount; w++) {
+                        let currentDate = addDays(new Date(anchorDate), w * 7);
+                        
+                        fullTemplate.days.forEach(day => {
+                            while (true) {
+                                const dayOfWeek = (getDay(currentDate) + 6) % 7;
+                                if (preferredDays.includes(dayOfWeek)) {
+                                    const sessionPayload = {
+                                        athleteId: this.athleteId,
+                                        coachId: coach.id,
+                                        programId: fullTemplate.id,
+                                        date: format(currentDate, 'yyyy-MM-dd'),
+                                        title: day.title,
+                                        time: '12:00',
+                                        type: fullTemplate.type || 'Strength',
+                                        workoutData: {
+                                            exercises: day.exercises.map(e => ({
+                                                exercise_id: e.exercise_id,
+                                                name: e.exercise_name,
+                                                gifUrl: e.exercise_gif,
+                                                videoId: (e as any).videoId,
+                                                videoTitle: (e as any).videoTitle,
+                                                sets: e.sets,
+                                                reps: e.reps,
+                                                order: e.order
+                                            }))
+                                        }
+                                    };
+                                    newSessions.push(this.sessionService.create(sessionPayload));
+                                    currentDate = addDays(currentDate, 1);
+                                    break;
+                                }
                                 currentDate = addDays(currentDate, 1);
-                                break;
-                            }
-                            currentDate = addDays(currentDate, 1);
-                        }
-                    });
-                }
-
-
-
-                if (newSessions.length > 0) {
-                    import('rxjs').then(({ forkJoin }) => {
-                        forkJoin(newSessions).subscribe({
-                            next: () => {
-                                this.isApplyingTemplate = false;
-                                this.showTemplateLibrary = false;
-                                alert(`Applied "${template.name}" template starting from ${format(anchorDate, 'MMM d')}`);
-                                this.loadSessions();
-                            },
-                            error: (err) => {
-                                console.error('Error applying template:', err);
-                                this.isApplyingTemplate = false;
                             }
                         });
+                    }
+
+                    if (newSessions.length > 0) {
+                        import('rxjs').then(({ forkJoin }) => {
+                            forkJoin(newSessions).subscribe({
+                                next: () => {
+                                    this.isApplyingTemplate = false;
+                                    this.showTemplateLibrary = false;
+                                    alert(`Applied "${template.name}" template starting from ${format(anchorDate, 'MMM d')}`);
+                                    this.loadSessions();
+                                },
+                                error: (err) => {
+                                    console.error('Error applying template:', err);
+                                    this.isApplyingTemplate = false;
+                                }
+                            });
+                        });
+                    } else {
+                        this.isApplyingTemplate = false;
+                    }
+                },
+                error: () => this.isApplyingTemplate = false
+            });
+        };
+
+        const upcomingSessions = this.sessions.filter(s => s.status === 'upcoming');
+        if (upcomingSessions.length > 0) {
+            if (confirm(`This blueprint will add new sessions. Would you like to CLEAR the existing ${upcomingSessions.length} upcoming sessions first for a clean schedule?`)) {
+                this.isLoading = true;
+                import('rxjs').then(({ forkJoin }) => {
+                    const deletions = upcomingSessions.map(s => this.sessionService.delete(s.id!));
+                    forkJoin(deletions).subscribe({
+                        next: () => proceed(),
+                        error: () => proceed() // Proceed anyway
                     });
-                }
-            },
-            error: () => this.isApplyingTemplate = false
-        });
+                });
+            } else {
+                proceed();
+            }
+        } else {
+            proceed();
+        }
     }
 
     generateCalendar(): void {
@@ -500,14 +555,42 @@ export class TrainingCalendarComponent implements OnInit {
     }
 
     getSessionsForDay(day: Date): Session[] {
-        return this.sessions.filter(s => isSameDay(new Date(s.date), day));
+        const daySessions = this.sessions.filter(s => isSameDay(new Date(s.date), day));
+        
+        // De-duplicate: If multiple sessions have same title, type, and time, only show one
+        const unique: Session[] = [];
+        const seen = new Set<string>();
+        
+        daySessions.forEach(s => {
+            // More aggressive de-duplication: ignore time/programId for the visual key
+            const key = `${s.title?.toLowerCase().trim()}-${s.type?.toLowerCase().trim()}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                unique.push(s);
+            }
+        });
+        
+        return unique;
     }
 
     isSessionCompleted(session: Session): boolean {
-        // Find if a completed log exists for this session's date
+        // Find if a completed log exists for this session's date AND matching program
         return this.completedLogs.some(log => {
-            return isSameDay(new Date(log.scheduledDate), new Date(session.date));
+            const sameDay = isSameDay(new Date(log.scheduledDate), new Date(session.date));
+            const sameProgram = !session.programId || log.programId === session.programId;
+            return sameDay && sameProgram;
         });
+    }
+
+    isSessionMissed(session: Session): boolean {
+        if (this.isSessionCompleted(session)) return false;
+        if (session.status === 'completed') return false;
+        
+        const sessionDate = new Date(session.date);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        return isBefore(sessionDate, today);
     }
 
     onDragStart(event: DragEvent, session: Session) {
@@ -558,9 +641,19 @@ export class TrainingCalendarComponent implements OnInit {
                 next: () => this.loadSessions(),
                 error: (err) => console.error('Error duplicating session', err)
             });
-        } else {
             // Move session
             if (!this.draggedSession.id) return;
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const targetDate = new Date(newDateStr);
+            if (isBefore(targetDate, today)) {
+                alert('You cannot move a workout to a date in the past.');
+                this.draggedSession = null;
+                return;
+            }
+
             this.sessionService.update(this.draggedSession.id, { date: newDateStr }).subscribe({
                 next: () => this.loadSessions(),
                 error: (err) => console.error('Error moving session', err)
@@ -570,22 +663,27 @@ export class TrainingCalendarComponent implements OnInit {
         this.draggedSession = null;
     }
 
-    openWorkoutBuilder(day: Date): void {
-        this.selectedDate = day;
+    openWorkoutBuilder(date: Date, session?: any): void {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-        this.selectedSession = this.sessions.find(s => isSameDay(new Date(s.date), day));
+        if (isBefore(date, today) && !this.isMasterMode) {
+            alert('Selection Restricted: You cannot add or edit workouts for past dates.');
+            return;
+        }
+
+        this.selectedDate = date;
+
+        this.selectedSession = this.sessions.find(s => isSameDay(new Date(s.date), date));
         this.showWorkoutBuilder = true;
     }
 
     onWorkoutSaved(newSession: any): void {
-
         const index = this.sessions.findIndex(s => isSameDay(new Date(s.date), this.selectedDate!));
         if (index > -1 && !this.isMasterMode) {
-
             this.loadSessions();
         } else {
             if (newSession) {
-
                 this.sessions = [...this.sessions.filter(s => !isSameDay(new Date(s.date), this.selectedDate!)), newSession];
             }
         }
@@ -651,6 +749,62 @@ export class TrainingCalendarComponent implements OnInit {
                 alert('Failed to save master program.');
             }
         });
+    }
+
+    deleteSession(session: any, event?: MouseEvent): void {
+        if (event) event.stopPropagation();
+        
+        if (this.isMasterMode || this.isPreviewMode) {
+            this.sessions = this.sessions.filter(s => s !== session);
+            return;
+        }
+
+        if (!session.id) {
+            this.sessions = this.sessions.filter(s => s !== session);
+            return;
+        }
+
+        if (confirm('Delete this workout from the calendar?')) {
+            this.sessionService.delete(session.id).subscribe({
+                next: () => this.loadSessions(),
+                error: (err) => console.error('Error deleting session', err)
+            });
+        }
+    }
+
+    clearCalendar(): void {
+        if (!this.athleteId || this.isMasterMode || this.isPreviewMode) return;
+        const upcomingSessions = this.sessions.filter(s => s.status === 'upcoming');
+        if (upcomingSessions.length === 0) {
+            alert('No upcoming sessions to clear in this view.');
+            return;
+        }
+
+        if (confirm(`This will permanently delete ALL ${upcomingSessions.length} upcoming sessions for this athlete. Use this to fix duplicated workouts or to totally reset their schedule. Proceed?`)) {
+            this.isLoading = true;
+            import('rxjs').then(({ forkJoin }) => {
+                const deletions = upcomingSessions.map(s => this.sessionService.delete(s.id!));
+                forkJoin(deletions).subscribe({
+                    next: () => {
+                        this.isLoading = false;
+                        alert('Calendar cleared successfully.');
+                        this.loadSessions();
+                    },
+                    error: (err) => {
+                        this.isLoading = false;
+                        console.error('Error clearing calendar', err);
+                        alert('Some sessions could not be deleted.');
+                        this.loadSessions();
+                    }
+                });
+            });
+        }
+    }
+
+    isPast(day: Date): boolean {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return isBefore(day, today);
     }
 
     isDayToday(day: Date): boolean {

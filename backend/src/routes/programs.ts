@@ -16,6 +16,7 @@ router.post("/", ProgramController.create);
 router.put("/:id", ProgramController.update);
 router.patch("/:id/accept", ProgramController.acceptProgram);
 router.patch("/:id/quit", ProgramController.quit);
+router.post("/:id/assign", ProgramController.assign);
 router.delete("/:id", ProgramController.delete);
 
 export default router;

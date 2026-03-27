@@ -81,4 +81,10 @@ export class SessionService {
     const today = new Date().toISOString().split('T')[0];
     return this.getAll({ date: today });
   }
+
+  sync(athleteId: number, sessions: any[]): Observable<any> {
+    return this.http.post(`${this.apiUrl}/sync`, { athleteId, sessions }, {
+      headers: this.getHeaders()
+    });
+  }
 }

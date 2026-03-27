@@ -49,6 +49,8 @@ export interface TodayWorkout {
     isRestDay?: boolean;
     nextDay?: any;
     daysUntilNext?: number;
+    notStarted?: boolean;
+    daysUntilStart?: number;
     message?: string;
 }
 

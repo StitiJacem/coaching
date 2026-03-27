@@ -7,6 +7,7 @@ const router = Router();
 
 router.use(authenticateToken);
 
+router.post("/sync", SessionController.sync);
 router.get("/", SessionController.getAll);
 router.get("/:id", SessionController.getById);
 router.post("/", SessionController.create);

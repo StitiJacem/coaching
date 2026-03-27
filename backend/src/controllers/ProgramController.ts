@@ -10,6 +10,7 @@ import { EmailService } from "../utils/EmailService";
 import { CoachProfile } from "../entities/Coach";
 import { canAccessAthlete } from "../utils/authorization";
 import { notifyUser } from "../utils/notificationHelper";
+import { Session } from "../entities/Session";
 
 export class ProgramController {
     static getTodayWorkout = async (req: Request, res: Response) => {
@@ -25,67 +26,86 @@ export class ProgramController {
 
             const programRepo = AppDataSource.getRepository(Program);
             const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
-
-
+            const sessionRepo = AppDataSource.getRepository(Session);
             const athleteRepo = AppDataSource.getRepository(Athlete);
+
             const athlete = await athleteRepo.findOne({ where: { userId } });
             if (!athlete) {
                 return res.json({ program: null, day: null, workoutLog: null, message: "No athlete profile found" });
             }
 
-
-            const program = await programRepo.findOne({
+            // 1. Find an active program
+            const activeProgram = await programRepo.findOne({
                 where: { athleteId: athlete.id, status: "active", isConfigured: true },
-                relations: ["days", "days.exercises", "coach"],
+                relations: ["coach"],
                 order: { created_at: "DESC" },
             });
 
-            if (!program || !program.days || program.days.length === 0) {
-                return res.json({ program: null, day: null, workoutLog: null, athleteId: athlete.id, message: "No active, configured program found" });
+            if (!activeProgram) {
+                return res.json({ program: null, day: null, workoutLog: null, athleteId: athlete.id, message: "No active program found" });
             }
 
-
-            const sortedDays = [...program.days].sort((a, b) => a.day_number - b.day_number);
-
-            const start = new Date(program.startDate);
-            start.setHours(0, 0, 0, 0);
+            // 2. Define today normalized as string to avoid timezone shifts
             const today = new Date();
             today.setHours(0, 0, 0, 0);
-            const daysSinceStart = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+            const todayStr = today.toISOString().split('T')[0];
+
+            // 3. Find if there's a specific SESSION scheduled for today in the calendar
+            const session = await sessionRepo.createQueryBuilder("session")
+                .where("session.athleteId = :athleteId", { athleteId: athlete.id })
+                .andWhere("CAST(session.date AS DATE) = :today", { today: todayStr })
+                .getOne();
+
+            // 4. Find if there's an existing workout log for today
+            const existingLog = await workoutLogRepo.createQueryBuilder("log")
+                .where("log.athleteId = :athleteId", { athleteId: athlete.id })
+                .andWhere("CAST(log.scheduledDate AS DATE) = :today", { today: todayStr })
+                .getOne();
+
+            // 5. Check if program has even started yet (using string-based comparison to avoid timezone shifts)
+            const startDateStr = new Date(activeProgram.startDate).toISOString().split('T')[0];
             
-            const maxDay = sortedDays[sortedDays.length - 1].day_number;
-            const cycleDay = (daysSinceStart % maxDay) + 1;
+            if (todayStr < startDateStr) {
+                // Calculate days until start more accurately
+                const start = new Date(startDateStr);
+                const diffTime = start.getTime() - today.getTime();
+                const daysUntilStart = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
 
-            const currentDay = sortedDays.find(d => d.day_number === cycleDay);
-
-            let nextDay = null;
-            let daysUntilNext = 0;
-            if (!currentDay) {
-                for (let i = 1; i <= maxDay; i++) {
-                    const checkDay = ((cycleDay - 1 + i) % maxDay) + 1;
-                    const found = sortedDays.find(d => d.day_number === checkDay);
-                    if (found) {
-                        nextDay = found;
-                        daysUntilNext = i;
-                        break;
-                    }
-                }
+                res.json({
+                    program: activeProgram,
+                    day: null,
+                    isRestDay: true,
+                    notStarted: true,
+                    daysUntilStart: daysUntilStart,
+                    workoutLog: existingLog || null,
+                    athleteId: athlete.id,
+                });
+                return;
             }
 
-            const todayStr = today.toISOString().split("T")[0];
-            const existingLog = await workoutLogRepo.findOne({
-                where: { athleteId: athlete.id, scheduledDate: today },
-            });
+            // 6. Map session to "day" for frontend compatibility
+            let dayData = null;
+            if (session) {
+                dayData = {
+                    id: session.id, // Using session ID here!
+                    title: session.title,
+                    exercises: session.workoutData?.exercises || []
+                };
+            }
 
             res.json({
-                program: { id: program.id, name: program.name, description: program.description, type: program.type, startDate: program.startDate, coachName: program.coach ? `Coach` : null },
-                day: currentDay || null,
-                isRestDay: !currentDay,
-                nextDay: nextDay,
-                daysUntilNext: daysUntilNext,
+                program: { 
+                    id: activeProgram.id, 
+                    name: activeProgram.name, 
+                    description: activeProgram.description, 
+                    type: activeProgram.type, 
+                    startDate: activeProgram.startDate, 
+                    coachName: activeProgram.coach ? `Coach` : null 
+                },
+                day: dayData,
+                isRestDay: !session,
                 workoutLog: existingLog || null,
                 athleteId: athlete.id,
-                daysSinceStart,
             });
         } catch (error) {
             console.error("Error fetching today's workout:", error);
@@ -230,6 +250,14 @@ export class ProgramController {
                         });
                     }
                     return day;
+                });
+            }
+
+            if (athleteId && program.status === 'assigned') {
+                await programRepo.delete({
+                    athleteId: athleteId,
+                    coachId: coachId,
+                    status: 'assigned'
                 });
             }
 
@@ -388,15 +416,21 @@ export class ProgramController {
                 return res.status(403).json({ message: "Access denied" });
             }
 
-            program.status = "draft"; // Reverting back to draft or creating a new "quit" state
+            program.status = program.status === 'assigned' ? 'declined' : 'quit';
             await programRepo.save(program);
+
+            // Cleanup upcoming sessions for this program
+            await AppDataSource.getRepository(Session).delete({
+                programId: program.id,
+                status: "upcoming"
+            });
 
             if (program.coachId && program.athlete?.user?.first_name) {
                 notifyUser(
                     program.coachId,
                     "program_quit",
-                    "Program Quit",
-                    `The athlete ${program.athlete.user.first_name} has quit the program "${program.name}".`,
+                    program.status === 'declined' ? "Program Declined" : "Program Quit",
+                    `The athlete ${program.athlete.user.first_name} has ${program.status === 'declined' ? 'declined' : 'quit'} the program "${program.name}".`,
                     { programId: program.id }
                 ).catch(err => console.error("Notification Error:", err));
             }
@@ -434,6 +468,112 @@ export class ProgramController {
     };
 
 
+    /**
+     * POST /api/programs/:id/assign
+     * Creates a deep copy (snapshot) of the coach's template and assigns it to an athlete.
+     * This is the correct way to assign a program — the original template is never touched.
+     */
+    static assign = async (req: Request, res: Response) => {
+        try {
+            const user = (req as any).user;
+            const programRepo = AppDataSource.getRepository(Program);
+            const dayRepo = AppDataSource.getRepository(ProgramDay);
+            const exerciseRepo = AppDataSource.getRepository(ProgramExercise);
+
+            const templateId = parseInt(req.params.id as string);
+            const { athleteId } = req.body;
+
+            if (!athleteId) {
+                return res.status(400).json({ message: "athleteId is required" });
+            }
+
+            // Only the coach who owns the template can assign it
+            const template = await programRepo.findOne({
+                where: { id: templateId },
+                relations: ["days", "days.exercises"]
+            });
+
+            if (!template) {
+                return res.status(404).json({ message: "Program not found" });
+            }
+
+            if (user.role === 'coach' && template.coachId !== user.id) {
+                return res.status(403).json({ message: "Access denied: You do not own this program" });
+            }
+
+            // Create a deep copy of the program for the athlete
+            const copy = new Program();
+            copy.name = template.name;
+            copy.description = template.description;
+            copy.type = template.type;
+            copy.coachId = template.coachId;
+            copy.coachProfileId = template.coachProfileId;
+            copy.athleteId = athleteId;
+            copy.status = 'assigned';
+            copy.isConfigured = false;
+            copy.startDate = new Date();
+            copy.is_template = false;
+
+            // Delete any existing assigned program from this coach to avoid duplicates
+            await programRepo.delete({
+                athleteId: athleteId,
+                coachId: template.coachId,
+                status: 'assigned'
+            });
+
+            // Save the copy first to get its ID
+            const savedCopy = await programRepo.save(copy);
+
+            // Deep copy days and exercises
+            for (const dayData of (template.days || [])) {
+                const newDay = new ProgramDay();
+                newDay.day_number = dayData.day_number;
+                newDay.title = dayData.title;
+                newDay.programId = savedCopy.id;
+                const savedDay = await dayRepo.save(newDay);
+
+                for (const exData of (dayData.exercises || [])) {
+                    const newEx = new ProgramExercise();
+                    newEx.exercise_id = exData.exercise_id;
+                    newEx.exercise_name = exData.exercise_name;
+                    newEx.exercise_gif = exData.exercise_gif;
+                    newEx.sets = exData.sets;
+                    newEx.reps = exData.reps;
+                    newEx.rest_seconds = exData.rest_seconds;
+                    newEx.order = exData.order;
+                    newEx.programDayId = savedDay.id;
+                    await exerciseRepo.save(newEx);
+                }
+            }
+
+            // Notify the athlete
+            const athleteWithUser = await AppDataSource.getRepository(Athlete).findOne({
+                where: { id: athleteId },
+                relations: ["user"],
+            });
+            if (athleteWithUser?.user?.id) {
+                notifyUser(
+                    athleteWithUser.user.id,
+                    "program_assigned",
+                    "New program assigned",
+                    `Your coach assigned you the program "${savedCopy.name}". Review and accept it to get started.`,
+                    { programId: savedCopy.id }
+                ).catch(err => console.error("Notify error:", err));
+            }
+
+            const programWithRelations = await programRepo.findOne({
+                where: { id: savedCopy.id },
+                relations: ["athlete", "athlete.user", "coach", "days", "days.exercises"]
+            });
+
+            res.status(201).json({ message: "Program assigned successfully", program: programWithRelations });
+        } catch (error) {
+            console.error("Error assigning program:", error);
+            res.status(500).json({ message: "Error assigning program" });
+        }
+    };
+
+
     static acceptProgram = async (req: Request, res: Response) => {
         try {
             const programRepo = AppDataSource.getRepository(Program);
@@ -442,11 +582,35 @@ export class ProgramController {
 
             const program = await programRepo.findOne({
                 where: { id: programId },
-                relations: ["athlete", "athlete.user", "coach"]
+                relations: ["athlete", "athlete.user", "coach", "days", "days.exercises"]
             });
 
             if (!program) {
                 return res.status(404).json({ message: "Program not found" });
+            }
+
+            if (!program.athleteId) {
+                return res.status(400).json({ message: "Program has no athlete assigned" });
+            }
+
+            const sessionRepo = AppDataSource.getRepository(Session);
+
+            // Archive any currently active program for this athlete before activating the new one
+            const existingActive = await programRepo.find({
+                where: { athleteId: program.athleteId, status: "active" }
+            });
+            for (const active of existingActive) {
+                if (active.id !== program.id) {
+                    active.status = "replaced";
+                    await programRepo.save(active);
+
+                    // Optional: Clear upcoming sessions from the replaced program to avoid calendar clutter
+                    await sessionRepo.delete({
+                        athleteId: program.athleteId,
+                        programId: active.id,
+                        status: "upcoming"
+                    });
+                }
             }
 
             program.status = "active";
@@ -457,6 +621,71 @@ export class ProgramController {
             }
 
             await programRepo.save(program);
+
+            // Generate actual calendar sessions based on program days and athlete's preferred days
+            // Clear ALL upcoming sessions for this athlete to ensure a clean slate (removes loose bundled sessions)
+            await sessionRepo.delete({
+                athleteId: program.athleteId,
+                status: "upcoming"
+            });
+
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const athlete = await athleteRepo.findOne({ where: { id: program.athleteId } });
+
+            let preferredDays = scheduleConfig?.trainingDays;
+            if (preferredDays && Array.isArray(preferredDays) && preferredDays.length > 0) {
+                // Update athlete's preferred days if they changed them here
+                if (athlete) {
+                    athlete.preferredTrainingDays = preferredDays;
+                    await athleteRepo.save(athlete);
+                }
+            } else {
+                preferredDays = athlete?.preferredTrainingDays && athlete.preferredTrainingDays.length > 0
+                    ? athlete.preferredTrainingDays
+                    : [0, 1, 2, 3, 4, 5, 6]; // Default to all days if none set
+            }
+
+            let currentSessionDate = new Date(program.startDate);
+            // Ensure we start on or after today if startDate was in the past? 
+            // Usually, startDate is today or future.
+
+            for (const day of program.days || []) {
+                // Find next available training day
+                let attempts = 0;
+                while (attempts < 30) { // Safety break
+                    const dayOfWeek = (currentSessionDate.getDay() + 6) % 7; // ISO day (Mon=0, Sun=6)
+                    if (preferredDays.includes(dayOfWeek)) {
+                        const session = new Session();
+                        session.athleteId = program.athleteId;
+                        session.programId = program.id;
+                        session.coachId = program.coachId;
+                        session.date = new Date(currentSessionDate);
+                        session.time = "12:00"; // Default time
+                        session.type = program.type || "Strength";
+                        session.title = day.title;
+                        session.status = "upcoming";
+                        session.workoutData = {
+                            exercises: day.exercises.map(e => ({
+                                id: e.id,
+                                exercise_id: e.exercise_id,
+                                name: e.exercise_name,
+                                gifUrl: e.exercise_gif,
+                                sets: e.sets,
+                                reps: e.reps,
+                                rest_seconds: e.rest_seconds,
+                                order: e.order
+                            }))
+                        };
+                        await sessionRepo.save(session);
+                        
+                        // Move to next day for the next program day
+                        currentSessionDate.setDate(currentSessionDate.getDate() + 1);
+                        break;
+                    }
+                    currentSessionDate.setDate(currentSessionDate.getDate() + 1);
+                    attempts++;
+                }
+            }
 
 
             if (program.coach?.email && program.athlete?.user) {
