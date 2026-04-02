@@ -1,0 +1,51 @@
+<app-dashboard-layout>
+    <div class="space-y-8">
+        <header>
+            <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">History</p>
+            <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">
+                Activity Timeline
+            </h1>
+            <p *ngIf="athleteName && athleteName !== 'My'" class="text-slate-400 mt-2">{{ athleteName }}</p>
+        </header>
+
+        <div class="bg-galio-surface border border-galio-border rounded-2xl p-8">
+            <div *ngIf="isLoading && events.length === 0" class="text-center py-12 text-slate-400">
+                Loading timeline...
+            </div>
+            <div *ngIf="!isLoading && events.length === 0" class="text-center py-12 space-y-4">
+                <p class="text-slate-400">No activity events yet.</p>
+                <div *ngIf="assignedProgramsPending > 0" class="inline-block px-4 py-2 bg-amber-500/10 border border-amber-500/30 rounded-xl text-amber-400 text-sm">
+                    You have {{ assignedProgramsPending }} program(s) waiting. <a routerLink="/dashboard" class="underline font-bold">Review on Dashboard</a>
+                </div>
+                <div *ngIf="hasActiveProgram && assignedProgramsPending === 0" class="inline-block px-4 py-2 bg-galio-orange/10 border border-galio-orange/30 rounded-xl text-galio-orange text-sm">
+                    Start today's workout from your <a routerLink="/dashboard" class="underline font-bold">Dashboard</a>
+                </div>
+            </div>
+
+            <div *ngIf="events.length > 0" class="relative">
+                <div class="space-y-4">
+                    <div
+                        *ngFor="let event of events"
+                        class="flex gap-4 p-4 rounded-xl bg-galio-card/50 border border-galio-border/50 hover:border-galio-border transition-colors"
+                    >
+                        <span class="text-2xl flex-shrink-0">{{ getEventIcon(event.type) }}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold text-white capitalize">{{ getEventLabel(event.type) }}</p>
+                            <p class="text-sm text-slate-400">{{ formatDate(event.created_at) }}</p>
+                            <pre *ngIf="event.payload && hasPayloadKeys(event.payload)" 
+                                 class="mt-2 text-xs text-slate-500 bg-black/20 p-2 rounded overflow-x-auto">{{ event.payload | json }}</pre>
+                        </div>
+                    </div>
+                </div>
+                <button
+                    *ngIf="events.length < total"
+                    (click)="loadMore()"
+                    [disabled]="isLoading"
+                    class="mt-6 w-full py-3 rounded-xl border border-galio-border text-slate-400 hover:text-white hover:border-galio-orange transition-colors disabled:opacity-50"
+                >
+                    {{ isLoading ? 'Loading...' : 'Load more' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</app-dashboard-layout>

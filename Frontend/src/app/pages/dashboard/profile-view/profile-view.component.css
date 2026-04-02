@@ -1,0 +1,19 @@
+.panel {
+  @apply bg-galio-surface border border-slate-700/50 rounded-2xl shadow-xl;
+}
+
+.row {
+  @apply flex items-center justify-between pb-2 border-b border-slate-700/50 last:border-0 last:pb-0;
+}
+
+.label {
+  @apply text-slate-400 text-sm;
+}
+
+.val {
+  @apply text-white text-sm font-medium;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-2.5 text-xs bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/20 transition-all duration-200 active:scale-[0.98];
+}

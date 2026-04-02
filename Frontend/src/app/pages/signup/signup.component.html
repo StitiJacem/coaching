@@ -1,0 +1,98 @@
+<div class="signup-shell">
+    <div class="signup-backdrop"></div>
+    <div class="signup-grid animate-fade-in">
+        <aside class="signup-brand">
+            <div class="brand-pill font-display tracking-widest uppercase">GoSport Performance Suite</div>
+            <h1>Create your account</h1>
+            <p>
+                Configure your profile in a few steps and start coaching, training, and tracking
+                progress with a cleaner professional workflow.
+            </p>
+            <div class="brand-cards">
+                <div class="mini-card">
+                    <strong>Fast onboarding</strong>
+                    <span>Role-based setup in under 2 minutes.</span>
+                </div>
+                <div class="mini-card">
+                    <strong>Smart profile</strong>
+                    <span>Specializations and data ready for your dashboard.</span>
+                </div>
+            </div>
+        </aside>
+
+        <section class="signup-card">
+            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-5">
+                <div>
+                    <h2 class="form-title">Welcome to <span class="font-display tracking-widest">GoSport</span></h2>
+                    <p class="form-subtitle">Complete your information to continue.</p>
+                </div>
+
+                <div class="space-y-3">
+                    <label class="field-label">Select your role</label>
+                    <div class="role-grid">
+                        <button type="button" *ngFor="let role of roles" (click)="setRole(role.id)"
+                            [ngClass]="isRoleSelected(role.id) ? 'role-card role-card-active' : 'role-card'">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    [attr.d]="role.icon" />
+                            </svg>
+                            <span>{{ role.label }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="isRoleSelected('coach')" class="space-y-3 animate-fade-in">
+                    <label class="field-label">Your specializations</label>
+                    <div class="specialization-grid">
+                        <button type="button" *ngFor="let spec of coachSpecializations"
+                            (click)="toggleSpecialization(spec.id)"
+                            [ngClass]="isSpecializationSelected(spec.id) ? 'spec-pill spec-pill-active' : 'spec-pill'">
+                            <span>{{ spec.icon }}</span>
+                            <span>{{ spec.label }}</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                        <label class="field-label">First name</label>
+                        <input type="text" formControlName="first_name" class="input-modern" placeholder="John"
+                            required>
+                    </div>
+                    <div>
+                        <label class="field-label">Last name</label>
+                        <input type="text" formControlName="last_name" class="input-modern" placeholder="Doe" required>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="field-label">Email address</label>
+                    <input type="email" formControlName="email" class="input-modern" placeholder="john@example.com">
+                </div>
+
+                <div>
+                    <label class="field-label">Password</label>
+                    <input type="password" formControlName="password" class="input-modern"
+                        placeholder="Create a strong password">
+                </div>
+
+                <div *ngIf="errorMessage" class="error-box">
+                    {{ errorMessage }}
+                </div>
+
+                <button type="submit" [disabled]="signupForm.invalid || !signupForm.get('role')?.value"
+                    class="submit-btn">
+                    Create account
+                </button>
+
+                <p class="text-center text-sm text-slate-400">
+                    Already have an account?
+                    <a routerLink="/login"
+                        class="font-semibold text-white hover:text-galio-orange transition-colors ml-1">
+                        Sign in
+                    </a>
+                </p>
+            </form>
+        </section>
+    </div>
+</div>

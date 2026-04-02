@@ -1,0 +1,197 @@
+<app-dashboard-layout>
+    <div class="space-y-6">
+
+        <div *ngIf="isLoading" class="flex items-center justify-center py-32">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-galio-orange"></div>
+        </div>
+
+
+        <div *ngIf="showQuizModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4"
+            (click)="$event.target === $event.currentTarget && submitQuizAndProceed()">
+            <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 max-w-md w-full shadow-xl"
+                (click)="$event.stopPropagation()">
+                <h3 class="text-xl font-bold text-white mb-2">Quick Check-in</h3>
+                <p class="text-slate-400 text-sm mb-6">How was {{ currentExercise?.exercise_name }}?</p>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">RPE / Effort (1–10)</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button *ngFor="let n of [1,2,3,4,5,6,7,8,9,10]" (click)="quizDifficulty = n"
+                                [class]="n === quizDifficulty ? 'bg-galio-orange text-white' : 'bg-slate-800 text-slate-400'"
+                                class="w-8 h-8 rounded-lg font-bold transition-colors">{{ n }}</button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Form Quality (1–5)</p>
+                        <div class="flex gap-2">
+                            <button *ngFor="let n of [1,2,3,4,5]" (click)="quizForm = n"
+                                [class]="n === quizForm ? 'bg-galio-lime text-galio-dark' : 'bg-slate-800 text-slate-400'"
+                                class="w-8 h-8 rounded-lg font-bold transition-colors">{{ n }}</button>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Any pain?</p>
+                        <div class="flex gap-3">
+                            <button (click)="quizPain = false" [class]="!quizPain ? 'bg-red-500/20 text-red-400 border-red-500' : 'bg-slate-800 text-slate-400 border-transparent'"
+                                class="px-4 py-2 rounded-lg border font-bold transition-colors">No</button>
+                            <button (click)="quizPain = true" [class]="quizPain ? 'bg-amber-500/20 text-amber-400 border-amber-500' : 'bg-slate-800 text-slate-400 border-transparent'"
+                                class="px-4 py-2 rounded-lg border font-bold transition-colors">Yes</button>
+                        </div>
+                    </div>
+                </div>
+                <button (click)="submitQuizAndProceed()" [disabled]="isSubmittingQuiz"
+                    class="mt-6 w-full py-3 bg-galio-orange text-white font-bold rounded-xl hover:bg-orange-600 transition-all disabled:opacity-50">
+                    {{ isSubmittingQuiz ? 'Saving...' : 'Continue' }}
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="isRestTimerActive" class="fixed inset-0 z-40 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div class="text-center space-y-6">
+                <h3 class="text-2xl font-bold text-white uppercase tracking-widest text-slate-400">Rest Timer</h3>
+                <div class="text-8xl font-display font-black text-galio-orange">{{ restSecondsRemaining }}</div>
+                <button (click)="skipRestTimer()" class="px-8 py-3 bg-slate-800 text-white font-bold uppercase tracking-wider rounded-xl hover:bg-slate-700 transition-all">
+                    Skip Rest
+                </button>
+            </div>
+        </div>
+
+        <div *ngIf="showCompletionScreen && !isLoading"
+            class="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-fade-in">
+            <div class="w-24 h-24 bg-galio-lime/10 rounded-full flex items-center justify-center text-5xl">🏆</div>
+            <h1 class="text-5xl font-display font-bold text-white uppercase">Workout Complete!</h1>
+            <p class="text-slate-400 text-lg">You smashed {{ exercises.length }} exercises in {{ formattedTime }}</p>
+
+
+            <div class="space-y-2">
+                <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Rate this session</p>
+                <div class="flex gap-2 justify-center">
+                    <button *ngFor="let star of [1,2,3,4,5]" (click)="overallRating = star"
+                        [class]="star <= overallRating ? 'text-yellow-400' : 'text-slate-700'"
+                        class="text-3xl transition-colors">★</button>
+                </div>
+            </div>
+
+
+            <textarea [(ngModel)]="completionNotes" placeholder="Any notes about this session? (optional)"
+                class="w-full max-w-md bg-slate-900 border border-slate-700 rounded-2xl px-5 py-4 text-white text-sm focus:outline-none focus:border-galio-orange resize-none h-24">
+      </textarea>
+
+            <button (click)="completeWorkout()" [disabled]="isCompleting"
+                class="px-10 py-4 bg-galio-lime text-galio-dark font-bold text-lg rounded-2xl hover:bg-green-500 transition-all disabled:opacity-50">
+                {{ isCompleting ? 'Saving...' : 'Save & Finish' }}
+            </button>
+        </div>
+
+
+        <div *ngIf="!isLoading && !showCompletionScreen" class="space-y-6">
+
+            <header class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Active Session</p>
+                    <h1 class="text-4xl md:text-5xl font-display font-bold text-white uppercase">
+                        {{ workoutLog?.programDay?.title || 'Workout' }}
+                    </h1>
+                </div>
+                <div class="text-right">
+                    <p class="text-slate-500 text-xs uppercase tracking-widest">Elapsed</p>
+                    <p class="text-3xl font-display font-bold text-galio-orange">{{ formattedTime }}</p>
+                </div>
+            </header>
+
+
+            <div class="relative h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-galio-orange rounded-full transition-all duration-500"
+                    [style.width.%]="progressPercent">
+                </div>
+            </div>
+            <p class="text-slate-500 text-sm">
+                Exercise {{ currentExerciseIndex + 1 }} of {{ exercises.length }}
+            </p>
+
+
+            <div *ngIf="currentExercise"
+                class="bg-galio-surface border border-galio-border rounded-3xl overflow-hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+
+                    <div class="bg-slate-900 flex items-center justify-center p-8 min-h-[280px]">
+                        <img *ngIf="currentExercise.imageUrl" [src]="currentExercise.imageUrl"
+                            (error)="onExerciseImageError(currentExercise)"
+                            [alt]="currentExercise.exercise_name" class="max-h-64 w-auto object-contain rounded-2xl">
+                        <div *ngIf="!currentExercise.imageUrl"
+                            class="w-40 h-40 bg-slate-800 rounded-2xl flex items-center justify-center text-6xl">💪
+                        </div>
+                    </div>
+
+
+                    <div class="p-8 space-y-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-white uppercase">{{ currentExercise.exercise_name }}</h2>
+                            <p class="text-slate-500 text-sm mt-1">{{ currentExercise.sets }} sets × {{
+                                currentExercise.reps }} reps</p>
+                        </div>
+
+
+                        <div class="space-y-4">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest">
+                                Set {{ currentSetIndex + 1 }} of {{ currentSetLogs.length }}
+                            </h3>
+                            <p class="text-slate-400 text-sm font-bold">Target: {{ targetReps }} reps <span *ngIf="currentExercise?.targetWeights?.[currentSetIndex]">&#64; {{ currentExercise.targetWeights[currentSetIndex] }} kg</span></p>
+                            <div class="flex items-center gap-4 bg-slate-900/50 rounded-xl px-4 py-4">
+                                <div class="flex-1">
+                                    <label class="text-[9px] text-slate-600 uppercase font-bold">Actual reps</label>
+                                    <input type="number" [(ngModel)]="currentSetLogs[currentSetIndex].reps" min="0"
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-white text-sm font-bold focus:outline-none focus:border-galio-orange"
+                                        placeholder="e.g. 8">
+                                </div>
+                                <div class="flex-1">
+                                    <label class="text-[9px] text-slate-600 uppercase font-bold">Weight (kg)</label>
+                                    <input type="number" [(ngModel)]="currentSetLogs[currentSetIndex].weightKg" min="0" step="0.5"
+                                        class="w-full bg-slate-900 border border-slate-700 rounded-lg py-2 px-3 text-white text-sm font-bold focus:outline-none focus:border-galio-orange">
+                                </div>
+                            </div>
+                            <div class="flex gap-2 flex-wrap">
+                                <span *ngFor="let s of currentSetLogs; let i = index" class="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold"
+                                    [class]="s.done ? 'bg-green-500/20 text-green-400 border border-green-500' : (i === currentSetIndex ? 'bg-galio-orange text-white' : 'bg-slate-800 text-slate-500')">
+                                    {{ s.done ? '✓' : i + 1 }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 pt-4">
+                            <button *ngIf="currentExerciseIndex > 0 || currentSetIndex > 0" (click)="prevExercise()"
+                                class="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all">
+                                ← Back
+                            </button>
+                            <button *ngIf="!allSetsDoneForExercise" (click)="markSetDone()"
+                                class="flex-1 py-3 font-bold uppercase tracking-wider rounded-xl bg-galio-orange hover:bg-orange-600 text-white transition-all">
+                                Done →
+                            </button>
+                            <button *ngIf="allSetsDoneForExercise" (click)="nextExercise()"
+                                class="flex-1 py-3 font-bold uppercase tracking-wider rounded-xl transition-all"
+                                [class]="currentExerciseIndex < exercises.length - 1 ? 'bg-galio-orange hover:bg-orange-600 text-white' : 'bg-galio-lime hover:bg-green-500 text-galio-dark'">
+                                {{ currentExerciseIndex < exercises.length - 1 ? 'Next Exercise →' : '🏆 Finish Workout' }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="bg-galio-surface border border-galio-border rounded-3xl p-6">
+                <h3 class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-4">All Exercises</h3>
+                <div class="space-y-2">
+                    <div *ngFor="let ex of exercises; let i = index"
+                        class="flex items-center gap-4 py-2 border-b border-slate-800 last:border-0"
+                        [class.opacity-40]="i > currentExerciseIndex">
+                        <span class="text-xl"
+                            [class]="i < currentExerciseIndex ? 'text-green-400' : (i === currentExerciseIndex ? 'text-galio-orange' : 'text-slate-700')">
+                            {{ i < currentExerciseIndex ? '✓' : (i===currentExerciseIndex ? '▶' : '○' ) }} </span>
+                                <span class="text-sm font-bold text-white uppercase">{{ ex.exercise_name }}</span>
+                                <span class="ml-auto text-xs text-slate-500">{{ ex.sets }}×{{ ex.reps }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-dashboard-layout>

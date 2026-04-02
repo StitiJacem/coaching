@@ -1,0 +1,284 @@
+<div class="min-h-screen bg-[#0a0a0a] text-white selection:bg-[#FF6B35]/30">
+
+    <!-- NAVIGATION / HEADER (Show only on landing page, hidden during onboarding) -->
+    <nav *ngIf="!isLoggedIn || isProfileComplete" class="flex items-center justify-between px-8 py-6 relative z-50">
+        <div class="flex items-center gap-2">
+            <div
+                class="w-10 h-10 rounded-xl bg-[#FF6B35] text-white font-black flex items-center justify-center text-2xl shadow-lg shadow-[#FF6B35]/20">
+                G</div>
+            <span class="text-3xl font-display uppercase tracking-widest">Gosport</span>
+        </div>
+        <div class="flex items-center gap-6">
+            <a *ngIf="!isLoggedIn" routerLink="/login"
+                class="text-sm font-medium text-gray-400 hover:text-white transition-colors">Connexion</a>
+            <a *ngIf="!isLoggedIn" routerLink="/signup"
+                class="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-sm font-bold hover:bg-white/10 transition-all">S'inscrire</a>
+        </div>
+    </nav>
+
+    <!-- CONTENT AREA -->
+    <main>
+        <!-- ONBOARDING VIEW (Immersive Background Integration) -->
+        <div *ngIf="isLoggedIn && !isProfileComplete"
+            class="max-w-7xl mx-auto px-6 py-12 md:py-20 flex flex-col items-center justify-center min-h-[calc(100vh-80px)] relative overflow-hidden">
+
+            <!-- Multi-layered Immersive Glow -->
+            <div
+                class="absolute top-1/4 left-1/4 w-[600px] h-[600px] bg-[#FF6B35]/10 blur-[120px] rounded-full pointer-events-none animate-pulse-slow">
+            </div>
+            <div class="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-blue-600/10 blur-[100px] rounded-full pointer-events-none animate-pulse-slow"
+                style="animation-delay: 1.5s">
+            </div>
+            <div
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[800px] bg-white/[0.02] blur-[150px] rounded-full pointer-events-none">
+            </div>
+
+            <div
+                class="w-full max-w-5xl glass rounded-[3rem] shadow-[0_32px_128px_-20px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col md:flex-row min-h-[650px] animate-fade-in relative z-10 border border-white/10">
+
+                <!-- Left Column: Illustration & Bubbles (Dark Theme) -->
+                <div
+                    class="w-full md:w-5/12 bg-white/5 p-12 flex flex-col items-center justify-center border-r border-white/5 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-[#FF6B35]/5 to-transparent"></div>
+
+                    <!-- Bubbles Illustration -->
+                    <div class="relative w-72 h-72 mb-10 mt-4">
+                        <!-- CO Bubble (Coach) -->
+                        <div
+                            class="absolute top-0 right-4 w-36 h-36 bg-gray-800 rounded-full flex items-center justify-center text-4xl font-black text-white shadow-2xl border-4 border-white/10 transition-transform hover:scale-105 z-10">
+                            CO
+                        </div>
+                        <!-- AT Bubble (Athlete) -->
+                        <div
+                            class="absolute bottom-4 left-4 w-32 h-32 bg-[#FF6B35] rounded-full flex items-center justify-center text-4xl font-black text-white shadow-2xl border-4 border-white/20 z-20 transition-transform hover:scale-110 shadow-[#FF6B35]/30">
+                            AT
+                        </div>
+                        <!-- DT Bubble (Doctor/Nutritionist) -->
+                        <div
+                            class="absolute bottom-12 right-0 w-28 h-28 bg-blue-600 rounded-full flex items-center justify-center text-3xl font-black text-white shadow-2xl border-4 border-white/10 transition-transform hover:scale-105 shadow-blue-600/20">
+                            DT
+                        </div>
+                    </div>
+
+                    <div class="text-center relative z-10 px-4">
+                        <h2 class="text-3xl font-black text-white mb-4 uppercase tracking-tighter leading-tight">We'd
+                            like to<br>get to know you</h2>
+                        <p class="text-gray-400 text-sm leading-relaxed max-w-[280px] mx-auto">Based on your answers, we
+                            will tailor the GoSport platform to work best for you.</p>
+                    </div>
+                </div>
+
+                <!-- Right Column: Conversational Form (Dark Theme) -->
+                <div class="w-full md:w-7/12 p-12 md:p-16 flex flex-col justify-center bg-black/40 backdrop-blur-3xl">
+                    <div class="max-w-md mx-auto w-full">
+                        <div class="mb-12">
+                            <h1 class="text-4xl font-black text-white uppercase tracking-tighter mb-2">
+                                HI {{ profileForm.get('first_name')?.value || 'THERE' }}, 👋
+                            </h1>
+                            <p class="text-[#FF6B35] font-bold tracking-tight uppercase text-sm">Help us set up your
+                                GoSport account</p>
+                        </div>
+
+                        <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="space-y-12">
+                            <!-- Mad Libs Sentence -->
+                            <div class="text-2xl md:text-3xl text-gray-100 leading-snug font-bold">
+                                I am a
+                                <span
+                                    class="relative inline-block border-b-4 border-white/10 hover:border-[#FF6B35] transition-colors mx-1">
+                                    <select formControlName="role" (change)="setRole($any($event.target).value)"
+                                        class="appearance-none bg-transparent pr-8 pl-1 pb-1 focus:outline-none cursor-pointer text-[#FF6B35]">
+                                        <option value="" disabled selected class="bg-[#0a0a0a]">Role</option>
+                                        <option value="athlete" class="bg-[#0a0a0a]">Athlete</option>
+                                        <option value="coach" class="bg-[#0a0a0a]">Coach</option>
+                                        <option value="doctor" class="bg-[#0a0a0a]">Doctor</option>
+                                        <option value="nutritionist" class="bg-[#0a0a0a]">Nutritionist</option>
+                                    </select>
+                                    <svg class="w-5 h-5 text-[#FF6B35] absolute right-1 top-3 pointer-events-none"
+                                        fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                            d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </span>
+                                .
+
+                                <!-- Athlete Specific -->
+                                <ng-container *ngIf="profileForm.get('role')?.value === 'athlete'">
+                                    My focus is
+                                    <span
+                                        class="relative inline-block border-b-4 border-white/10 hover:border-[#FF6B35] transition-colors mx-1">
+                                        <select formControlName="primaryObjective"
+                                            class="appearance-none bg-transparent pr-8 pl-1 pb-1 focus:outline-none cursor-pointer text-[#FF6B35]">
+                                            <option value="" disabled class="bg-[#0a0a0a]">Goal</option>
+                                            <option value="Build muscle" class="bg-[#0a0a0a]">building muscle</option>
+                                            <option value="Lose fat" class="bg-[#0a0a0a]">losing fat</option>
+                                            <option value="Improve performance" class="bg-[#0a0a0a]">performance
+                                            </option>
+                                            <option value="Stay healthy" class="bg-[#0a0a0a]">health</option>
+                                        </select>
+                                        <svg class="w-5 h-5 text-[#FF6B35] absolute right-1 top-3 pointer-events-none"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
+                                    . I am a
+                                    <span
+                                        class="relative inline-block border-b-4 border-white/10 hover:border-[#FF6B35] transition-colors mx-1">
+                                        <select formControlName="experienceLevel"
+                                            class="appearance-none bg-transparent pr-8 pl-1 pb-1 focus:outline-none cursor-pointer text-[#FF6B35]">
+                                            <option *ngFor="let level of experienceLevels" [value]="level"
+                                                class="bg-[#0a0a0a]">{{ level.toLowerCase() }}</option>
+                                        </select>
+                                        <svg class="w-5 h-5 text-[#FF6B35] absolute right-1 top-3 pointer-events-none"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
+                                    and train
+                                    <span
+                                        class="relative inline-block border-b-4 border-white/10 hover:border-[#FF6B35] transition-colors mx-1 min-w-[100px]">
+                                        <input type="text" formControlName="timePerSession" placeholder="60 mins"
+                                            class="w-full bg-transparent pb-1 focus:outline-none text-[#FF6B35] placeholder:text-white/20">
+                                    </span>
+                                    per session.
+                                </ng-container>
+
+                                <!-- Coach Specific -->
+                                <ng-container *ngIf="profileForm.get('role')?.value === 'coach'">
+                                    I work
+                                    <span
+                                        class="relative inline-block border-b-4 border-white/10 hover:border-[#FF6B35] transition-colors mx-1">
+                                        <select formControlName="workType"
+                                            class="appearance-none bg-transparent pr-8 pl-1 pb-1 focus:outline-none cursor-pointer text-[#FF6B35]">
+                                            <option *ngFor="let type of workTypes" [value]="type" class="bg-[#0a0a0a]">
+                                                {{ type.toLowerCase() }}</option>
+                                        </select>
+                                        <svg class="w-5 h-5 text-[#FF6B35] absolute right-1 top-3 pointer-events-none"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
+                                    . I have
+                                    <span
+                                        class="relative inline-block border-b-4 border-white/10 hover:border-[#FF6B35] transition-colors mx-1">
+                                        <select formControlName="experience_years"
+                                            class="appearance-none bg-transparent pr-8 pl-1 pb-1 focus:outline-none cursor-pointer text-[#FF6B35]">
+                                            <option value="0" class="bg-[#0a0a0a]">less than a year</option>
+                                            <option value="1" class="bg-[#0a0a0a]">1-3 years</option>
+                                            <option value="5" class="bg-[#0a0a0a]">4-10 years</option>
+                                            <option value="15" class="bg-[#0a0a0a]">10+ years</option>
+                                        </select>
+                                        <svg class="w-5 h-5 text-[#FF6B35] absolute right-1 top-3 pointer-events-none"
+                                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                                d="M19 9l-7 7-7-7" />
+                                        </svg>
+                                    </span>
+                                    of experience.
+                                </ng-container>
+                            </div>
+
+                            <!-- Additional Fields Row (Dark Theme) -->
+                            <div *ngIf="profileForm.get('role')?.value"
+                                class="grid grid-cols-1 md:grid-cols-2 gap-8 animate-slide-up">
+                                <div *ngIf="profileForm.get('role')?.value === 'athlete'">
+                                    <label
+                                        class="text-[10px] uppercase font-black tracking-widest text-[#FF6B35] mb-2 block">Primary
+                                        Sport</label>
+                                    <input type="text" formControlName="sport" placeholder="e.g. Weightlifting"
+                                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#FF6B35] transition-all font-bold text-white placeholder:text-white/20">
+                                </div>
+                                <div *ngIf="profileForm.get('role')?.value === 'athlete'">
+                                    <label
+                                        class="text-[10px] uppercase font-black tracking-widest text-[#FF6B35] mb-2 block">Available
+                                        Equipment</label>
+                                    <input type="text" formControlName="equipment" placeholder="Full Gym, Home Gym"
+                                        class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-[#FF6B35] transition-all font-bold text-white placeholder:text-white/20">
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end pt-8">
+                                <button type="submit" [disabled]="loading || !profileForm.get('role')?.value"
+                                    class="px-14 py-5 bg-[#FF6B35] hover:bg-orange-600 text-white rounded-2xl font-black text-xl transition-all shadow-2xl shadow-[#FF6B35]/30 active:scale-95 disabled:grayscale disabled:opacity-50">
+                                    {{ loading ? 'SAVING...' : 'FINISH SETUP' }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LANDING PAGE HERO (Original content) -->
+        <div *ngIf="!isLoggedIn || isProfileComplete">
+            <div class="relative overflow-hidden pt-12 pb-24 md:pt-24 md:pb-32">
+                <div
+                    class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-[#FF6B35]/10 blur-[120px] rounded-full pointer-events-none">
+                </div>
+
+                <div class="max-w-7xl mx-auto px-6 relative z-10 text-center">
+                    <h1 class="text-6xl md:text-8xl font-black tracking-tighter animate-fade-in mb-6">
+                        Dominez votre <span class="text-[#FF6B35]">Sport</span>
+                    </h1>
+                    <p class="text-xl text-gray-400 max-w-2xl mx-auto mb-12 animate-fade-in"
+                        style="animation-delay: 0.1s">
+                        Rejoignez GOSPORT, la plateforme ultime pour les passionnés de fitness et de performance.
+                        Coaching personnalisé, suivi en temps réel et communauté active.
+                    </p>
+
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center animate-fade-in"
+                        style="animation-delay: 0.2s">
+                        <a routerLink="/signup" class="btn-primary flex items-center justify-center gap-2 group">
+                            Commencer l'aventure
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </a>
+                        <a routerLink="/login" class="btn-secondary">Découvrir nos offres</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-7xl mx-auto px-6 py-24 border-t border-white/5">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass p-8 rounded-3xl hover:bg-white/5 transition-all duration-300 group">
+                        <div
+                            class="w-14 h-14 bg-[#FF6B35]/20 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
+                            🔥</div>
+                        <h3 class="text-2xl font-bold mb-4">Entraînements Intense</h3>
+                        <p class="text-gray-400 leading-relaxed">Des programmes conçus par des professionnels pour
+                            repousser vos limites et atteindre vos objectifs plus rapidement.</p>
+                    </div>
+                    <div
+                        class="glass p-8 rounded-3xl hover:bg-white/5 transition-all duration-300 group border-[#FF6B35]/30">
+                        <div
+                            class="w-14 h-14 bg-[#FF6B35]/20 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
+                            📊</div>
+                        <h2 class="text-2xl font-bold mb-4">Suivi de Performance</h2>
+                        <p class="text-gray-400 leading-relaxed">Analysez vos progrès grâce à des outils de tracking
+                            avancés et visualisez votre évolution jour après jour.</p>
+                    </div>
+                    <div class="glass p-8 rounded-3xl hover:bg-white/5 transition-all duration-300 group">
+                        <div
+                            class="w-14 h-14 bg-[#FF6B35]/20 rounded-2xl flex items-center justify-center mb-6 text-2xl group-hover:scale-110 transition-transform">
+                            👥</div>
+                        <h3 class="text-2xl font-bold mb-4">Communauté Active</h3>
+                        <p class="text-gray-400 leading-relaxed">Échangez avec d'autres passionnés, partagez vos
+                            résultats et restez motivé grâce au soutien de la communauté.</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="text-center py-12 border-t border-white/5 text-gray-500 text-sm">
+                <p>© 2026 <span class="font-display tracking-widest font-bold">GOSPORT</span>. Performance &
+                    Détermination.</p>
+            </footer>
+        </div>
+    </main>
+
+</div>

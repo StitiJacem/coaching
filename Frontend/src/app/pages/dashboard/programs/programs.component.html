@@ -1,0 +1,233 @@
+<app-dashboard-layout>
+    <div class="space-y-8">
+        <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Coach Studio</p>
+                <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">
+                    Programs
+                </h1>
+            </div>
+            <div class="flex gap-3">
+                <button (click)="startNewProgram()"
+                    class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-gosport-orange hover:bg-orange-600 text-white shadow-lg shadow-gosport-orange/25 transition-all duration-200 active:scale-[0.98]">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                    New Program
+                </button>
+            </div>
+        </header>
+
+
+        <div class="space-y-6">
+
+            <div *ngIf="isLoadingPrograms" class="flex justify-center py-20">
+                <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-gosport-orange"></div>
+            </div>
+
+
+            <!-- COACH VIEW -->
+            <ng-container *ngIf="roleService.currentRole === 'coach'">
+                <div *ngIf="!isLoadingPrograms && programs.length === 0"
+                    class="bg-gosport-surface border border-gosport-border rounded-2xl p-8 text-center py-20">
+                    <div class="max-w-md mx-auto">
+                        <div class="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">No Programs Formulated</h3>
+                        <p class="text-slate-400 mb-8">Establish a periodized training cycle over multiple weeks.</p>
+                        <button (click)="startNewProgram()"
+                            class="text-gosport-orange font-bold uppercase tracking-widest text-sm hover:underline">
+                            Create Multi-Day Program →
+                        </button>
+                    </div>
+                </div>
+
+                <div *ngIf="!isLoadingPrograms && programs.length > 0"
+                    class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <div *ngFor="let program of programs"
+                        class="bg-gosport-surface border border-gosport-border rounded-3xl p-6 hover:border-gosport-orange transition-all group">
+                        <div class="flex justify-between items-start mb-6">
+                            <div
+                                class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-gosport-orange">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <span
+                                class="px-3 py-1 bg-gosport-orange/10 text-gosport-orange text-[10px] font-bold uppercase tracking-widest rounded-full">
+                                {{ program.status }}
+                            </span>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2 group-hover:text-gosport-orange transition-colors">{{
+                            program.name }}</h3>
+                        <p class="text-slate-500 text-sm mb-6 line-clamp-2">
+                            {{ program.description || 'No description provided for this periodized program.' }}
+                        </p>
+                        <div
+                            class="flex items-center gap-4 text-xs font-bold text-slate-400 mb-6 font-display uppercase tracking-widest">
+                            <span class="flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                {{ program.startDate | date:'shortDate' }}
+                            </span>
+                            <span>•</span>
+                            <span>{{ program.days.length || 0 }} Days</span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button (click)="editProgram(program)"
+                                class="w-full py-2.5 rounded-xl bg-slate-800 text-white text-xs font-bold uppercase tracking-wider hover:bg-slate-700 transition-all">
+                                Modify
+                            </button>
+                            <button (click)="assignToAthlete(program)"
+                                class="w-full py-2.5 rounded-xl bg-gosport-orange/10 text-gosport-orange text-xs font-bold uppercase tracking-wider hover:bg-gosport-orange hover:text-white transition-all">
+                                Assign
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+
+            <!-- ATHLETE VIEW -->
+            <ng-container *ngIf="roleService.currentRole === 'athlete'">
+                <!-- PENDING PROGRAMS INBOX -->
+                <div *ngIf="!isLoadingPrograms && athletePendingPrograms.length > 0" class="mb-12">
+                    <h2 class="text-3xl font-display font-black text-amber-500 uppercase italic mb-6">Pending Programs (Action Required)</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div *ngFor="let program of athletePendingPrograms"
+                            class="bg-amber-900/20 border-2 border-amber-500/50 rounded-3xl p-6 relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                            
+                            <div class="flex justify-between items-start mb-6 relative">
+                                <div class="w-12 h-12 bg-amber-500/20 rounded-2xl flex items-center justify-center text-amber-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                                    </svg>
+                                </div>
+                                <span class="px-3 py-1 bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                                    New Assignment
+                                </span>
+                            </div>
+                            
+                            <h3 class="text-xl font-black text-white mb-2 relative">{{ program.name }}</h3>
+                            <p class="text-amber-200/70 text-sm mb-6 line-clamp-2 relative">
+                                {{ program.description || 'Your coach has assigned a new program for you to review.' }}
+                            </p>
+                            
+                            <div class="grid grid-cols-2 gap-3 relative">
+                                <button (click)="declineProgram(program)"
+                                    class="w-full py-2.5 rounded-xl border border-amber-500/30 text-amber-500 text-xs font-bold uppercase tracking-wider hover:bg-amber-500/10 transition-all">
+                                    Decline
+                                </button>
+                                <button (click)="viewProgram(program)"
+                                    class="w-full py-2.5 rounded-xl bg-amber-500 text-black text-xs font-black uppercase tracking-wider hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/20">
+                                    Review &amp; Accept
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVE & ARCHIVED PROGRAMS -->
+                <div>
+                    <h2 class="text-2xl font-display font-black text-white uppercase italic mb-6">My Program Library</h2>
+                    
+                    <div *ngIf="!isLoadingPrograms && programs.length === 0 && athleteActivePrograms.length === 0"
+                        class="bg-gosport-surface border border-gosport-border rounded-2xl p-8 text-center py-20">
+                        <div class="max-w-md mx-auto">
+                            <div class="w-20 h-20 bg-slate-800 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                <svg class="w-10 h-10 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                </svg>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">No Active Programs</h3>
+                            <p class="text-slate-400">You don't have any active programs. When your coach assigns one, it will appear here.</p>
+                        </div>
+                    </div>
+
+                    <div *ngIf="!isLoadingPrograms && (programs.length > 0 || athleteActivePrograms.length > 0)"
+                        class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <div *ngFor="let program of athleteActivePrograms"
+                            class="bg-gosport-surface border-2 border-gosport-orange/50 rounded-3xl p-6 relative overflow-hidden group">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-gosport-orange/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                            <div class="flex justify-between items-start mb-6 relative">
+                                <div class="w-12 h-12 bg-gosport-orange rounded-2xl flex items-center justify-center text-white shadow-lg shadow-gosport-orange/20">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                    </svg>
+                                </div>
+                                <span class="px-3 py-1 bg-gosport-orange text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow-lg">
+                                    Active Program
+                                </span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2 relative">{{ program.name }}</h3>
+                            <p class="text-slate-500 text-sm mb-6 line-clamp-2 relative">
+                                {{ program.description || 'Your current active training plan.' }}
+                            </p>
+                            <button (click)="viewProgram(program)"
+                                class="w-full py-3 rounded-xl bg-slate-800 text-white text-xs font-bold uppercase tracking-wider hover:bg-gosport-orange transition-all relative">
+                                View Current Schedule
+                            </button>
+                        </div>
+                        
+                        <div *ngFor="let program of programs"
+                            class="bg-gosport-surface border border-gosport-border rounded-3xl p-6 opacity-70 hover:opacity-100 transition-all">
+                            <div class="flex justify-between items-start mb-6">
+                                <div class="w-12 h-12 bg-slate-800 rounded-2xl flex items-center justify-center text-slate-500">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                                    </svg>
+                                </div>
+                                <span class="px-3 py-1 bg-slate-800 text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-full">
+                                    Archived
+                                </span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-2">{{ program.name }}</h3>
+                            <p class="text-slate-500 text-sm mb-6 line-clamp-2">
+                                {{ program.description || 'Past program.' }}
+                            </p>
+                            <button (click)="viewProgram(program)"
+                                class="w-full py-2.5 rounded-xl border border-slate-700 text-slate-400 text-xs font-bold uppercase tracking-wider hover:bg-slate-800 transition-all">
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </ng-container>
+        </div>
+    </div>
+</app-dashboard-layout>
+
+
+<div *ngIf="showAssignModal"
+    class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div
+        class="bg-gosport-surface border border-gosport-border rounded-3xl p-8 max-w-md w-full animate-in zoom-in duration-300">
+        <h3 class="text-xl font-bold text-white mb-2">Assign Program</h3>
+        <p class="text-slate-400 text-sm mb-2">Choose an athlete to assign
+            <strong class="text-white">{{ assigningProgram?.name }}</strong> to.
+        </p>
+        <p class="text-amber-400/90 text-xs mb-4">The athlete will receive a notification and must accept the program before it becomes active.</p>
+        <select [(ngModel)]="assignModalAthleteId"
+            class="w-full bg-slate-900 border border-slate-700 rounded-2xl px-4 py-3 text-white font-bold focus:outline-none focus:border-gosport-orange mb-6 outline-none">
+            <option [ngValue]="null" disabled>Select athlete...</option>
+            <option *ngFor="let a of athletes" [ngValue]="a.id">{{ getAthleteName(a) }}</option>
+        </select>
+        <div class="flex gap-3">
+            <button (click)="cancelAssign()"
+                class="flex-1 py-3 rounded-xl border border-slate-700 text-slate-400 font-bold text-sm hover:bg-slate-800 transition-all">
+                Cancel
+            </button>
+            <button (click)="confirmAssign()" [disabled]="!assignModalAthleteId || isAssigning"
+                class="flex-1 py-3 rounded-xl bg-gosport-orange text-white font-bold text-sm hover:bg-orange-600 transition-all disabled:opacity-50">
+                {{ isAssigning ? 'Assigning...' : 'Confirm Assign' }}
+            </button>
+        </div>
+    </div>
+</div>

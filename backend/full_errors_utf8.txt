@@ -1,0 +1,149 @@
+﻿src/app.ts(2,21): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/app.ts(3,18): error TS2307: Cannot find module 'cors' or its corresponding type declarations.
+src/app.ts(4,26): error TS2307: Cannot find module 'cookie-parser' or its corresponding type declarations.
+src/app.ts(5,20): error TS2307: Cannot find module 'morgan' or its corresponding type declarations.
+src/app.ts(6,18): error TS2307: Cannot find module 'path' or its corresponding type declarations.
+src/app.ts(28,34): error TS2304: Cannot find name '__dirname'.
+src/controllers/ActivityEventController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/ActivityEventController.ts(46,57): error TS7006: Parameter 'w' implicitly has an 'any' type.
+src/controllers/AthleteController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/AthleteController.ts(9,26): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/controllers/AthleteController.ts(40,52): error TS7006: Parameter 'qb' implicitly has an 'any' type.
+src/controllers/AthleteController.ts(70,68): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/controllers/AuthController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/CoachController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/CoachingRequestController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/DashboardController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/DashboardController.ts(10,30): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/controllers/DashboardController.ts(34,41): error TS7006: Parameter 'qb' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(72,51): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(117,53): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(118,62): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(121,69): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(121,74): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(128,67): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(133,46): error TS7006: Parameter 'el' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(199,37): error TS7006: Parameter 'qb' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(240,37): error TS7006: Parameter 'qb' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(280,41): error TS7006: Parameter 'qb' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(291,46): error TS7006: Parameter 'pr' implicitly has an 'any' type.
+src/controllers/DashboardController.ts(314,42): error TS7006: Parameter 'pr' implicitly has an 'any' type.
+src/controllers/ExerciseController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/GoalController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/NotificationController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/OAuthController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/OAuthController.ts(3,17): error TS2307: Cannot find module 'jsonwebtoken' or its corresponding type declarations.
+src/controllers/OAuthController.ts(35,17): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/controllers/OAuthController.ts(83,17): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/controllers/ProgramController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/ProgramController.ts(668,58): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/controllers/ReportController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/ReportController.ts(2,20): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/controllers/ReportController.ts(16,30): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/controllers/ReportController.ts(25,36): error TS7006: Parameter 'p' implicitly has an 'any' type.
+src/controllers/ReportController.ts(30,27): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/controllers/ReportController.ts(65,45): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(66,50): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(69,51): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/controllers/ReportController.ts(69,56): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(122,45): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(123,50): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(126,51): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/controllers/ReportController.ts(126,56): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(128,54): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(143,52): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/ReportController.ts(151,47): error TS7006: Parameter 's' implicitly has an 'any' type.
+src/controllers/ReportController.ts(151,50): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/SessionController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/SessionController.ts(237,51): error TS7006: Parameter 'transactionalEntityManager' implicitly has an 'any' type.
+src/controllers/UserController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/UserController.ts(4,25): error TS2307: Cannot find module 'bcryptjs' or its corresponding type declarations.
+src/controllers/WorkoutLogController.ts(1,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/controllers/WorkoutLogController.ts(53,46): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/WorkoutLogController.ts(54,43): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/WorkoutLogController.ts(67,42): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/WorkoutLogController.ts(80,52): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/controllers/WorkoutLogController.ts(80,57): error TS7006: Parameter 'l' implicitly has an 'any' type.
+src/controllers/WorkoutLogController.ts(330,34): error TS7006: Parameter 'pl' implicitly has an 'any' type.
+src/entities/ActivityEvent.ts(1,97): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Athlete.ts(1,115): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/BodyMetric.ts(1,97): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Coach.ts(1,125): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Coach.ts(49,44): error TS7006: Parameter 'specialization' implicitly has an 'any' type.
+src/entities/Coach.ts(52,43): error TS7006: Parameter 'certification' implicitly has an 'any' type.
+src/entities/Coach.ts(55,32): error TS7006: Parameter 'program' implicitly has an 'any' type.
+src/entities/CoachCertification.ts(1,97): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/CoachCertification.ts(12,37): error TS7006: Parameter 'profile' implicitly has an 'any' type.
+src/entities/CoachingRequest.ts(1,115): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/CoachSpecialization.ts(1,97): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/CoachSpecialization.ts(12,37): error TS7006: Parameter 'profile' implicitly has an 'any' type.
+src/entities/ExerciseLog.ts(1,97): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Goal.ts(1,115): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Notification.ts(1,97): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Program.ts(1,126): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/Program.ts(35,37): error TS7006: Parameter 'profile' implicitly has an 'any' type.
+src/entities/Program.ts(54,35): error TS7006: Parameter 'day' implicitly has an 'any' type.
+src/entities/ProgramDay.ts(1,90): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/ProgramDay.ts(23,40): error TS7006: Parameter 'programExercise' implicitly has an 'any' type.
+src/entities/ProgramExercise.ts(1,79): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/ProgramExercise.ts(12,35): error TS7006: Parameter 'day' implicitly has an 'any' type.
+src/entities/Session.ts(1,115): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/User.ts(1,74): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/UserInvitation.ts(1,115): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/entities/WorkoutLog.ts(1,126): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/index.ts(3,22): error TS7016: Could not find a declaration file for module 'debug'. 'C:/Users/yassin/node_modules/debug/src/index.js' implicitly has an 'any' type.
+  Try `npm i --save-dev @types/debug` if it exists or add a new declaration (.d.ts) file containing `declare module 'debug';`
+src/index.ts(4,18): error TS2307: Cannot find module 'http' or its corresponding type declarations.
+src/index.ts(10,48): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(14,71): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(28,36): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(38,9): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(42,5): error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(42,22): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(45,9): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(62,13): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/index.ts(66,13): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/middleware/authenticateToken.ts(1,49): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/middleware/authenticateToken.ts(2,17): error TS2307: Cannot find module 'jsonwebtoken' or its corresponding type declarations.
+src/middleware/authenticateToken.ts(21,13): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(2,28): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/orm/data-source.ts(20,25): error TS2307: Cannot find module 'dotenv' or its corresponding type declarations.
+src/orm/data-source.ts(26,34): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(26,67): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(26,98): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(30,11): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(31,20): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(32,15): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(33,15): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/orm/data-source.ts(34,15): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/repositories/UserRepository.ts(3,28): error TS2307: Cannot find module 'typeorm' or its corresponding type declarations.
+src/routes/athletes.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/auth.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/coaches.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/coachingRequests.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/dashboard.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/exercises.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/goals.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/notifications.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/programs.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/reports.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/sessions.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/users.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/routes/workoutLogs.ts(1,24): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/services/AuthService.ts(1,20): error TS2307: Cannot find module 'bcryptjs' or its corresponding type declarations.
+src/services/AuthService.ts(2,17): error TS2307: Cannot find module 'jsonwebtoken' or its corresponding type declarations.
+src/services/AuthService.ts(45,51): error TS7006: Parameter 'transactionalEntityManager' implicitly has an 'any' type.
+src/services/AuthService.ts(97,13): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/services/ExerciseService.ts(1,25): error TS2307: Cannot find module 'dotenv' or its corresponding type declarations.
+src/services/ExerciseService.ts(2,19): error TS2307: Cannot find module 'axios' or its corresponding type declarations.
+src/services/ExerciseService.ts(117,35): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/services/OAuthService.ts(1,19): error TS2307: Cannot find module 'axios' or its corresponding type declarations.
+src/services/OAuthService.ts(34,30): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/EmailService.ts(1,24): error TS2307: Cannot find module 'nodemailer' or its corresponding type declarations.
+src/utils/EmailService.ts(5,21): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/EmailService.ts(9,15): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/EmailService.ts(10,15): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/EmailService.ts(19,13): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/EmailService.ts(58,13): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/EmailService.ts(71,24): error TS2580: Cannot find name 'process'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+src/utils/seeder.ts(9,25): error TS2307: Cannot find module 'bcryptjs' or its corresponding type declarations.

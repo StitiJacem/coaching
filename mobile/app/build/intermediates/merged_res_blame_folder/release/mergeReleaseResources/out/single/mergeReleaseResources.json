@@ -1,0 +1,110 @@
+[
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_item_appointment.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/item_appointment.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-xxxhdpi_ic_launcher.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-xxxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-anydpi-v26_ic_launcher_round.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-anydpi-v26/ic_launcher_round.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_main.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-mdpi_ic_launcher_round.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-mdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-xxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-xxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-mdpi_ic_launcher.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-mdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/drawable_ic_launcher_background.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/drawable/ic_launcher_background.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-xhdpi_ic_launcher_round.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-xhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-xxxhdpi_ic_launcher_round.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-xxxhdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_signup.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_signup.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-anydpi-v26_ic_launcher.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-anydpi-v26/ic_launcher.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_services.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_services.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-hdpi_ic_launcher_round.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-hdpi/ic_launcher_round.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_book_appointment.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_book_appointment.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_item_service.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/item_service.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-hdpi_ic_launcher.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-hdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_dialog_vehicle.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/dialog_vehicle.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_home.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_home.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_vehicles.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_vehicles.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/drawable_ic_launcher_foreground.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/drawable/ic_launcher_foreground.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-xhdpi_ic_launcher.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-xhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_profile.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_profile.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_appointments.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_appointments.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/mipmap-xxhdpi_ic_launcher.webp.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/mipmap-xxhdpi/ic_launcher.webp"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_item_vehicle.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/item_vehicle.xml"
+    },
+    {
+        "merged": "com.mecanotun.mobile.app-release-39:/layout_activity_login.xml.flat",
+        "source": "com.mecanotun.mobile.app-main-40:/layout/activity_login.xml"
+    }
+]

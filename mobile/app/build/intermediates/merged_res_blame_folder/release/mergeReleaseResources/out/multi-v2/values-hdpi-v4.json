@@ -1,0 +1,20 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.mecanotun.mobile.app-mergeReleaseResources-37:/values-hdpi-v4/values-hdpi-v4.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\yassin\\.gradle\\caches\\9.0-milestone-1\\transforms\\582a8f7d4e8b0c1dd6d0de962c31c159\\transformed\\appcompat-1.6.1\\res\\values-hdpi-v4\\values-hdpi-v4.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endLines": "6",
+                        "endColumns": "13",
+                        "endOffsets": "327"
+                    }
+                }
+            ]
+        }
+    ]
+}

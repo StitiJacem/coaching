@@ -1,0 +1,272 @@
+<app-dashboard-layout>
+  <div class="space-y-6">
+    <div *ngIf="loading" class="flex justify-center py-20">
+      <div class="w-12 h-12 rounded-full border-4 border-slate-700 border-t-galio-orange animate-spin"></div>
+    </div>
+
+    <div *ngIf="!loading && error" class="panel p-8 text-center text-red-400 bg-red-500/10 border-red-500/20">
+      {{ error }}
+    </div>
+
+    <ng-container *ngIf="!loading && !error && profile">
+
+      <!-- HERO SECTION -->
+      <section class="panel overflow-hidden">
+        <div class="h-32 relative bg-gradient-to-r"
+          [ngClass]="viewType === 'athlete' ? 'from-blue-600 to-indigo-600' : 'from-galio-orange to-orange-500'">
+          <div
+            class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20">
+          </div>
+        </div>
+        <div class="px-6 pb-6 pt-0 relative">
+          <div class="flex flex-col md:flex-row md:items-end gap-5 -mt-12">
+            <img
+              [src]="profile?.profilePicture || profile?.user?.avatar || 'https://ui-avatars.com/api/?name=' + profile?.user?.first_name + '+' + profile?.user?.last_name"
+              class="w-24 h-24 rounded-full border-4 border-galio-surface object-cover bg-slate-800 flex-shrink-0">
+            <div class="flex-1 pb-1">
+              <p class="text-[10px] uppercase tracking-[0.2em] font-black"
+                [ngClass]="viewType === 'athlete' ? 'text-indigo-400' : 'text-galio-orange'">
+                {{ viewType === 'athlete' ? 'Athlete Profile' : 'Coach Profile' }}
+              </p>
+              <h1 class="text-3xl font-display font-black text-white uppercase">{{ profile?.user?.first_name }} {{
+                profile?.user?.last_name }}</h1>
+              <p class="text-slate-400 text-sm flex items-center gap-2 mt-1">
+                <lucide-icon name="map-pin" class="w-4 h-4"></lucide-icon>
+                {{ profile?.nationality || profile?.location || 'Unknown Location' }}
+              </p>
+            </div>
+
+            <div *ngIf="viewType === 'coach'" class="pb-2">
+              <button class="btn-primary">Request Coaching</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STAT STRIP: ATHLETE -->
+      <section *ngIf="viewType === 'athlete'" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Adherence</p>
+          <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.adherence || 0 }}%</p>
+        </div>
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Session Streak</p>
+          <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.currentStreak || 0 }} <span
+              class="text-sm font-normal text-slate-500">days</span></p>
+        </div>
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Completed</p>
+          <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.completedSessions || 0 }}</p>
+        </div>
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Active Goals</p>
+          <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.activeGoals || 0 }}</p>
+        </div>
+      </section>
+
+      <!-- GRID LAYOUT: ATHLETE (like Everfit) -->
+      <section *ngIf="viewType === 'athlete'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        <!-- Left Column: Training & Body -->
+        <div class="space-y-6">
+          <div class="panel p-5 space-y-4">
+            <h3
+              class="text-sm font-display font-bold text-white uppercase tracking-wider border-b border-slate-700 pb-2">
+              Training Profile</h3>
+            <div class="row"><span class="label">Sport</span><strong class="val">{{ profile?.sport || '-' }}</strong>
+            </div>
+            <div class="row"><span class="label">Experience</span><strong class="val">{{ profile?.experienceLevel || '-'
+                }}</strong></div>
+            <div class="row"><span class="label">Time/Session</span><strong class="val">{{ profile?.timePerSession ||
+                '-' }}</strong></div>
+            <div class="row"><span class="label">Fitness Level</span><strong class="val">{{ profile?.fitnessLevel || '-'
+                }}</strong></div>
+          </div>
+
+          <div class="panel p-5 space-y-4">
+            <h3
+              class="text-sm font-display font-bold text-white uppercase tracking-wider border-b border-slate-700 pb-2">
+              Body & Health</h3>
+            <div class="row"><span class="label">Weight</span><strong class="val">{{ profile?.weight || '-' }}
+                kg</strong></div>
+            <div class="row"><span class="label">Target Weight</span><strong class="val">{{ profile?.weightGoal || '-'
+                }} kg</strong></div>
+            <div class="row"><span class="label">Height</span><strong class="val">{{ profile?.height || '-' }}
+                cm</strong></div>
+
+            <div class="mt-4 pt-4 border-t border-slate-700">
+              <h4
+                class="text-xs text-slate-500 font-bold uppercase tracking-widest mb-2 flex items-center justify-between">
+                Injuries & Limitations
+                <lucide-icon name="plus-circle" class="w-4 h-4 text-galio-orange cursor-pointer"></lucide-icon>
+              </h4>
+              <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-sm text-red-200">
+                <lucide-icon name="alert-triangle" class="w-4 h-4 inline-block mr-1 -mt-0.5 text-red-400"></lucide-icon>
+                {{ profile?.injuries || 'No limitations reported.' }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Center & Right Column -->
+        <div class="lg:col-span-2 space-y-6">
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Body Metrics Sparkline (Mocked visual for now based on data) -->
+            <div class="panel p-5">
+              <div class="flex justify-between items-start mb-4">
+                <h3 class="text-sm font-display font-bold text-white uppercase tracking-wider">Body Metrics</h3>
+                <select class="bg-slate-800 text-xs text-slate-300 border border-slate-700 rounded px-2 py-1">
+                  <option>Last 4 weeks</option>
+                </select>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Weight</p>
+                  <div class="flex items-end gap-2 mt-1">
+                    <span class="text-2xl font-bold text-white">{{ profile?.weight || '-' }} <span
+                        class="text-sm text-slate-500">kg</span></span>
+                  </div>
+                  <!-- Simple SVG Sparkline illustration -->
+                  <svg class="w-full h-10 mt-2" viewBox="0 0 100 30" preserveAspectRatio="none">
+                    <path class="text-blue-500" fill="none" stroke="currentColor" stroke-width="2"
+                      d="M0,20 Q10,25 20,20 T40,15 T60,25 T80,10 T100,5"></path>
+                    <circle cx="100" cy="5" r="3" fill="currentColor" class="text-blue-500"></circle>
+                  </svg>
+                </div>
+                <div>
+                  <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Target</p>
+                  <div class="flex items-end gap-2 mt-1">
+                    <span class="text-2xl font-bold text-white">{{ profile?.weightGoal || '-' }} <span
+                        class="text-sm text-slate-500">kg</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- General Goal Card -->
+            <div class="panel p-5 bg-gradient-to-br from-indigo-900/40 to-slate-900 border-indigo-500/30">
+              <div class="flex items-center gap-2 mb-3">
+                <div class="w-8 h-8 rounded-full bg-indigo-500/20 flex items-center justify-center">
+                  <lucide-icon name="target" class="w-4 h-4 text-indigo-400"></lucide-icon>
+                </div>
+                <h3 class="text-sm font-display font-bold text-white uppercase tracking-wider">Primary Goal</h3>
+              </div>
+              <p class="text-white font-medium mb-3">{{ profile?.primaryObjective || 'No primary objective set by
+                athlete.' }}</p>
+
+              <div class="bg-indigo-500/10 rounded-lg p-3 border border-indigo-500/20 flex gap-3 items-center">
+                <span class="text-2xl mt-1">🎯</span>
+                <div>
+                  <p class="text-xs text-indigo-300">{{ profile?.goals || 'Help this athlete set a clear target to work
+                    towards.' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes Card -->
+          <div class="panel p-5">
+            <div class="flex justify-between items-center mb-4 border-b border-slate-700 pb-2">
+              <h3 class="text-sm font-display font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                <lucide-icon name="sticky-note" class="w-4 h-4 text-galio-orange"></lucide-icon>
+                Coach Notes
+              </h3>
+              <button class="text-slate-400 hover:text-white"><lucide-icon name="edit-2"
+                  class="w-4 h-4"></lucide-icon></button>
+            </div>
+            <ul class="space-y-3 text-sm text-slate-300">
+              <li class="flex gap-3">
+                <span class="w-1.5 h-1.5 rounded-full bg-galio-orange mt-1.5 flex-shrink-0"></span>
+                <span>{{ profile?.notes || 'Add private notes about this athlete here. Only coaches can see this.'
+                  }}</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- STAT STRIP & GRID LAYOUT: COACH -->
+      <section *ngIf="viewType === 'coach'" class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Athletes</p>
+          <p class="text-3xl font-display font-bold text-white">{{ coachStats?.connectedAthletes ?? 0 }}</p>
+        </div>
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Programs</p>
+          <p class="text-3xl font-display font-bold text-white">{{ coachStats?.activePrograms ?? 0 }}</p>
+        </div>
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Experience</p>
+          <p class="text-3xl font-display font-bold text-white">{{ profile?.experience_years ?? 0 }} <span
+              class="text-sm font-normal text-slate-500">yrs</span></p>
+        </div>
+        <div class="panel p-4 flex flex-col justify-between h-24">
+          <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Rating</p>
+          <p class="text-3xl font-display font-bold text-yellow-500 flex items-center gap-1">{{ profile?.rating ?? 4.5
+            }} <lucide-icon name="star" class="w-5 h-5 fill-current"></lucide-icon></p>
+        </div>
+      </section>
+
+      <section *ngIf="viewType === 'coach'" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+          <div class="panel p-6">
+            <h3 class="text-lg font-display font-bold text-white uppercase mb-4">About Coach</h3>
+            <p class="text-slate-300 leading-relaxed">{{ profile?.bio || 'This coach hasn\'t written a bio yet.' }}</p>
+          </div>
+
+          <div class="panel p-6">
+            <h3 class="text-sm font-display font-bold text-slate-400 uppercase tracking-widest mb-4">Offerings &
+              Services</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div *ngFor="let offer of profile?.offerTypes || ['Workout Training', 'Nutrition']"
+                class="bg-slate-800/50 border border-slate-700/50 rounded-xl p-3 flex items-center gap-3">
+                <div class="w-8 h-8 rounded-full bg-galio-orange/20 flex items-center justify-center text-galio-orange">
+                  <lucide-icon name="check" class="w-4 h-4"></lucide-icon>
+                </div>
+                <span class="text-white font-medium text-sm">{{ offer }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-6">
+          <div class="panel p-6">
+            <h3 class="text-sm font-display font-bold text-slate-400 uppercase tracking-widest mb-4">Specializations
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              <span *ngFor="let spec of profile?.specializations"
+                class="px-3 py-1 bg-galio-surface border border-slate-700 text-slate-300 text-xs font-bold rounded-full uppercase tracking-wider">
+                {{ spec?.specialization || spec }}
+              </span>
+              <span *ngIf="!profile?.specializations?.length" class="text-sm text-slate-500">None listed</span>
+            </div>
+          </div>
+
+          <div class="panel p-6">
+            <h3 class="text-sm font-display font-bold text-slate-400 uppercase tracking-widest mb-4">Information</h3>
+            <div class="space-y-4">
+              <div class="flex items-center gap-3 text-sm text-slate-300">
+                <lucide-icon name="briefcase" class="w-5 h-5 text-slate-500"></lucide-icon>
+                <div>
+                  <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Work Type</p>
+                  <p class="font-medium text-white">{{ profile?.workType || 'Hybrid' }} Coaching</p>
+                </div>
+              </div>
+              <div class="flex items-center gap-3 text-sm text-slate-300 pt-3 border-t border-slate-700/50">
+                <lucide-icon name="phone" class="w-5 h-5 text-slate-500"></lucide-icon>
+                <div>
+                  <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">Phone</p>
+                  <p class="font-medium text-white">{{ profile?.phone || 'Hidden' }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </ng-container>
+  </div>
+</app-dashboard-layout>

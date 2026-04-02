@@ -1,0 +1,277 @@
+<app-dashboard-layout>
+    <div class="space-y-6">
+        <div *ngIf="message" class="p-4 rounded-xl text-sm font-bold text-white text-center"
+            [ngClass]="message.type === 'success' ? 'bg-galio-lime/20 text-galio-lime' : 'bg-red-500/20 text-red-500'">
+            {{ message.text }}
+        </div>
+
+        <!-- Hero Card -->
+        <section class="panel overflow-hidden">
+            <div class="h-32 bg-gradient-to-r from-galio-orange to-orange-400 relative">
+                <div
+                    class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20">
+                </div>
+            </div>
+            <div class="px-6 pb-6 relative">
+                <div class="flex flex-col md:flex-row md:items-end gap-5 -mt-12">
+                    <div
+                        class="relative group w-24 h-24 rounded-full border-4 border-galio-surface overflow-hidden bg-slate-800 flex-shrink-0 cursor-pointer">
+                        <img [src]="profile?.profilePicture || user?.avatar || 'https://ui-avatars.com/api/?name=' + user?.first_name + '+' + user?.last_name"
+                            class="w-full h-full object-cover">
+                        <div
+                            class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                            <lucide-icon name="camera" class="w-6 h-6 text-white"></lucide-icon>
+                        </div>
+                        <input type="file" (change)="onPhotoSelected($event)" accept="image/*"
+                            class="absolute inset-0 opacity-0 cursor-pointer">
+                    </div>
+                    <div class="flex-1 pb-1">
+                        <h1 class="text-3xl font-display font-black text-white leading-none uppercase">{{
+                            user?.first_name }} {{ user?.last_name }}</h1>
+                        <p class="text-sm text-slate-400 mt-1 capitalize flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-galio-lime"></span> {{ role }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stat Strip -->
+        <section *ngIf="role === 'athlete'" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="panel p-4 flex flex-col justify-between h-24">
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Adherence</p>
+                <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.adherence || 0 }}%</p>
+            </div>
+            <div class="panel p-4 flex flex-col justify-between h-24">
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Total Sessions</p>
+                <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.completedSessions || 0 }}</p>
+            </div>
+            <div class="panel p-4 flex flex-col justify-between h-24">
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Programs</p>
+                <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.totalPrograms || 0 }}</p>
+            </div>
+            <div class="panel p-4 flex flex-col justify-between h-24">
+                <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Active Goals</p>
+                <p class="text-3xl font-display font-bold text-white">{{ athleteStats?.activeGoals || 0 }}</p>
+            </div>
+        </section>
+
+        <!-- Tabs Nav -->
+        <div class="flex border-b border-galio-border overflow-x-auto gap-6 hide-scroll">
+            <button (click)="activeTab = 'overview'"
+                [ngClass]="activeTab === 'overview' ? 'tab-active' : 'tab-inactive'">Overview</button>
+            <button (click)="activeTab = 'details'"
+                [ngClass]="activeTab === 'details' ? 'tab-active' : 'tab-inactive'">Profile Details</button>
+            <button *ngIf="role === 'athlete'" (click)="activeTab = 'body'"
+                [ngClass]="activeTab === 'body' ? 'tab-active' : 'tab-inactive'">Body Metrics</button>
+            <button (click)="activeTab = 'security'"
+                [ngClass]="activeTab === 'security' ? 'tab-active' : 'tab-inactive'">Security</button>
+        </div>
+
+        <!-- Overview Tab -->
+        <section *ngIf="activeTab === 'overview'" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="md:col-span-2 space-y-6">
+                <div class="panel p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-display font-bold text-white uppercase">{{ role === 'coach' ? 'About Me'
+                            : 'Current Goals' }}</h3>
+                        <button (click)="activeTab = 'details'"
+                            class="text-xs text-galio-orange font-bold uppercase tracking-wider hover:text-orange-400">Edit</button>
+                    </div>
+                    <p *ngIf="role === 'coach'" class="text-slate-300 leading-relaxed">{{ profile?.bio || 'No bio
+                        provided yet.' }}</p>
+                    <div *ngIf="role === 'athlete'" class="space-y-4 text-slate-300">
+                        <div>
+                            <span class="block text-xs uppercase text-slate-500 tracking-wider font-bold">Primary
+                                Objective</span>
+                            <span class="font-medium text-white">{{ profile?.primaryObjective || 'Not set' }}</span>
+                        </div>
+                        <div>
+                            <span class="block text-xs uppercase text-slate-500 tracking-wider font-bold">Notes /
+                                Description</span>
+                            <span>{{ profile?.goals || profile?.notes || 'No notes provided.' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="space-y-6">
+                <div class="panel p-6">
+                    <h3 class="text-xs font-display font-bold text-slate-500 uppercase tracking-widest mb-4">At a Glance
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400 text-sm">Joined</span>
+                            <span class="text-white text-sm font-medium">{{ user?.created_at | date:'mediumDate'
+                                }}</span>
+                        </div>
+                        <div *ngIf="role === 'athlete'" class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400 text-sm">Sport</span>
+                            <span class="text-white text-sm font-medium">{{ profile?.sport || '-' }}</span>
+                        </div>
+                        <div *ngIf="role === 'coach'" class="flex justify-between border-b border-slate-700 pb-2">
+                            <span class="text-slate-400 text-sm">Experience</span>
+                            <span class="text-white text-sm font-medium">{{ profile?.experience_years || 0 }} yrs</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Details Tab -->
+        <section *ngIf="activeTab === 'details'" class="space-y-6">
+            <form (submit)="updateGeneral()" class="panel p-6">
+                <h3 class="text-lg font-display font-bold text-white uppercase mb-5 border-b border-galio-border pb-3">
+                    Account Informtion</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label>First Name</label>
+                        <input type="text" [(ngModel)]="generalForm.first_name" name="first_name" class="input-field">
+                    </div>
+                    <div class="input-group">
+                        <label>Last Name</label>
+                        <input type="text" [(ngModel)]="generalForm.last_name" name="last_name" class="input-field">
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button type="submit" [disabled]="isLoading" class="btn-primary">Save Account</button>
+                </div>
+            </form>
+
+            <form (submit)="updateRoleProfile()" class="panel p-6">
+                <h3 class="text-lg font-display font-bold text-white uppercase mb-5 border-b border-galio-border pb-3">
+                    {{ role === 'athlete' ? 'Athlete Profile' : 'Coach Profile' }}
+                </h3>
+
+                <ng-container *ngIf="role === 'athlete'">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group"><label>Phone</label><input type="text" [(ngModel)]="athleteForm.phone"
+                                name="phone" class="input-field"></div>
+                        <div class="input-group"><label>Nationality</label><input type="text"
+                                [(ngModel)]="athleteForm.nationality" name="nationality" class="input-field"></div>
+                        <div class="input-group"><label>Date of Birth</label><input type="date"
+                                [(ngModel)]="athleteForm.dateOfBirth" name="dob" class="input-field"></div>
+                        <div class="input-group"><label>Primary Sport</label><input type="text"
+                                [(ngModel)]="athleteForm.sport" name="sport" class="input-field"></div>
+                        <div class="input-group"><label>Experience Level</label>
+                            <select [(ngModel)]="athleteForm.experienceLevel" name="exp"
+                                class="input-field bg-galio-surface">
+                                <option value="Beginner">Beginner</option>
+                                <option value="Intermediate">Intermediate</option>
+                                <option value="Advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Fitness Level</label>
+                            <select [(ngModel)]="athleteForm.fitnessLevel" name="fit"
+                                class="input-field bg-galio-surface">
+                                <option value="Sedentary">Sedentary</option>
+                                <option value="Active">Active</option>
+                                <option value="Very Active">Very Active</option>
+                            </select>
+                        </div>
+                        <div class="input-group"><label>Primary Objective</label><input type="text"
+                                [(ngModel)]="athleteForm.primaryObjective" name="obj" class="input-field"></div>
+                        <div class="input-group"><label>Weight Goal (kg)</label><input type="number"
+                                [(ngModel)]="athleteForm.weightGoal" name="wg" class="input-field"></div>
+                    </div>
+                </ng-container>
+
+                <ng-container *ngIf="role === 'coach'">
+                    <div class="input-group">
+                        <label>Bio</label>
+                        <textarea [(ngModel)]="coachForm.bio" name="bio" class="input-field h-24"></textarea>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="input-group"><label>Phone</label><input type="text" [(ngModel)]="coachForm.phone"
+                                name="phone" class="input-field"></div>
+                        <div class="input-group"><label>Location</label><input type="text"
+                                [(ngModel)]="coachForm.location" name="location" class="input-field"></div>
+                        <div class="input-group"><label>Years of Experience</label><input type="number"
+                                [(ngModel)]="coachForm.experience_years" name="exp" class="input-field"></div>
+                        <div class="input-group"><label>Work Type</label><input type="text"
+                                [(ngModel)]="coachForm.workType" name="wt" class="input-field"></div>
+                        <div class="input-group md:col-span-2"><label>Specializations (comma separated)</label><input
+                                type="text" [(ngModel)]="coachForm.specializations" name="spec" class="input-field">
+                        </div>
+                    </div>
+                </ng-container>
+
+                <div class="mt-4 flex justify-end">
+                    <button type="submit" [disabled]="isLoading" class="btn-primary">Save Profile</button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Body Metrics Tab (Athlete) -->
+        <section *ngIf="activeTab === 'body'" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="panel p-6">
+                    <h3 class="text-lg font-display font-bold text-white uppercase mb-4">Current Stats</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-galio-surface border border-slate-700 rounded-xl p-4">
+                            <span
+                                class="block text-xs text-slate-500 uppercase font-bold tracking-widest mb-1">Weight</span>
+                            <span class="text-3xl font-display font-bold text-white">{{ profile?.weight || '-' }} <span
+                                    class="text-lg text-slate-500">kg</span></span>
+                        </div>
+                        <div class="bg-galio-surface border border-slate-700 rounded-xl p-4">
+                            <span
+                                class="block text-xs text-slate-500 uppercase font-bold tracking-widest mb-1">Height</span>
+                            <span class="text-3xl font-display font-bold text-white">{{ profile?.height || '-' }} <span
+                                    class="text-lg text-slate-500">cm</span></span>
+                        </div>
+                    </div>
+
+                    <form #metricForm="ngForm"
+                        (ngSubmit)="addBodyMetric(metricForm.value.w, metricForm.value.v); metricForm.reset()"
+                        class="mt-6 pt-6 border-t border-slate-700">
+                        <h4 class="text-sm font-bold text-slate-300 mb-3">Add new measurement</h4>
+                        <div class="flex gap-3">
+                            <input type="number" ngModel name="w" class="input-field py-2" placeholder="Weight (kg)">
+                            <button type="submit"
+                                class="btn-soft border-galio-orange text-galio-orange hover:bg-galio-orange/10">Add</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="panel p-6">
+                    <h3 class="text-lg font-display font-bold text-white uppercase mb-4">Measurement History</h3>
+                    <div class="max-h-64 overflow-y-auto pr-2 space-y-2">
+                        <div *ngIf="bodyMetrics.length === 0" class="text-slate-500 text-sm py-4">No measurements logged
+                            yet.</div>
+                        <div *ngFor="let m of bodyMetrics.slice().reverse()"
+                            class="flex justify-between items-center p-3 rounded-lg bg-slate-800/50 border border-slate-700/50">
+                            <span class="text-slate-400 text-sm">{{ m.date | date:'mediumDate' }}</span>
+                            <span class="font-bold text-white">{{ m.weight }} kg</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Security Tab -->
+        <section *ngIf="activeTab === 'security'" class="panel p-6 max-w-2xl">
+            <h3 class="text-lg font-display font-bold text-white uppercase mb-5 border-b border-galio-border pb-3">
+                Change Password</h3>
+            <form (submit)="changePassword()" class="space-y-4">
+                <div class="input-group">
+                    <label>Current Password</label>
+                    <input type="password" [(ngModel)]="securityForm.currentPassword" name="cp" class="input-field">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label>New Password</label>
+                        <input type="password" [(ngModel)]="securityForm.newPassword" name="np" class="input-field">
+                    </div>
+                    <div class="input-group">
+                        <label>Confirm Password</label>
+                        <input type="password" [(ngModel)]="securityForm.confirmPassword" name="cmp"
+                            class="input-field">
+                    </div>
+                </div>
+                <div class="flex justify-end pt-2">
+                    <button type="submit" [disabled]="isLoading" class="btn-primary">Update Password</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</app-dashboard-layout>
