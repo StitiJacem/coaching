@@ -1,0 +1,266 @@
+<app-dashboard-layout>
+    <div class="space-y-8">
+        
+        <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">
+                    {{ roleService.currentRole === 'nutritionist' ? 'Client Management' : 'My Protocol' }}
+                </p>
+                <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">Nutrition</h1>
+            </div>
+            
+            <button *ngIf="roleService.currentRole === 'athlete'"
+                (click)="showLogModal = true"
+                class="inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 transition-all duration-200 active:scale-[0.98]">
+                <lucide-icon name="plus" class="w-4 h-4 mr-2"></lucide-icon>
+                Log Meal
+            </button>
+        </header>
+
+        
+        <div *ngIf="roleService.currentRole === 'athlete'" class="space-y-6">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                
+                <div class="bg-galio-surface border border-galio-border rounded-2xl p-6 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <p class="text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">Calories</p>
+                        <h3 class="text-3xl font-bold text-white">{{ todayCompliance?.actual?.calories || 0 }} / {{ todayCompliance?.target?.caloriesTarget || 0 }}</h3>
+                        <div class="mt-4 h-2 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-galio-orange transition-all duration-500" 
+                                 [style.width.%]="getPercent(todayCompliance?.actual?.calories || 0, todayCompliance?.target?.caloriesTarget || 0)"></div>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="bg-galio-surface border border-galio-border rounded-2xl p-6">
+                    <p class="text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">Protein</p>
+                    <h3 class="text-3xl font-bold text-emerald-400">{{ todayCompliance?.actual?.protein || 0 }}g</h3>
+                    <p class="text-xs text-slate-500 mt-1">Target: {{ todayCompliance?.target?.proteinTarget || 0 }}g</p>
+                    <div class="mt-4 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-emerald-400 transition-all duration-500" 
+                             [style.width.%]="getPercent(todayCompliance?.actual?.protein || 0, todayCompliance?.target?.proteinTarget || 0)"></div>
+                    </div>
+                </div>
+
+                
+                <div class="bg-galio-surface border border-galio-border rounded-2xl p-6">
+                    <p class="text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">Carbs</p>
+                    <h3 class="text-3xl font-bold text-blue-400">{{ todayCompliance?.actual?.carbs || 0 }}g</h3>
+                    <p class="text-xs text-slate-500 mt-1">Target: {{ todayCompliance?.target?.carbsTarget || 0 }}g</p>
+                    <div class="mt-4 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-blue-400 transition-all duration-500" 
+                             [style.width.%]="getPercent(todayCompliance?.actual?.carbs || 0, todayCompliance?.target?.carbsTarget || 0)"></div>
+                    </div>
+                </div>
+
+                
+                <div class="bg-galio-surface border border-galio-border rounded-2xl p-6">
+                    <p class="text-slate-400 text-sm font-bold uppercase tracking-wider mb-1">Fats</p>
+                    <h3 class="text-3xl font-bold text-purple-400">{{ todayCompliance?.actual?.fat || 0 }}g</h3>
+                    <p class="text-xs text-slate-500 mt-1">Target: {{ todayCompliance?.target?.fatTarget || 0 }}g</p>
+                    <div class="mt-4 h-2 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-purple-400 transition-all duration-500" 
+                             [style.width.%]="getPercent(todayCompliance?.actual?.fat || 0, todayCompliance?.target?.fatTarget || 0)"></div>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="bg-galio-surface border border-galio-border rounded-2xl overflow-hidden">
+                <div class="p-6 border-b border-galio-border flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-white">Recent Meals</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="bg-slate-900/50 text-slate-400 text-xs uppercase tracking-wider">
+                                <th class="px-6 py-4">Meal</th>
+                                <th class="px-6 py-4">Time</th>
+                                <th class="px-6 py-4 text-right">Cals</th>
+                                <th class="px-6 py-4 text-right">P</th>
+                                <th class="px-6 py-4 text-right">C</th>
+                                <th class="px-6 py-4 text-right">F</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-galio-border">
+                            <tr *ngFor="let log of recentLogs" class="hover:bg-white/5 transition-colors">
+                                <td class="px-6 py-4">
+                                    <p class="text-white font-medium">{{ log.mealName }}</p>
+                                    <p class="text-xs text-slate-500">{{ log.foodItems }}</p>
+                                </td>
+                                <td class="px-6 py-4 text-slate-400 text-sm">
+                                    {{ log.logTime | date:'shortTime' }}
+                                </td>
+                                <td class="px-6 py-4 text-right text-white font-bold">{{ log.calories }}</td>
+                                <td class="px-6 py-4 text-right text-emerald-400">{{ log.protein }}g</td>
+                                <td class="px-6 py-4 text-right text-blue-400">{{ log.carbs }}g</td>
+                                <td class="px-6 py-4 text-right text-purple-400">{{ log.fat }}g</td>
+                            </tr>
+                            <tr *ngIf="recentLogs.length === 0">
+                                <td colspan="6" class="px-6 py-12 text-center text-slate-500">
+                                    No meals logged recently.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        
+        <div *ngIf="roleService.currentRole === 'nutritionist'" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 space-y-4">
+                <div class="bg-galio-surface border border-galio-border rounded-2xl p-6">
+                    <h3 class="text-xl font-bold text-white mb-4">My Athletes</h3>
+                    <div class="space-y-2">
+                        <button *ngFor="let client of clients"
+                            (click)="selectAthlete(client)"
+                            [class.border-galio-orange]="selectedAthlete?.id === client.id"
+                            class="w-full flex items-center p-4 rounded-xl border border-transparent bg-slate-900/50 hover:bg-slate-800 transition-all text-left">
+                            <div class="w-10 h-10 rounded-full bg-galio-orange/20 flex items-center justify-center mr-4">
+                                <span class="text-galio-orange font-bold">{{ (client.user?.first_name?.charAt(0) || 'A') }}</span>
+                            </div>
+                            <div>
+                                <p class="text-white font-bold">{{ client.user?.first_name }} {{ client.user?.last_name }}</p>
+                                <p class="text-xs text-slate-400">{{ client.sport || 'General fitness' }}</p>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div class="lg:col-span-2">
+                <div *ngIf="!selectedAthlete" class="bg-galio-surface border border-galio-border border-dashed rounded-2xl h-full flex flex-col items-center justify-center p-12 text-center">
+                    <lucide-icon name="user" class="w-12 h-12 text-slate-700 mb-4"></lucide-icon>
+                    <h3 class="text-xl font-bold text-slate-400">Select an athlete to view their nutrition compliance</h3>
+                </div>
+
+                <div *ngIf="selectedAthlete" class="space-y-6">
+                    <div class="bg-galio-surface border border-galio-border rounded-2xl p-8">
+                        <div class="flex justify-between items-start mb-8">
+                            <div>
+                                <h3 class="text-2xl font-bold text-white uppercase tracking-tight">{{ selectedAthlete.user?.first_name }}'s Daily Status</h3>
+                                <p class="text-slate-400">Current tracking for today</p>
+                            </div>
+                            <button class="text-galio-orange font-bold text-sm uppercase tracking-wider hover:underline">
+                                Manage Plan
+                            </button>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center p-4">
+                                    <svg class="w-24 h-24 transform -rotate-90">
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" 
+                                            class="text-galio-orange" [style.stroke-dasharray]="'251.2'" [style.stroke-dashoffset]="251.2 * (1 - getPercent(clientCompliance?.actual?.calories || 0, clientCompliance?.target?.caloriesTarget || 1) / 100)" />
+                                    </svg>
+                                    <span class="absolute text-white font-bold">{{ getPercent(clientCompliance?.actual?.calories || 0, clientCompliance?.target?.caloriesTarget || 1) }}%</span>
+                                </div>
+                                <p class="mt-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Calories</p>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center p-4">
+                                    <svg class="w-24 h-24 transform -rotate-90">
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" 
+                                            class="text-emerald-400" [style.stroke-dasharray]="'251.2'" [style.stroke-dashoffset]="251.2 * (1 - getPercent(clientCompliance?.actual?.protein || 0, clientCompliance?.target?.proteinTarget || 1) / 100)" />
+                                    </svg>
+                                    <span class="absolute text-white font-bold">{{ getPercent(clientCompliance?.actual?.protein || 0, clientCompliance?.target?.proteinTarget || 1) }}%</span>
+                                </div>
+                                <p class="mt-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Protein</p>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center p-4">
+                                    <svg class="w-24 h-24 transform -rotate-90">
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" 
+                                            class="text-blue-400" [style.stroke-dasharray]="'251.2'" [style.stroke-dashoffset]="251.2 * (1 - getPercent(clientCompliance?.actual?.carbs || 0, clientCompliance?.target?.carbsTarget || 1) / 100)" />
+                                    </svg>
+                                    <span class="absolute text-white font-bold">{{ getPercent(clientCompliance?.actual?.carbs || 0, clientCompliance?.target?.carbsTarget || 1) }}%</span>
+                                </div>
+                                <p class="mt-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Carbs</p>
+                            </div>
+
+                            <div class="text-center">
+                                <div class="relative inline-flex items-center justify-center p-4">
+                                    <svg class="w-24 h-24 transform -rotate-90">
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" class="text-slate-800" />
+                                        <circle cx="48" cy="48" r="40" stroke="currentColor" stroke-width="8" fill="transparent" 
+                                            class="text-purple-400" [style.stroke-dasharray]="'251.2'" [style.stroke-dashoffset]="251.2 * (1 - getPercent(clientCompliance?.actual?.fat || 0, clientCompliance?.target?.fatTarget || 1) / 100)" />
+                                    </svg>
+                                    <span class="absolute text-white font-bold">{{ getPercent(clientCompliance?.actual?.fat || 0, clientCompliance?.target?.fatTarget || 1) }}%</span>
+                                </div>
+                                <p class="mt-2 text-slate-400 text-xs font-bold uppercase tracking-wider">Fats</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div *ngIf="showLogModal" class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" (click)="showLogModal = false"></div>
+        <div class="relative bg-galio-surface border border-galio-border rounded-2xl w-full max-w-lg p-8 shadow-2xl overflow-y-auto max-h-[90vh]">
+            <h2 class="text-3xl font-bold text-white uppercase mb-6">Log Your Meal</h2>
+            
+            <form (submit)="submitMeal()" class="space-y-4">
+                <div>
+                    <label class="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Meal Name</label>
+                    <input type="text" [(ngModel)]="mealForm.mealName" name="mealName" 
+                        class="w-full bg-slate-900/50 border border-galio-border rounded-xl px-4 py-3 text-white focus:border-galio-orange outline-none transition-colors"
+                        placeholder="e.g., Post-Workout Steak & Rice">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Calories</label>
+                        <input type="number" [(ngModel)]="mealForm.calories" name="calories" 
+                            class="w-full bg-slate-900/50 border border-galio-border rounded-xl px-4 py-3 text-white focus:border-galio-orange outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Protein (g)</label>
+                        <input type="number" [(ngModel)]="mealForm.protein" name="protein" 
+                            class="w-full bg-slate-900/50 border border-galio-border rounded-xl px-4 py-3 text-white focus:border-galio-orange outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Carbs (g)</label>
+                        <input type="number" [(ngModel)]="mealForm.carbs" name="carbs" 
+                            class="w-full bg-slate-900/50 border border-galio-border rounded-xl px-4 py-3 text-white focus:border-galio-orange outline-none transition-colors">
+                    </div>
+                    <div>
+                        <label class="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Fats (g)</label>
+                        <input type="number" [(ngModel)]="mealForm.fat" name="fat" 
+                            class="w-full bg-slate-900/50 border border-galio-border rounded-xl px-4 py-3 text-white focus:border-galio-orange outline-none transition-colors">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">Food Details</label>
+                    <textarea [(ngModel)]="mealForm.foodItems" name="foodItems" rows="3"
+                        class="w-full bg-slate-900/50 border border-galio-border rounded-xl px-4 py-3 text-white focus:border-galio-orange outline-none transition-colors"
+                        placeholder="List the foods you ate..."></textarea>
+                </div>
+
+                <div class="pt-4 flex gap-4">
+                    <button type="button" (click)="showLogModal = false"
+                        class="flex-1 px-6 py-3 rounded-xl border border-galio-border text-slate-400 font-bold uppercase tracking-wider hover:bg-slate-800 transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="flex-1 px-6 py-3 rounded-xl bg-galio-orange text-white font-bold uppercase tracking-wider hover:bg-orange-600 transition-colors">
+                        Save Log
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</app-dashboard-layout>

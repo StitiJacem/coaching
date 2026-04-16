@@ -1,0 +1,118 @@
+import { Injectable } from '@angular/core';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { AuthService } from './auth.service';
+
+export interface ProgramExercise {
+  id?: number;
+  exercise_id: string;
+  exercise_name: string;
+  exercise_gif?: string;
+  videoId?: string;
+  videoTitle?: string;
+  sets: number;
+  reps: number;
+  rpe?: number;
+  rest_seconds?: number;
+  order: number;
+}
+
+export interface ProgramDay {
+  id?: number;
+  day_number: number;
+  title: string;
+  exercises: ProgramExercise[];
+}
+
+export interface Program {
+  id?: number;
+  name: string;
+  description?: string;
+  athleteId?: number;
+  coachId: number;
+  status: string;
+  startDate: Date | string;
+  endDate?: Date | string;
+  type?: string;
+  athlete?: any;
+  coach?: any;
+  isConfigured?: boolean;
+  scheduleConfig?: any;
+  days: ProgramDay[];
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class ProgramService {
+  private apiUrl = 'http://localhost:3000/api/programs';
+
+  constructor(
+    private http: HttpClient,
+    private authService: AuthService
+  ) { }
+
+  private getHeaders(): HttpHeaders {
+    const token = this.authService.getToken();
+    return new HttpHeaders({
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    });
+  }
+
+  getAll(filters?: { coachId?: number; athleteId?: number; status?: string }): Observable<Program[]> {
+    let params: any = {};
+    if (filters?.coachId) params.coachId = filters.coachId;
+    if (filters?.athleteId) params.athleteId = filters.athleteId;
+    if (filters?.status) params.status = filters.status;
+
+    return this.http.get<Program[]>(this.apiUrl, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
+
+  getById(id: number): Observable<Program> {
+    return this.http.get<Program>(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  create(program: Partial<Program>): Observable<Program> {
+    return this.http.post<Program>(this.apiUrl, program, {
+      headers: this.getHeaders()
+    });
+  }
+
+  update(id: number, program: Partial<Program>): Observable<Program> {
+    return this.http.put<Program>(`${this.apiUrl}/${id}`, program, {
+      headers: this.getHeaders()
+    });
+  }
+
+  acceptProgram(id: number, config: { scheduleConfig?: any; startDate?: string }): Observable<Program> {
+    return this.http.patch<Program>(`${this.apiUrl}/${id}/accept`, config, {
+      headers: this.getHeaders()
+    });
+  }
+
+  quitProgram(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/quit`, {}, { headers: this.getHeaders() });
+  }
+
+  endProgram(id: number): Observable<any> {
+    return this.http.patch(`${this.apiUrl}/${id}/end`, {}, { headers: this.getHeaders() });
+  }
+
+  assign(id: number, athleteId: number): Observable<Program> {
+    return this.http.post<Program>(`${this.apiUrl}/${id}/assign`, { athleteId }, {
+      headers: this.getHeaders()
+    });
+  }
+
+  delete(id: number): Observable<any> {
+    return this.http.delete(`${this.apiUrl}/${id}`, {
+      headers: this.getHeaders()
+    });
+  }
+}

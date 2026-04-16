@@ -1,0 +1,56 @@
+Analyzing mobile_flutter...                                     
+
+warning - Unused import: 'package:flutter/material.dart' - lib\core\router\app_router.dart:1:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:72:45 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:73:44 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:74:45 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:84:24 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:91:49 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:98:48 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:100:47 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:102:47 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:103:48 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:106:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:108:47 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:110:46 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:113:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:116:28 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:118:46 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:125:22 - unnecessary_underscores
+   info - Unnecessary use of multiple underscores - lib\core\router\app_router.dart:136:22 - unnecessary_underscores
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_theme.dart:80:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\core\theme\app_theme.dart:157:44 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\forgot_password_screen.dart:93:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\signup_screen.dart:116:53 - deprecated_member_use
+warning - Unused import: 'package:go_router/go_router.dart' - lib\features\auth\presentation\screens\splash_screen.dart:3:8 - unused_import
+warning - Unused import: '../../../../shared/providers/auth_provider.dart' - lib\features\auth\presentation\screens\splash_screen.dart:5:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\splash_screen.dart:31:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\splash_screen.dart:69:42 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\auth\presentation\screens\verify_email_screen.dart:141:46 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\screens\app_shell.dart:52:55 - deprecated_member_use
+warning - Unused import: '../widgets/recent_athletes_card.dart' - lib\features\dashboard\presentation\screens\dashboard_screen.dart:9:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\screens\dashboard_screen.dart:130:58 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\screens\dashboard_screen.dart:247:22 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\screens\dashboard_screen.dart:249:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\screens\dashboard_screen.dart:362:40 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\recent_athletes_card.dart:31:48 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\today_workout_card.dart:20:31 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\today_workout_card.dart:29:38 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\today_workout_card.dart:48:41 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\today_workout_card.dart:68:37 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\dashboard\presentation\widgets\today_workout_card.dart:126:29 - deprecated_member_use
+warning - Unused import: '../../../../core/errors/api_exception.dart' - lib\features\notifications\presentation\screens\notifications_screen.dart:4:8 - unused_import
+warning - Unused import: '../../../../core/api/api_client.dart' - lib\features\notifications\presentation\screens\notifications_screen.dart:5:8 - unused_import
+warning - Unused import: '../../../../shared/providers/auth_provider.dart' - lib\features\notifications\presentation\screens\notifications_screen.dart:6:8 - unused_import
+   info - Unnecessary use of multiple underscores - lib\features\notifications\presentation\screens\notifications_screen.dart:74:43 - unnecessary_underscores
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\notifications\presentation\screens\notifications_screen.dart:111:64 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\notifications\presentation\screens\notifications_screen.dart:114:74 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\notifications\presentation\screens\notifications_screen.dart:122:28 - deprecated_member_use
+warning - Unused import: '../../../../core/api/api_client.dart' - lib\features\onboarding\presentation\screens\onboarding_screen.dart:8:8 - unused_import
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\presentation\screens\onboarding_screen.dart:265:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\presentation\screens\onboarding_screen.dart:292:49 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\presentation\screens\onboarding_screen.dart:342:45 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\features\onboarding\presentation\screens\onboarding_screen.dart:532:52 - deprecated_member_use
+   info - 'withOpacity' is deprecated and shouldn't be used. Use .withValues() to avoid precision loss - lib\shared\widgets\stat_card.dart:37:32 - deprecated_member_use
+
+52 issues found. (ran in 7.1s)

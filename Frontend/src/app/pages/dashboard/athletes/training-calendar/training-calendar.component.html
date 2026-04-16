@@ -1,0 +1,317 @@
+<app-dashboard-layout>
+    <div class="space-y-8 animate-fade-in">
+        <header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div class="flex items-center gap-6">
+                <div
+                    class="w-20 h-20 rounded-3xl bg-gosport-orange/10 border border-gosport-orange/20 flex items-center justify-center text-gosport-orange">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div *ngIf="isMasterMode" class="flex flex-col">
+                    <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">Master Program
+                        Planner</p>
+                    <input type="text" [(ngModel)]="programTitle" placeholder="Program Title"
+                        class="bg-transparent border-none text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tight leading-none focus:outline-none focus:border-b-2 focus:border-gosport-orange placeholder:text-slate-700 w-full md:w-[500px]">
+                </div>
+                <div *ngIf="isPreviewMode" class="flex flex-col">
+                    <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">Consult &
+                        Accept Program</p>
+                    <h1
+                        class="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tight leading-none">
+                        {{ programTitle }}
+                    </h1>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-4 bg-black/20 p-2 rounded-2xl border border-white/5">
+                <button (click)="setViewMode('1 Week')" [class.bg-gosport-orange]="viewMode === '1 Week'"
+                    class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:text-white">1
+                    Week</button>
+                <button (click)="setViewMode('2 Week')" [class.bg-gosport-orange]="viewMode === '2 Week'"
+                    class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:text-white">2
+                    Week</button>
+                <button (click)="setViewMode('4 Week')" [class.bg-gosport-orange]="viewMode === '4 Week'"
+                    class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:text-white">Month</button>
+            </div>
+        </header>
+
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button (click)="setToday()"
+                    class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">Today</button>
+                <div class="flex items-center gap-2 bg-black/20 p-2 rounded-xl">
+                    <button (click)="prevRange()" class="p-2 text-slate-400 hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M15 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <span class="text-white font-black uppercase text-xs tracking-widest min-w-[200px] text-center">{{
+                        formatDateRange() }}</span>
+                    <button (click)="nextRange()" class="p-2 text-slate-400 hover:text-white transition-all">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <button (click)="router.navigate(['/dashboard'])"
+                class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+            </button>
+            
+            <ng-container *ngIf="roleService.currentRole === 'coach'">
+                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="bundleCurrentCalendarIntoProgram()" [disabled]="isAssigning"
+                    class="h-10 px-6 rounded-xl bg-gosport-orange text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-gosport-orange/20 hover:scale-105 transition-all">
+                    + Assign Program
+                </button>
+                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="clearCalendar()"
+                    class="h-10 px-6 rounded-xl border-2 border-red-500 text-red-500 font-black uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"
+                    title="Clear all upcoming sessions to fix duplicates or start over">
+                    Clear Calendar
+                </button>
+                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="openTemplateLibrary()"
+                    class="h-10 px-6 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-black uppercase tracking-widest text-xs hover:border-gosport-orange hover:text-white transition-all">
+                    <lucide-icon name="library" class="w-4 h-4 mr-2 inline-block"></lucide-icon>
+                    Apply Blueprint
+                </button>
+            </ng-container>
+            <button *ngIf="isMasterMode" (click)="saveMasterPlanner()"
+                class="bg-gosport-orange text-white px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-gosport-orange/20 hover:bg-orange-600 active:scale-95 transition-all">
+                Save Template
+            </button>
+        </div>
+
+
+        <div *ngIf="isPreviewMode"
+            class="bg-gosport-orange p-8 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-10 shadow-gosport-orange/20 shadow-2xl animate-slide-down">
+            <div class="flex-1">
+                <h3 class="text-2xl font-display font-black text-black uppercase italic mb-2 tracking-tight">Confirm
+                    Your Schedule</h3>
+                <p class="text-black/70 font-bold text-xs uppercase tracking-widest">Review your training sessions
+                    below. Click activate to add them to your official calendar.</p>
+            </div>
+
+            <div class="flex items-center gap-6">
+                <button (click)="onAcceptProgram()" [disabled]="isAccepting"
+                    class="bg-black text-white px-12 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-slate-900 transition-all shadow-2xl disabled:opacity-30 active:scale-95">
+                    {{ isAccepting ? 'Activating...' : 'Activate My Program' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] overflow-hidden shadow-2xl">
+        <div class="grid grid-cols-7 border-b border-gosport-border bg-black/20">
+            <div *ngFor="let label of ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']"
+                class="py-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] border-r border-gosport-border last:border-r-0">
+                {{ label }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-7 min-h-[600px]">
+            <div *ngFor="let day of days" class="min-h-[160px] bg-black/10 border-b border-r border-gosport-border p-3 transition-all relative group"
+                    [ngClass]="{'bg-slate-900/40 opacity-40 grayscale': isPast(day) && !isMasterMode}"
+                    (dragover)="$event.preventDefault()" (drop)="onDrop($event, day)">
+
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-black tracking-widest"
+                            [ngClass]="isDayToday(day) ? 'text-gosport-orange bg-gosport-orange/20 px-2 py-1 rounded-lg' : 'text-slate-500'">
+                            {{ day | date:'d' }}
+                        </span>
+                        <button (click)="openWorkoutBuilder(day)" *ngIf="roleService.currentRole === 'coach' && !isPast(day)"
+                            class="opacity-0 group-hover:opacity-100 p-1.5 bg-gosport-orange hover:bg-orange-600 text-white rounded-lg transition-all transform scale-90 group-hover:scale-100">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4" />
+                            </svg>
+                        </button>
+                    </div>
+
+                <div class="space-y-2">
+                    <div *ngFor="let session of getSessionsForDay(day)" (click)="openWorkoutBuilder(day)"
+                        draggable="true" (dragstart)="onDragStart($event, $any(session))"
+                        [ngClass]="{
+                            'bg-gosport-lime/10 border-gosport-lime/50': isSessionCompleted($any(session)),
+                            'bg-red-500/10 border-red-500/50': !isSessionCompleted($any(session)) && isSessionMissed($any(session)),
+                            'bg-black/40 border-white/5 hover:border-gosport-orange/30': !isSessionCompleted($any(session)) && !isSessionMissed($any(session))
+                        }"
+                        class="border rounded-xl p-3 transition-all cursor-pointer group/item mb-2 last:mb-0 relative min-h-[140px]">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-[7px] font-black uppercase tracking-[0.2em]" [ngClass]="{
+                                'text-gosport-lime': isSessionCompleted($any(session)),
+                                'text-red-500': !isSessionCompleted($any(session)) && isSessionMissed($any(session)),
+                                'text-gosport-orange': !isSessionCompleted($any(session)) && !isSessionMissed($any(session))
+                            }">{{ session.type || 'STRENGTH' }}</span>
+                            <div class="flex items-center gap-1">
+                                <span class="text-[8px] font-bold text-slate-500">{{ session.time ? session.time : 'Anytime' }}</span>
+                                <button *ngIf="roleService.currentRole === 'coach' && !isMasterMode && !isPreviewMode" 
+                                    (click)="deleteSession(session, $event)"
+                                    class="opacity-0 group-hover/item:opacity-100 p-1 bg-red-500/20 hover:bg-red-500 text-red-500 hover:text-white rounded transition-all">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <h4
+                            class="text-[11px] font-black text-white hover:text-gosport-orange transition-colors truncate mb-2">
+                            {{ session.title || 'Workout Session' }}
+                        </h4>
+
+
+                        <div *ngIf="session.workoutData?.exercises?.length > 0" class="space-y-1">
+                            <div *ngFor="let ex of session.workoutData.exercises | slice:0:3"
+                                class="flex items-center gap-2 text-[8px] text-slate-400 capitalize bg-white/5 px-2 py-1 rounded">
+                                <div class="w-1 h-1 rounded-full bg-gosport-orange"></div>
+                                <span class="truncate">{{ $any(ex).name || $any(ex).exercise_name }}</span>
+                                <span class="text-slate-600 ml-auto">{{ $any(ex).sets }}x{{ $any(ex).reps }}</span>
+                            </div>
+                            <div *ngIf="session.workoutData.exercises.length > 3"
+                                class="text-[7px] text-slate-600 font-bold uppercase tracking-widest pl-2">
+                                + {{ session.workoutData.exercises.length - 3 }} more
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 mt-2 opacity-60">
+                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime' : (isSessionMissed($any(session)) ? 'text-red-500' : 'text-slate-400')">{{ session.duration || '45' }}m</span>
+                            <div class="w-1 h-1 rounded-full" [ngClass]="isSessionCompleted($any(session)) ? 'bg-gosport-lime' : (isSessionMissed($any(session)) ? 'bg-red-500' : 'bg-slate-700')"></div>
+                            <span class="text-[9px]" [ngClass]="isSessionCompleted($any(session)) ? 'text-gosport-lime font-black' : (isSessionMissed($any(session)) ? 'text-red-500 font-black' : 'text-slate-400')">{{ isSessionCompleted($any(session)) ? 'COMPLETED' : (isSessionMissed($any(session)) ? 'MISSED' : session.status) }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <app-workout-builder-modal *ngIf="showWorkoutBuilder" [athleteId]="isMasterMode ? null : athleteId"
+        [date]="selectedDate" [existingSession]="selectedSession"
+        (close)="showWorkoutBuilder = false" (saved)="onWorkoutSaved($event)">
+    </app-workout-builder-modal>
+
+
+    <div *ngIf="showSaveModal"
+        class="fixed inset-0 bg-black/80 backdrop-blur-xl z-[200] flex items-center justify-center p-4">
+        <div
+            class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 max-w-xl w-full shadow-2xl animate-in zoom-in duration-300">
+            <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">Finalize Template
+            </p>
+            <h2 class="text-3xl font-display font-black text-white uppercase italic mb-8">Save Master Program</h2>
+
+            <div class="space-y-6 mb-10">
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Program
+                        Name</label>
+                    <input type="text" [(ngModel)]="programTitle"
+                        class="w-full bg-black/40 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Goal &
+                        Description</label>
+                    <textarea [(ngModel)]="programDescription" rows="4"
+                        class="w-full bg-black/40 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-4">
+                <button (click)="showSaveModal = false"
+                    class="flex-1 py-4 rounded-2xl font-black uppercase tracking-widest text-xs border border-slate-700 text-slate-400 hover:text-white transition-all">Discard</button>
+                <button (click)="confirmSaveMaster()" [disabled]="isSavingTemplate || !programTitle"
+                    class="flex-1 py-4 bg-gosport-orange text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-gosport-orange/30 hover:bg-orange-600 transition-all disabled:opacity-50">
+                    {{ isSavingTemplate ? 'Saving...' : 'Confirm & Save' }}
+                </button>
+            </div>
+        </div>
+    </div>
+
+
+    <div *ngIf="showTemplateLibrary"
+        class="fixed inset-0 bg-black/90 backdrop-blur-2xl z-[300] flex items-center justify-center p-4">
+        <div
+            class="bg-gosport-surface border border-gosport-border rounded-[3rem] w-full max-w-4xl max-h-[85vh] flex flex-col overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-300">
+            <div class="px-10 py-8 border-b border-gosport-border flex items-center justify-between bg-black/20">
+                <div>
+                    <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">Master Library
+                    </p>
+                    <h2 class="text-4xl font-display font-black text-white uppercase italic leading-none">Apply
+                        Blueprint</h2>
+                </div>
+                <button (click)="showTemplateLibrary = false"
+                    class="p-3 bg-white/5 hover:bg-white/10 rounded-full text-slate-400 hover:text-white transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-10 custom-scrollbar">
+                <div *ngIf="isLoadingTemplates" class="flex flex-col items-center justify-center py-20">
+                    <div
+                        class="w-12 h-12 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin">
+                    </div>
+                </div>
+
+                <div *ngIf="!isLoadingTemplates && templates.length === 0" class="text-center py-20 opacity-30">
+                    <svg class="w-20 h-20 mx-auto mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    <p class="font-black uppercase tracking-widest text-xs">No blueprints found in your library</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div *ngFor="let t of templates" (click)="applyTemplate(t)"
+                        class="bg-black/40 border border-white/5 rounded-3xl p-6 hover:border-gosport-orange transition-all cursor-pointer group shadow-xl relative overflow-hidden">
+                        <div
+                            class="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
+                            <div
+                                class="w-10 h-10 bg-gosport-orange text-white rounded-full flex items-center justify-center shadow-lg shadow-gosport-orange/40">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3"
+                                        d="M12 4v16m8-8H4" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 mb-4">
+                            <span
+                                class="px-3 py-1 bg-gosport-orange/20 text-gosport-orange text-[9px] font-black uppercase tracking-widest rounded-full">{{
+                                t.days.length || 0 }} Days</span>
+                            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{{ t.type ||
+                                'Strength' }}</span>
+                        </div>
+                        <h3
+                            class="text-xl font-black text-white group-hover:text-gosport-orange transition-colors uppercase italic truncate mb-2">
+                            {{ t.name }}</h3>
+                        <p class="text-xs text-slate-500 line-clamp-2 leading-relaxed">{{ t.description || 'Professional
+                            training template for elite performance.' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="px-10 py-8 bg-black/20 border-t border-gosport-border flex justify-between items-center backdrop-blur-md">
+                <div class="flex items-center gap-4">
+                     <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Repeat Blueprint (Weeks):</p>
+                     <input type="number" [(ngModel)]="blueprintRepeatWeeks" min="1" max="52" class="w-20 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold text-center outline-none focus:border-gosport-orange">
+                </div>
+                <button (click)="router.navigate(['/dashboard/master-planner'])"
+                    class="bg-white/5 hover:bg-white/10 text-white px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs transition-all border border-white/10">Build
+                    New Template</button>
+            </div>
+        </div>
+    </div>
+
+    <div *ngIf="isApplyingTemplate"
+        class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[400] flex flex-col items-center justify-center">
+        <div
+            class="w-20 h-20 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin mb-6 shadow-2xl shadow-gosport-orange/40">
+        </div>
+        <p class="text-white font-black uppercase tracking-[0.3em] text-sm animate-pulse">Applying Blueprint...</p>
+    </div>
+
+</app-dashboard-layout>

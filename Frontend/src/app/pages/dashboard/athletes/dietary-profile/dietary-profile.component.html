@@ -1,0 +1,109 @@
+<app-dashboard-layout>
+  <div class="space-y-6 max-w-4xl mx-auto">
+    <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <p class="text-slate-400 font-bold uppercase tracking-wider text-xs mb-1">Nutrition Management</p>
+        <h1 class="text-4xl font-display font-black text-white uppercase italic leading-none">Dietary Profile</h1>
+      </div>
+      <div class="flex gap-2">
+        <button [routerLink]="['/dashboard/athletes']" class="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-bold text-sm hover:bg-slate-800 transition-colors">
+          Back to Roster
+        </button>
+        <button *ngIf="!isCustomizing" (click)="startCustomization()" class="px-5 py-2.5 rounded-xl bg-gosport-orange hover:bg-orange-600 text-white font-bold text-sm transition-colors uppercase">
+          Edit Profile
+        </button>
+        <button *ngIf="isCustomizing" (click)="saveProfile()" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm transition-colors uppercase flex items-center gap-2 shadow-lg shadow-emerald-500/20">
+          Save Changes
+        </button>
+      </div>
+    </header>
+
+    <div *ngIf="loading" class="flex justify-center py-20">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gosport-orange"></div>
+    </div>
+
+    <div *ngIf="!loading" class="bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden p-6 md:p-8">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+        
+        
+        <div class="space-y-6">
+          <h2 class="text-xl font-display font-bold text-white tracking-wide border-b border-slate-800 pb-2">Metabolic Data</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">BMR (Basal Metabolic Rate)</label>
+              <input *ngIf="isCustomizing" type="number" [(ngModel)]="bmr" placeholder="1800"
+                class="w-full bg-black/40 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-gosport-orange transition-colors">
+              <p *ngIf="!isCustomizing" class="text-2xl font-bold text-white">{{ bmr ? bmr + ' kcal' : 'Not Set' }}</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">TDEE (Total Daily Energy Expenditure)</label>
+              <input *ngIf="isCustomizing" type="number" [(ngModel)]="tdee" placeholder="2500"
+                class="w-full bg-black/40 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-gosport-orange transition-colors">
+              <p *ngIf="!isCustomizing" class="text-2xl font-bold text-gosport-orange">{{ tdee ? tdee + ' kcal' : 'Not Set' }}</p>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Daily Calorie Target</label>
+              <input *ngIf="isCustomizing" type="number" [(ngModel)]="dailyCalories" placeholder="2200"
+                class="w-full bg-black/40 border border-slate-700 rounded-xl px-4 py-3 text-white text-lg font-bold focus:outline-none focus:border-gosport-orange transition-colors">
+              <div *ngIf="!isCustomizing" class="inline-block px-3 py-1 bg-slate-800 rounded-lg">
+                <p class="text-sm font-bold text-white uppercase tracking-wider">{{ dailyCalories ? dailyCalories + ' kcal' : 'Not Set' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="space-y-6">
+          <h2 class="text-xl font-display font-bold text-white tracking-wide border-b border-slate-800 pb-2">Target Macros</h2>
+          
+          <div class="grid grid-cols-2 gap-4">
+            
+            <div class="bg-black/20 p-4 rounded-xl border border-slate-800">
+              <label class="block text-[10px] font-black text-rose-400 uppercase tracking-widest mb-1">Protein (g)</label>
+              <input *ngIf="isCustomizing" type="number" [(ngModel)]="proteinTarget" placeholder="180"
+                class="w-full bg-transparent border-b border-rose-500/30 pb-1 text-white text-2xl font-black focus:outline-none focus:border-rose-500 transition-colors">
+              <p *ngIf="!isCustomizing" class="text-3xl font-black text-white">{{ proteinTarget || 0 }}<span class="text-sm text-slate-500 font-normal">g</span></p>
+            </div>
+
+            <div class="bg-black/20 p-4 rounded-xl border border-slate-800">
+              <label class="block text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Carbs (g)</label>
+              <input *ngIf="isCustomizing" type="number" [(ngModel)]="carbsTarget" placeholder="250"
+                class="w-full bg-transparent border-b border-blue-500/30 pb-1 text-white text-2xl font-black focus:outline-none focus:border-blue-500 transition-colors">
+              <p *ngIf="!isCustomizing" class="text-3xl font-black text-white">{{ carbsTarget || 0 }}<span class="text-sm text-slate-500 font-normal">g</span></p>
+            </div>
+
+            <div class="bg-black/20 p-4 rounded-xl border border-slate-800">
+              <label class="block text-[10px] font-black text-amber-400 uppercase tracking-widest mb-1">Fats (g)</label>
+              <input *ngIf="isCustomizing" type="number" [(ngModel)]="fatsTarget" placeholder="60"
+                class="w-full bg-transparent border-b border-amber-500/30 pb-1 text-white text-2xl font-black focus:outline-none focus:border-amber-500 transition-colors">
+              <p *ngIf="!isCustomizing" class="text-3xl font-black text-white">{{ fatsTarget || 0 }}<span class="text-sm text-slate-500 font-normal">g</span></p>
+            </div>
+
+          </div>
+
+          <div class="mt-8 p-4 bg-gosport-orange/10 border border-gosport-orange/20 rounded-xl" *ngIf="!isCustomizing && profile">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-xs font-bold text-gosport-orange uppercase tracking-widest">Total Planned Calories</p>
+                <p class="text-3xl font-display font-black text-white mt-1">{{ dailyCalories || ((proteinTarget || 0) * 4 + (carbsTarget || 0) * 4 + (fatsTarget || 0) * 9) }}</p>
+              </div>
+              <svg class="w-12 h-12 text-gosport-orange opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-800 pt-6 mt-6 flex justify-end gap-3" *ngIf="isCustomizing">
+        <button (click)="cancelCustomization()" class="px-5 py-2.5 rounded-xl border border-slate-700 text-slate-300 font-bold text-sm hover:bg-slate-800 transition-colors">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</app-dashboard-layout>

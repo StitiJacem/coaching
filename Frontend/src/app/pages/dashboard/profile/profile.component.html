@@ -1,0 +1,180 @@
+<app-dashboard-layout>
+    <div class="max-w-5xl mx-auto space-y-10 animate-fade-in pb-20">
+        
+        <header class="flex flex-col md:flex-row items-center gap-8 bg-gosport-surface/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-gosport-border shadow-2xl">
+            <div class="relative group cursor-pointer">
+                <div class="w-32 h-32 rounded-[2rem] overflow-hidden border-4 border-gosport-orange/20 shadow-2xl relative">
+                    <img [src]="user.avatar || 'https://ui-avatars.com/api/?name=' + user.first_name + '+' + user.last_name + '&background=random'" 
+                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                    <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                        <lucide-icon name="camera" class="w-8 h-8 text-white"></lucide-icon>
+                    </div>
+                </div>
+                <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gosport-orange rounded-full flex items-center justify-center text-white border-4 border-gosport-surface shadow-lg">
+                    <lucide-icon name="edit-3" class="w-4 h-4"></lucide-icon>
+                </div>
+            </div>
+            
+            <div class="flex-1 text-center md:text-left">
+                <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">{{ role }} Account</p>
+                <h1 class="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tight mb-2">{{ user.first_name }} {{ user.last_name }}</h1>
+                <p class="text-slate-400 font-bold text-xs uppercase tracking-widest">{{ user.email }}</p>
+            </div>
+
+            <div class="flex items-center gap-3 bg-black/20 p-2 rounded-2xl border border-white/5">
+                <button (click)="activeTab = 'general'" [class.bg-gosport-orange]="activeTab === 'general'"
+                        class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">General</button>
+                <button (click)="activeTab = 'role'" [class.bg-gosport-orange]="activeTab === 'role'"
+                        class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">{{ role === 'coach' ? 'Career' : 'Body Stats' }}</button>
+                <button (click)="activeTab = 'security'" [class.bg-gosport-orange]="activeTab === 'security'"
+                        class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">Security</button>
+            </div>
+        </header>
+
+        
+        <div class="grid grid-cols-1 gap-10">
+            
+            <div *ngIf="activeTab === 'general'" class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+                <div class="flex items-center justify-between mb-10">
+                    <div>
+                        <h2 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Basic Information</h2>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage your public presence</p>
+                    </div>
+                    <button (click)="updateGeneral()" [disabled]="isLoading"
+                            class="px-8 py-3 bg-gosport-orange text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-gosport-orange/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
+                        {{ isLoading ? 'Saving...' : 'Save Changes' }}
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">First Name</label>
+                        <input type="text" [(ngModel)]="generalForm.first_name" 
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all placeholder:text-slate-800">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Last Name</label>
+                        <input type="text" [(ngModel)]="generalForm.last_name"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all placeholder:text-slate-800">
+                    </div>
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Address</label>
+                        <input type="email" [(ngModel)]="generalForm.email"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all placeholder:text-slate-800">
+                    </div>
+                </div>
+            </div>
+
+            
+            <div *ngIf="activeTab === 'role' && role === 'athlete'" class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+                <div class="flex items-center justify-between mb-10">
+                    <div>
+                        <h2 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Athlete Profile</h2>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Optimize your training data</p>
+                    </div>
+                    <button (click)="updateRoleProfile()" [disabled]="isLoading"
+                            class="px-8 py-3 bg-gosport-orange text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-gosport-orange/20 hover:scale-105 active:scale-95 transition-all">
+                        Update Body Stats
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Current Weight (kg)</label>
+                        <input type="number" [(ngModel)]="athleteForm.weight" 
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Height (cm)</label>
+                        <input type="number" [(ngModel)]="athleteForm.height"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Sport</label>
+                        <input type="text" [(ngModel)]="athleteForm.sport"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                    </div>
+                    <div class="md:col-span-3 space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Main Training Goals</label>
+                        <textarea [(ngModel)]="athleteForm.goals" rows="4"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none resize-none transition-all"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div *ngIf="activeTab === 'role' && role === 'coach'" class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+                <div class="flex items-center justify-between mb-10">
+                    <div>
+                        <h2 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Professional Coaching Profile</h2>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage your expert credentials</p>
+                    </div>
+                    <button (click)="updateRoleProfile()" [disabled]="isLoading"
+                            class="px-8 py-3 bg-gosport-orange text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-gosport-orange/20 hover:scale-105 active:scale-95 transition-all">
+                        Update Pro Info
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Years of Experience</label>
+                            <input type="number" [(ngModel)]="coachForm.experience_years" 
+                                   class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Specializations (comma separated)</label>
+                            <input type="text" [(ngModel)]="coachForm.specializations"
+                                   class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all"
+                                   placeholder="Padel, Strength, HIIT...">
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Professional Bio</label>
+                        <textarea [(ngModel)]="coachForm.bio" rows="6"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none resize-none transition-all"></textarea>
+                    </div>
+                </div>
+            </div>
+
+            
+            <div *ngIf="activeTab === 'security'" class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+                <div class="flex items-center justify-between mb-10">
+                    <div>
+                        <h2 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Security & Credentials</h2>
+                        <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Keep your account guarded</p>
+                    </div>
+                    <button (click)="changePassword()" [disabled]="isLoading || !securityForm.newPassword"
+                            class="px-8 py-3 bg-red-500 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-xl shadow-red-500/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
+                        Update Password
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="md:col-span-2 space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Current Password</label>
+                        <input type="password" [(ngModel)]="securityForm.currentPassword"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">New Password</label>
+                        <input type="password" [(ngModel)]="securityForm.newPassword"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Confirm New Password</label>
+                        <input type="password" [(ngModel)]="securityForm.confirmPassword"
+                               class="w-full bg-black/30 border border-gosport-border rounded-2xl p-4 text-white font-bold focus:border-gosport-orange outline-none transition-all">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div *ngIf="message" 
+         [ngClass]="message.type === 'success' ? 'bg-gosport-lime shadow-gosport-lime/20' : 'bg-red-500 shadow-red-500/20'"
+         class="fixed bottom-10 right-10 px-8 py-4 rounded-2xl text-black font-black uppercase tracking-widest text-xs shadow-2xl animate-in fade-in slide-in-from-right-10 duration-300 z-[500]">
+        {{ message.text }}
+    </div>
+</app-dashboard-layout>

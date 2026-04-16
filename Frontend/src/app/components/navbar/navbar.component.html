@@ -1,0 +1,27 @@
+<nav class="sticky top-0 z-50 glass border-b border-white/5 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+
+        <a routerLink="/" class="group flex items-center gap-2">
+            <div
+                class="w-10 h-10 bg-[#FF6B35] rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300">
+                <span class="text-white font-black text-xl">G</span>
+            </div>
+            <span
+                class="text-2xl font-black tracking-tighter text-white group-hover:text-[#FF6B35] transition-colors duration-300">
+                GOSPORT
+            </span>
+        </a>
+
+
+        <div class="flex items-center gap-2">
+            <a routerLink="/login" routerLinkActive="text-[#FF6B35] !bg-white/10"
+                class="px-5 py-2.5 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-300 font-medium">
+                Connexion
+            </a>
+            <a routerLink="/signup" routerLinkActive="!bg-[#FF6B35] shadow-[0_0_15px_rgba(255,107,53,0.3)]"
+                class="bg-white/5 text-white px-5 py-2.5 rounded-xl font-bold hover:bg-[#FF6B35] transition-all duration-300 ml-2">
+                S'inscrire
+            </a>
+        </div>
+    </div>
+</nav>
