@@ -1,0 +1,168 @@
+<app-dashboard-layout>
+    <div class="h-[calc(100vh-160px)] flex flex-col md:flex-row gap-6">
+        
+        <!-- Left Sidebar: Conversations & Contacts -->
+        <div class="w-full md:w-80 flex flex-col bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden shadow-2xl">
+            <div class="p-6 pb-2">
+                <h2 class="text-xl font-display font-bold text-white uppercase tracking-wider">Messagerie</h2>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex border-b border-gosport-border mx-6 mb-2">
+                <button (click)="activeTab = 'messages'"
+                        [class.text-gosport-orange]="activeTab === 'messages'"
+                        [class.border-gosport-orange]="activeTab === 'messages'"
+                        [class.text-slate-500]="activeTab !== 'messages'"
+                        class="flex-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-transparent transition-all">
+                    Messages
+                </button>
+                <button (click)="activeTab = 'contacts'"
+                        [class.text-gosport-orange]="activeTab === 'contacts'"
+                        [class.border-gosport-orange]="activeTab === 'contacts'"
+                        [class.text-slate-500]="activeTab !== 'contacts'"
+                        class="flex-1 py-3 text-[10px] font-black uppercase tracking-[0.2em] border-b-2 border-transparent transition-all">
+                    Contacts
+                </button>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto custom-scrollbar">
+                <!-- Conversations List -->
+                <ng-container *ngIf="activeTab === 'messages'">
+                    <div *ngIf="conversations.length === 0" class="p-8 text-center">
+                        <p class="text-slate-500 text-xs italic mb-2">Aucune conversation active.</p>
+                        <button (click)="activeTab = 'contacts'" class="text-xs text-gosport-orange font-bold hover:underline">
+                            Voir mes contacts
+                        </button>
+                    </div>
+                    
+                    <div *ngFor="let conv of conversations" 
+                         (click)="selectConversation(conv)"
+                         [ngClass]="{'bg-gosport-orange/10 border-l-4 border-gosport-orange': selectedConversation?.id === conv.id, 'hover:bg-white/5': selectedConversation?.id !== conv.id}"
+                         class="p-4 cursor-pointer transition-all duration-200 border-b border-gosport-border/50">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-full overflow-hidden bg-slate-700 flex-shrink-0 border border-slate-600 shadow-inner flex items-center justify-center">
+                                <img *ngIf="getParticipant(conv)?.photo_url" [src]="getParticipant(conv).photo_url" class="w-full h-full object-cover">
+                                <span *ngIf="!getParticipant(conv)?.photo_url" class="font-bold text-white text-lg">
+                                    {{ getParticipant(conv)?.first_name?.substring(0,1) }}{{ getParticipant(conv)?.last_name?.substring(0,1) }}
+                                </span>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex justify-between items-baseline mb-1">
+                                    <h3 class="font-bold text-white truncate text-sm">
+                                        {{ getParticipant(conv)?.first_name }} {{ getParticipant(conv)?.last_name }}
+                                    </h3>
+                                    <span class="text-[10px] text-slate-500">{{ conv.lastMessageAt | date:'HH:mm' }}</span>
+                                </div>
+                                <p class="text-xs text-slate-400 truncate opacity-80 italic">
+                                    {{ conv.lastMessageContent || 'Démarrer la discussion...' }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </ng-container>
+
+                <!-- Contacts List -->
+                <ng-container *ngIf="activeTab === 'contacts'">
+                    <div *ngIf="contacts.length === 0" class="p-8 text-center text-slate-500 text-sm italic">
+                        Aucun contact trouvé.
+                    </div>
+                    
+                    <div *ngFor="let contact of contacts" 
+                         (click)="selectContact(contact)"
+                         class="p-4 cursor-pointer hover:bg-white/5 transition-all duration-200 border-b border-gosport-border/30">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-800 flex-shrink-0 border border-slate-700 flex items-center justify-center">
+                                <img *ngIf="contact.photo_url" [src]="contact.photo_url" class="w-full h-full object-cover">
+                                <span *ngIf="!contact.photo_url" class="font-bold text-white text-sm">
+                                    {{ contact.first_name?.substring(0,1) }}{{ contact.last_name?.substring(0,1) }}
+                                </span>
+                            </div>
+                            <div class="flex-1">
+                                <h3 class="font-bold text-white text-sm">
+                                    {{ contact.first_name }} {{ contact.last_name }}
+                                </h3>
+                                <p class="text-[10px] text-gosport-orange font-bold uppercase tracking-widest mt-0.5">
+                                    {{ roleService.currentRole === 'coach' || roleService.currentRole === 'nutritionist' ? 'Athlète' : 'Professionnel' }}
+                                </p>
+                            </div>
+                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+
+        <!-- Right: Chat Window -->
+        <div class="flex-1 flex flex-col bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden shadow-2xl relative">
+            
+            <ng-container *ngIf="selectedConversation; else selectConvPlaceholder">
+                <!-- Chat Header -->
+                <div class="p-4 border-b border-gosport-border bg-gosport-dark/20 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full overflow-hidden bg-slate-700 border border-slate-600 flex items-center justify-center">
+                            <img *ngIf="getParticipant(selectedConversation)?.photo_url" [src]="getParticipant(selectedConversation).photo_url" class="w-full h-full object-cover">
+                            <span *ngIf="!getParticipant(selectedConversation)?.photo_url" class="font-bold text-white text-sm">
+                                {{ getParticipant(selectedConversation)?.first_name?.substring(0,1) }}
+                            </span>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">{{ getParticipant(selectedConversation)?.first_name }} {{ getParticipant(selectedConversation)?.last_name }}</h3>
+                            <span class="text-[10px] text-gosport-orange font-bold uppercase tracking-widest">En ligne</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Messages Display -->
+                <div class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/micro-carbon.png')]">
+                    <div *ngFor="let msg of messages" 
+                         [ngClass]="{'justify-end': msg.senderId === roleService.user.id, 'justify-start': msg.senderId !== roleService.user.id}"
+                         class="flex w-full">
+                        <div [ngClass]="msg.senderId === roleService.user.id 
+                                        ? 'bg-gosport-orange text-white rounded-br-none rounded-2xl shadow-lg shadow-gosport-orange/20' 
+                                        : 'bg-slate-800 text-slate-200 rounded-bl-none rounded-2xl border border-slate-700'"
+                             class="max-w-[70%] px-4 py-3 text-sm transition-transform hover:scale-[1.01]">
+                            <p class="leading-relaxed">{{ msg.content }}</p>
+                            <span class="text-[9px] mt-1 block opacity-60 text-right">
+                                {{ msg.created_at | date:'HH:mm' }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="p-4 bg-gosport-dark/40 border-t border-gosport-border">
+                    <form (submit)="sendMessage()" class="flex gap-3">
+                        <input type="text" 
+                               name="newMessage"
+                               [(ngModel)]="newMessage" 
+                               placeholder="Écrivez votre message..." 
+                               class="flex-1 bg-slate-900/50 border border-slate-800 focus:border-gosport-orange rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 outline-none transition-all shadow-inner">
+                        <button type="submit" 
+                                [disabled]="!newMessage.trim()"
+                                class="bg-gosport-orange hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white p-3 rounded-xl transition-all shadow-lg hover:shadow-gosport-orange/40 active:scale-95">
+                            <svg class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+            </ng-container>
+
+            <!-- Placeholder when no conversation selected -->
+            <ng-template #selectConvPlaceholder>
+                <div class="flex-1 flex flex-col items-center justify-center text-center p-12 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
+                    <div class="w-24 h-24 bg-slate-800/50 rounded-full flex items-center justify-center mb-6 border border-gosport-border shadow-xl">
+                        <svg class="w-12 h-12 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-display font-bold text-white mb-2 uppercase tracking-wider">Vos Messages</h3>
+                    <p class="text-slate-500 max-w-sm">Sélectionnez une conversation dans la liste de gauche pour commencer à discuter avec votre coach ou votre athlète en temps réel.</p>
+                </div>
+            </ng-template>
+
+        </div>
+    </div>
+</app-dashboard-layout>

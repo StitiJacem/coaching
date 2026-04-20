@@ -1,0 +1,36 @@
+
+> frontend@0.0.0 build
+> ng build
+
+[33m❯[39m Building...
+[32m✔[39m Building...
+Application bundle generation failed. [11.704 seconds]
+
+[1m[33m[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mNG8107: The left side of this optional chain operation does not include 'null' or 'undefined' in its type, therefore the '?.' operator can be replaced with the '.' operator.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/dashboard/programs/programs.component.html:81:51:
+[37m      81 │ ...                 <span>{{ program.days?.[32mlength[37m || 0 }} Days</span>
+         ╵                                            [32m~~~~~~[0m
+
+  Error occurs in the template of component ProgramsComponent.
+
+    src/app/pages/dashboard/programs/programs.component.ts:17:15:
+[37m      17 │   templateUrl: [32m'./programs.component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8001: 'lucide-icon' is not a known element:
+1. If 'lucide-icon' is an Angular component, then verify that it is included in the '@Component.imports' of this component.
+2. If 'lucide-icon' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/pages/dashboard/athletes/training-calendar/training-calendar.component.html:80:20:
+[37m      80 │ ...          [32m<lucide-icon name="library" class="w-4 h-4 mr-2 inlin[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component TrainingCalendarComponent.
+
+    src/app/pages/dashboard/athletes/training-calendar/training-calendar.component.ts:35:17:
+[37m      35 │     templateUrl: [32m'./training-calendar.component.html'[37m,
+         ╵                  [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

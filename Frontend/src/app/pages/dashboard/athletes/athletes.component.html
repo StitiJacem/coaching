@@ -1,0 +1,195 @@
+<app-dashboard-layout>
+    <div class="space-y-6">
+
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <p class="text-slate-400 font-bold uppercase tracking-wider text-xs mb-1">Management</p>
+                <h1 class="text-4xl font-display font-black text-white uppercase italic leading-none">Clients</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <div class="relative">
+                    <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()" placeholder="Search clients..."
+                        class="bg-gosport-surface border border-gosport-border rounded-xl px-10 py-2.5 text-white text-sm focus:outline-none focus:border-gosport-orange transition-colors w-56">
+                    <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" fill="none"
+                        stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                </div>
+                <button (click)="onInvite()"
+                    class="inline-flex items-center gap-2 font-bold uppercase tracking-wider rounded-xl px-5 py-2.5 text-sm bg-gosport-orange hover:bg-orange-600 text-white shadow-lg shadow-gosport-orange/25 transition-all active:scale-[0.98]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    </svg>
+                    Add Client
+                </button>
+            </div>
+        </header>
+
+
+        <div *ngIf="isLoading" class="flex justify-center py-16">
+            <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-gosport-orange"></div>
+        </div>
+
+
+        <div *ngIf="!isLoading && athletes.length === 0"
+            class="bg-gosport-surface border border-gosport-border rounded-2xl p-16 text-center">
+            <div class="inline-flex p-4 bg-slate-800/50 rounded-full mb-4 text-slate-500">
+                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-2">No Clients Yet</h3>
+            <p class="text-slate-400 text-sm">Invite your first athlete to start tracking their progress.</p>
+        </div>
+
+
+        <div *ngIf="!isLoading && athletes.length > 0"
+            class="bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden">
+
+            <div
+                class="grid grid-cols-[2fr_1fr_1fr_1fr_120px] items-center px-6 py-3 border-b border-gosport-border bg-black/20">
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Client</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sport / Goal</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Level</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
+            </div>
+
+
+            <div *ngFor="let athlete of athletes; let last = last"
+                class="grid grid-cols-[2fr_1fr_1fr_1fr_120px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors group"
+                [class.border-b]="!last" [class.border-gosport-border]="!last">
+
+
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 rounded-full bg-gradient-to-br from-gosport-orange to-orange-600 flex items-center justify-center text-sm font-black text-white flex-shrink-0 shadow-md shadow-gosport-orange/20">
+                        {{ getInitials(athlete) }}
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm group-hover:text-gosport-orange transition-colors">
+                            {{ athlete.user?.first_name }} {{ athlete.user?.last_name }}
+                        </p>
+                        <p class="text-[10px] text-slate-500">{{ athlete.user?.email }}</p>
+                    </div>
+                </div>
+
+
+                <span class="text-sm text-slate-300 capitalize">{{ athlete.sport || 'General' }}</span>
+
+
+                <span class="text-sm">
+                    <span
+                        class="bg-gosport-orange/10 text-gosport-orange px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                        Advanced
+                    </span>
+                </span>
+
+
+                <div class="flex items-center gap-2">
+                    <div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></div>
+                    <span class="text-sm text-slate-300">Connected</span>
+                </div>
+
+
+                <div class="flex items-center justify-end gap-1">
+
+                    <button (click)="openAssignModal(athlete)" title="Assign Program"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+
+                    <button [routerLink]="['/dashboard/athletes', athlete.id, 'calendar']" title="Training Calendar"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M3 6h2m0 0V4m0 2v2M19 6h2m0 0V4m0 2v2M7 6h10M5 12h14M5 18h14M7 18h0m10 0h0" />
+                        </svg>
+                    </button>
+
+                    <button (click)="openMessageModal(athlete)"
+                        title="Send Message"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                    </button>
+
+                    <button *ngIf="roleService.currentRole === 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'dietary-profile']" title="Manage Dietary Profile"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                    </button>
+
+                    <button [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" title="View Profile"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M5.121 17.804A10.965 10.965 0 0112 15c2.3 0 4.433.707 6.199 1.915M15 11a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </button>
+
+                    <button (click)="onDisconnect(athlete)" title="Disconnect"
+                        class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <app-invite-modal *ngIf="showInviteModal" (close)="showInviteModal = false"
+        (invited)="loadAthletes()"></app-invite-modal>
+
+    <!-- Quick Message Modal -->
+    <div *ngIf="showMessageModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div class="p-6 border-b border-gosport-border flex justify-between items-center bg-black/20">
+                <div>
+                    <h3 class="text-xl font-display font-bold text-white uppercase tracking-wider">Envoyer un message</h3>
+                    <p class="text-xs text-slate-400 mt-1">À: {{ selectedAthleteForMessage?.user?.first_name }} {{ selectedAthleteForMessage?.user?.last_name }}</p>
+                </div>
+                <button (click)="closeMessageModal()" class="text-slate-500 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="p-6">
+                <div class="mb-4">
+                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Message</label>
+                    <textarea [(ngModel)]="messageText" rows="4" placeholder="Tapez votre message ici..."
+                        class="w-full bg-black/20 border border-gosport-border rounded-xl p-4 text-white text-sm focus:outline-none focus:border-gosport-orange transition-all resize-none placeholder:text-slate-600"></textarea>
+                </div>
+                
+                <div class="flex gap-3">
+                    <button (click)="closeMessageModal()" 
+                        class="flex-1 px-6 py-3 rounded-xl border border-gosport-border text-slate-300 font-bold uppercase tracking-wider text-xs hover:bg-white/5 transition-all">
+                        Annuler
+                    </button>
+                    <button (click)="sendMessage()" [disabled]="!messageText.trim() || isSendingMessage"
+                        class="flex-1 px-6 py-3 rounded-xl bg-gosport-orange hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wider text-xs shadow-lg shadow-gosport-orange/20 transition-all active:scale-[0.98]">
+                        <span *ngIf="!isSendingMessage">Envoyer</span>
+                        <span *ngIf="isSendingMessage" class="flex items-center justify-center gap-2">
+                             <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                             Envoi...
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</app-dashboard-layout>

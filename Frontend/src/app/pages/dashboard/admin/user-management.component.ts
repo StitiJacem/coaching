@@ -1,0 +1,183 @@
+import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
+import { DashboardLayoutComponent } from '../../../components/dashboard-layout/dashboard-layout.component';
+import { AdminService } from '../../../services/admin.service';
+
+@Component({
+  selector: 'app-user-management',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    FormsModule,
+    LucideAngularModule,
+    DashboardLayoutComponent
+  ],
+  template: `
+    <app-dashboard-layout>
+      <div class="space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 class="text-2xl font-display font-bold text-white uppercase tracking-wider">
+              Gestion des <span class="text-gosport-orange">Utilisateurs</span>
+            </h1>
+            <p class="text-xs text-slate-400 mt-1">Total: {{ users.length }} utilisateurs enregistrés</p>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="relative">
+              <lucide-angular name="search" size="18" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"></lucide-angular>
+              <input type="text" 
+                     [(ngModel)]="searchQuery" 
+                     (input)="loadUsers()"
+                     placeholder="Rechercher un utilisateur..." 
+                     class="pl-10 pr-4 py-2 bg-gosport-surface border border-gosport-border rounded-xl text-sm text-white placeholder:text-slate-600 focus:border-gosport-orange outline-none transition-all w-full sm:w-64 shadow-inner">
+            </div>
+            
+            <select [(ngModel)]="filterRole" 
+                    (change)="loadUsers()"
+                    class="bg-gosport-surface border border-gosport-border rounded-xl px-4 py-2 text-sm text-white focus:border-gosport-orange outline-none transition-all cursor-pointer">
+              <option value="">Tous les rôles</option>
+              <option value="athlete">Athlète</option>
+              <option value="coach">Coach</option>
+              <option value="nutritionist">Nutritionniste</option>
+              <option value="admin">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden shadow-2xl">
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-black/20 border-b border-gosport-border">
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Utilisateur</th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Rôle</th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Date d'inscription</th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Statut</th>
+                  <th class="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gosport-border/50">
+                <tr *ngFor="let user of users" class="hover:bg-white/5 transition-colors group">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3">
+                      <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-bold overflow-hidden">
+                        <img *ngIf="user.photo_url" [src]="user.photo_url" class="w-full h-full object-cover">
+                        <span *ngIf="!user.photo_url">{{ user.first_name?.[0] }}{{ user.last_name?.[0] }}</span>
+                      </div>
+                      <div>
+                        <p class="text-sm font-bold text-white">{{ user.first_name }} {{ user.last_name }}</p>
+                        <p class="text-[10px] text-slate-500">{{ user.email }}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4">
+                    <select [ngModel]="user.role" 
+                            (ngModelChange)="updateRole(user, $event)"
+                            class="bg-transparent border-none text-xs font-bold uppercase tracking-wider focus:ring-0 cursor-pointer p-0"
+                            [ngClass]="getRoleColor(user.role)">
+                      <option value="athlete">ATHLÈTE</option>
+                      <option value="coach">COACH</option>
+                      <option value="nutritionist">NUTRITIONNISTE</option>
+                      <option value="admin" class="text-purple-400">ADMIN</option>
+                    </select>
+                  </td>
+                  <td class="px-6 py-4">
+                    <p class="text-xs text-slate-400">{{ user.created_at | date:'dd MMM yyyy' }}</p>
+                  </td>
+                  <td class="px-6 py-4">
+                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"
+                          [ngClass]="user.is_verified ? 'bg-emerald-400/10 text-emerald-400' : 'bg-gosport-orange/10 text-gosport-orange'">
+                      <div class="w-1.5 h-1.5 rounded-full" [ngClass]="user.is_verified ? 'bg-emerald-400' : 'bg-gosport-orange'"></div>
+                      {{ user.is_verified ? 'Vérifié' : 'En attente' }}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 text-right">
+                    <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button (click)="deleteUser(user)" 
+                              class="p-2 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                              title="Supprimer">
+                        <lucide-angular name="trash-2" size="16"></lucide-angular>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          
+          <div *ngIf="users.length === 0" class="p-12 text-center">
+            <lucide-angular name="users" size="48" class="text-slate-700 mx-auto mb-4"></lucide-angular>
+            <p class="text-slate-500 italic">Aucun utilisateur trouvé.</p>
+          </div>
+        </div>
+      </div>
+    </app-dashboard-layout>
+  `,
+  styles: [`
+    :host { display: block; }
+    select option { background: #0f1115; color: white; }
+  `]
+})
+export class UserManagementComponent implements OnInit {
+  users: any[] = [];
+  searchQuery = '';
+  filterRole = '';
+
+  constructor(private adminService: AdminService) {}
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.adminService.getUsers({ role: this.filterRole, search: this.searchQuery }).subscribe({
+      next: (data) => this.users = data,
+      error: (err) => console.error('Error loading users', err)
+    });
+  }
+
+  updateRole(user: any, newRole: string): void {
+    if (confirm(`Voulez-vous vraiment changer le rôle de ${user.first_name} en ${newRole} ?`)) {
+      this.adminService.updateUserRole(user.id, newRole).subscribe({
+        next: () => {
+          user.role = newRole;
+        },
+        error: (err) => {
+          console.error('Error updating role', err);
+          alert('Erreur lors du changement de rôle.');
+          this.loadUsers(); // Revert on error
+        }
+      });
+    } else {
+        this.loadUsers(); // Revert UI
+    }
+  }
+
+  deleteUser(user: any): void {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.first_name} ${user.last_name} ? Cette action est irréversible.`)) {
+      this.adminService.deleteUser(user.id).subscribe({
+        next: () => {
+          this.users = this.users.filter(u => u.id !== user.id);
+        },
+        error: (err) => console.error('Error deleting user', err)
+      });
+    }
+  }
+
+  getRoleColor(role: string): string {
+    switch (role) {
+      case 'coach': return 'text-galio-orange';
+      case 'athlete': return 'text-galio-lime';
+      case 'nutritionist': return 'text-emerald-400';
+      case 'admin': return 'text-purple-400';
+      default: return 'text-slate-400';
+    }
+  }
+}

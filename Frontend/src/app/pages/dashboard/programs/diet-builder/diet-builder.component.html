@@ -1,0 +1,194 @@
+<app-dashboard-layout>
+    <div class="builder-page">
+
+        <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+        <header class="builder-header">
+            <div>
+                <a routerLink="/dashboard/nutrition" class="builder-back">← Retour Nutrition</a>
+                <h1 class="builder-title">Constructeur de Plan</h1>
+                <p class="builder-sub" *ngIf="athleteId">
+                    Athlète #{{ athleteId }}
+                </p>
+            </div>
+            <div class="builder-header-actions">
+                <button class="btn-save" (click)="savePlan()" [disabled]="isSaving">
+                    <span *ngIf="!isSaving">💾 Sauvegarder</span>
+                    <span *ngIf="isSaving">Sauvegarde...</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- ══ ERRORS ══════════════════════════════════════════════════════════ -->
+        <div *ngIf="connectionError" class="alert-error connection-error">
+            🔒 {{ connectionError }}
+        </div>
+        <div *ngIf="saveError" class="alert-error">
+            ⚠️ {{ saveError }}
+        </div>
+
+        <!-- ══ PLAN CONFIG ══════════════════════════════════════════════════════ -->
+        <section class="plan-config-card">
+            <div class="config-grid">
+                <div class="form-group">
+                    <label class="form-label">Nom du Plan *</label>
+                    <input type="text" [(ngModel)]="planData.name" name="planName"
+                        class="form-input" placeholder="Ex: Programme Prise de Masse 8 Semaines">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Objectif</label>
+                    <select [(ngModel)]="planData.goal" name="goal" class="form-input">
+                        <option *ngFor="let g of goals" [value]="g.value">{{ g.label }}</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Date de début</label>
+                    <input type="date" [(ngModel)]="planData.startDate" name="startDate"
+                        class="form-input">
+                </div>
+            </div>
+            <div class="form-group" style="margin-top: 0.75rem;">
+                <label class="form-label">Description / Instructions générales</label>
+                <textarea [(ngModel)]="planData.description" name="description" rows="2"
+                    class="form-input" placeholder="Instructions globales pour l'athlète..."></textarea>
+            </div>
+        </section>
+
+        <!-- ══ BUILDER LAYOUT ══════════════════════════════════════════════════ -->
+        <div class="builder-layout">
+
+            <!-- Day Tabs -->
+            <nav class="day-tabs">
+                <button *ngFor="let day of planData.days; let i = index"
+                    (click)="activeDayIndex = i"
+                    [class.active]="activeDayIndex === i"
+                    [class.rest]="day.isRestDay"
+                    class="day-tab">
+                    <span class="day-tab-num">J{{ day.day_number }}</span>
+                    <span class="day-tab-label">{{ day.isRestDay ? 'Repos' : (dayCalories(i) + ' kcal') }}</span>
+                </button>
+                <button class="day-tab-add" (click)="addDay()">+ Jour</button>
+            </nav>
+
+            <!-- Active Day Editor -->
+            <div class="day-editor" *ngIf="planData.days.length > 0">
+                <div class="day-editor-header">
+                    <div class="day-editor-meta">
+                        <input type="text"
+                            [(ngModel)]="planData.days[activeDayIndex].title"
+                            [name]="'dayTitle_' + activeDayIndex"
+                            class="day-title-input"
+                            placeholder="Titre du jour (ex: Jour de musculation)">
+                        <label class="rest-toggle">
+                            <input type="checkbox"
+                                [(ngModel)]="planData.days[activeDayIndex].isRestDay"
+                                [name]="'rest_' + activeDayIndex"
+                                (change)="toggleRestDay(activeDayIndex)">
+                            <span>Jour de repos</span>
+                        </label>
+                    </div>
+                    <div class="day-totals" *ngIf="!planData.days[activeDayIndex].isRestDay">
+                        <span class="total-cal">🔥 {{ dayCalories(activeDayIndex) }} kcal</span>
+                        <span class="total-p">P: {{ dayProtein(activeDayIndex) }}g</span>
+                        <span class="total-c">G: {{ dayCarbs(activeDayIndex) }}g</span>
+                        <span class="total-f">L: {{ dayFats(activeDayIndex) }}g</span>
+                    </div>
+                    <div class="day-editor-actions">
+                        <button class="btn-danger-sm"
+                            *ngIf="planData.days.length > 1"
+                            (click)="removeDay(activeDayIndex)">
+                            Supprimer ce jour
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Rest Day Message -->
+                <div *ngIf="planData.days[activeDayIndex].isRestDay" class="rest-day-msg">
+                    <span>😴</span>
+                    <div>
+                        <p class="rest-title">Jour de repos</p>
+                        <p class="rest-hint">Pas de repas planifiés. L'athlète peut manger librement selon ses besoins.</p>
+                    </div>
+                </div>
+
+                <!-- Meals -->
+                <div *ngIf="!planData.days[activeDayIndex].isRestDay">
+                    <div class="meals-editor">
+
+                        <div *ngFor="let meal of planData.days[activeDayIndex].meals; let mi = index"
+                            class="meal-editor-row">
+
+                            <div class="meal-editor-top">
+                                <div class="meal-editor-row-header">
+                                    <select [(ngModel)]="meal.mealType" [name]="'mealType_' + activeDayIndex + '_' + mi"
+                                        class="meal-type-select" [ngClass]="'type-' + meal.mealType">
+                                        <option value="breakfast">🌅 Petit-déjeuner</option>
+                                        <option value="lunch">🌞 Déjeuner</option>
+                                        <option value="dinner">🌙 Dîner</option>
+                                        <option value="snack">🍎 Collation</option>
+                                    </select>
+                                    <input type="time" [(ngModel)]="meal.timeOfDay" [name]="'time_' + activeDayIndex + '_' + mi"
+                                        class="meal-time-input" placeholder="HH:MM">
+                                    <button class="meal-remove" (click)="removeMeal(activeDayIndex, mi)">✕</button>
+                                </div>
+
+                                <textarea [(ngModel)]="meal.instructions" [name]="'instructions_' + activeDayIndex + '_' + mi"
+                                    class="meal-instructions-input" rows="2"
+                                    placeholder="Contenu du repas (ex: 150g poulet, 200g riz basmati, brocolis vapeur...)"></textarea>
+                            </div>
+
+                            <div class="meal-macros-inputs">
+                                <div class="macro-input-group">
+                                    <label>🔥 Calories</label>
+                                    <input type="number" [(ngModel)]="meal.calories" [name]="'cal_' + activeDayIndex + '_' + mi"
+                                        class="macro-input" min="0" placeholder="0">
+                                </div>
+                                <div class="macro-input-group">
+                                    <label class="color-protein">Protéines (g)</label>
+                                    <input type="number" [(ngModel)]="meal.protein" [name]="'prot_' + activeDayIndex + '_' + mi"
+                                        class="macro-input" min="0" placeholder="0">
+                                </div>
+                                <div class="macro-input-group">
+                                    <label class="color-carbs">Glucides (g)</label>
+                                    <input type="number" [(ngModel)]="meal.carbs" [name]="'carbs_' + activeDayIndex + '_' + mi"
+                                        class="macro-input" min="0" placeholder="0">
+                                </div>
+                                <div class="macro-input-group">
+                                    <label class="color-fats">Lipides (g)</label>
+                                    <input type="number" [(ngModel)]="meal.fats" [name]="'fats_' + activeDayIndex + '_' + mi"
+                                        class="macro-input" min="0" placeholder="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Add Meal Button -->
+                        <button class="add-meal-btn" (click)="addMeal(activeDayIndex)">
+                            + Ajouter un repas
+                        </button>
+
+                        <!-- Empty day warning -->
+                        <div *ngIf="planData.days[activeDayIndex].meals.length === 0" class="empty-meals">
+                            <p>Aucun repas planifié pour ce jour.</p>
+                            <p class="empty-meals-hint">Ajoutez au moins un repas ou marquez ce jour comme jour de repos.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ══ SAVE BAR ════════════════════════════════════════════════════════ -->
+        <div class="save-bar">
+            <div class="save-bar-info">
+                <span>{{ planData.days.length }} jours</span>
+                <span>·</span>
+                <span>{{ getTotalMeals() }} repas</span>
+                <span *ngIf="athleteId">·</span>
+                <span *ngIf="athleteId" class="save-bar-athlete">Athlète #{{ athleteId }}</span>
+            </div>
+            <button class="btn-save" (click)="savePlan()" [disabled]="isSaving">
+                <span *ngIf="!isSaving">💾 Sauvegarder le Plan</span>
+                <span *ngIf="isSaving">Sauvegarde en cours...</span>
+            </button>
+        </div>
+
+    </div>
+</app-dashboard-layout>

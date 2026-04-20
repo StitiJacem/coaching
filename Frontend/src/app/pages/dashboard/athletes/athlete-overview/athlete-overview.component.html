@@ -1,0 +1,161 @@
+<app-dashboard-layout>
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="flex items-center justify-center py-32">
+    <div class="w-12 h-12 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
+  </div>
+
+  <div *ngIf="!isLoading && overview" class="space-y-8 animate-fade-in max-w-6xl mx-auto">
+
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div class="flex items-center gap-5">
+        <div class="w-20 h-20 rounded-3xl bg-gosport-orange/20 border-2 border-gosport-orange/30 flex items-center justify-center text-2xl font-black text-gosport-orange overflow-hidden flex-shrink-0">
+          <img *ngIf="overview.athlete.profilePicture" [src]="overview.athlete.profilePicture" class="w-full h-full object-cover" alt="avatar">
+          <span *ngIf="!overview.athlete.profilePicture">{{ getInitials(overview.athlete.name) }}</span>
+        </div>
+        <div>
+          <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-1">Client Overview</p>
+          <h1 class="text-3xl font-display font-black text-white uppercase italic leading-none">{{ overview.athlete.name }}</h1>
+          <p class="text-slate-500 text-xs font-bold mt-1">{{ overview.athlete.sport || 'Sport not set' }} · {{ overview.athlete.experienceLevel || 'Level not set' }}</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3 flex-wrap">
+        <button (click)="goToCalendar()" class="px-5 py-2.5 bg-gosport-orange text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-gosport-orange/20 hover:bg-orange-600 transition-all">
+          📅 Open Calendar
+        </button>
+        <button *ngIf="overview.activeProgram" (click)="endProgram()" [disabled]="isEndingProgram"
+          class="px-5 py-2.5 border-2 border-red-500 text-red-400 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all disabled:opacity-50">
+          {{ isEndingProgram ? 'Ending...' : '⏹ End Program' }}
+        </button>
+        <button (click)="router.navigate(['/dashboard/athletes'])" class="px-5 py-2.5 border border-slate-700 text-slate-400 rounded-xl font-black uppercase tracking-widest text-xs hover:text-white transition-all">
+          ← All Clients
+        </button>
+      </div>
+    </div>
+
+    <!-- Training Summary -->
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 text-center">
+        <p class="text-gosport-orange font-black uppercase tracking-widest text-[9px] mb-3">Last 7 Days</p>
+        <p class="text-4xl font-black text-white mb-1">{{ overview.trainingStats.last7Completed }}<span class="text-slate-600 text-lg">/{{ overview.trainingStats.last7Total }}</span></p>
+        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Tracked</p>
+      </div>
+      <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 text-center">
+        <p class="text-gosport-orange font-black uppercase tracking-widest text-[9px] mb-3">Last 30 Days</p>
+        <p class="text-4xl font-black text-white mb-1">{{ overview.trainingStats.last30Completed }}<span class="text-slate-600 text-lg">/{{ overview.trainingStats.last30Total }}</span></p>
+        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Tracked</p>
+      </div>
+      <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 text-center">
+        <p class="text-slate-400 font-black uppercase tracking-widest text-[9px] mb-3">Next 7 Days</p>
+        <p class="text-4xl font-black text-white mb-1">{{ overview.trainingStats.nextWeekScheduled }}</p>
+        <p class="text-slate-500 text-xs font-bold uppercase tracking-widest">Scheduled</p>
+      </div>
+    </div>
+
+    <!-- Last Workout + Active Program -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+      <!-- Last Workout -->
+      <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-7">
+        <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-5">Last Workout</p>
+        <div *ngIf="overview.lastWorkout; else noWorkout" class="space-y-4">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-green-500/10 border border-green-500/30 rounded-xl flex items-center justify-center text-green-400 text-lg">✅</div>
+            <div>
+              <p class="text-white font-black text-sm">Completed</p>
+              <p class="text-slate-500 text-xs">{{ formatDistance(overview.lastWorkout.date) }}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="bg-black/20 rounded-xl p-3 text-center">
+              <p class="text-white font-black text-lg">{{ overview.lastWorkout.durationMinutes || '–' }}<span class="text-slate-500 text-xs">m</span></p>
+              <p class="text-slate-600 text-[9px] uppercase tracking-widest mt-1">Duration</p>
+            </div>
+            <div class="bg-black/20 rounded-xl p-3 text-center">
+              <p class="text-white font-black text-lg">{{ overview.lastWorkout.overallRating || '–' }}<span class="text-slate-500 text-xs">/10</span></p>
+              <p class="text-slate-600 text-[9px] uppercase tracking-widest mt-1">Rating</p>
+            </div>
+          </div>
+          <button (click)="router.navigate(['/dashboard/workout', overview.lastWorkout.id])" class="w-full py-2.5 bg-black/30 hover:bg-white/5 text-slate-400 hover:text-white rounded-xl font-black uppercase tracking-widest text-xs transition-all border border-white/5">
+            Check Result →
+          </button>
+        </div>
+        <ng-template #noWorkout>
+          <div class="py-8 text-center opacity-40">
+            <p class="text-5xl mb-3">🏃</p>
+            <p class="text-slate-500 font-bold text-xs uppercase tracking-widest">No workouts yet</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Active Program -->
+      <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-7">
+        <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-5">Active Program</p>
+        <div *ngIf="overview.activeProgram; else noProgram">
+          <h3 class="text-xl font-black text-white uppercase italic mb-2 truncate">{{ overview.activeProgram.name }}</h3>
+          <p class="text-slate-500 text-xs mb-5">Started {{ formatDate(overview.activeProgram.startDate) }}</p>
+          <!-- Progress bar -->
+          <div class="mb-4">
+            <div class="flex justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">
+              <span>Progress</span>
+              <span>{{ overview.activeProgram.progress?.completed || 0 }} / {{ overview.activeProgram.progress?.total || 0 }} sessions</span>
+            </div>
+            <div class="w-full h-2 bg-black/40 rounded-full overflow-hidden">
+              <div class="h-full bg-gosport-orange rounded-full transition-all duration-700" [style.width.%]="progressPercent"></div>
+            </div>
+          </div>
+          <div *ngIf="overview.nextSession" class="bg-black/20 rounded-xl p-3 flex items-center gap-3 border border-white/5">
+            <span class="text-lg">📅</span>
+            <div>
+              <p class="text-white font-black text-xs">{{ overview.nextSession.title || 'Next Session' }}</p>
+              <p class="text-slate-500 text-[10px]">{{ formatDate(overview.nextSession.date) }}</p>
+            </div>
+          </div>
+        </div>
+        <ng-template #noProgram>
+          <div class="py-8 text-center opacity-40">
+            <p class="text-5xl mb-3">📋</p>
+            <p class="text-slate-500 font-bold text-xs uppercase tracking-widest">No active program</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Activity Feed + Adherence -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+
+
+      <!-- Stats sidebar -->
+      <div class="space-y-4">
+        <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-6">
+          <p class="text-slate-500 font-black uppercase tracking-widest text-[9px] mb-3">Adherence Rate</p>
+          <p class="text-4xl font-black mb-1" [ngClass]="adherenceColor">{{ overview.trainingStats.adherence }}%</p>
+          <p class="text-slate-600 text-xs">All-time completion</p>
+        </div>
+        <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-6">
+          <p class="text-slate-500 font-black uppercase tracking-widest text-[9px] mb-3">Total Completed</p>
+          <p class="text-4xl font-black text-white mb-1">{{ overview.trainingStats.totalCompleted }}</p>
+          <p class="text-slate-600 text-xs">Workouts done</p>
+        </div>
+        <div *ngIf="overview.metrics?.length > 0" class="bg-gosport-surface border border-gosport-border rounded-3xl p-6">
+          <p class="text-slate-500 font-black uppercase tracking-widest text-[9px] mb-3">Weight (latest)</p>
+          <p class="text-4xl font-black text-white mb-1">
+            {{ overview.metrics[overview.metrics.length - 1]?.weight || overview.athlete.weight || '–' }}
+            <span class="text-slate-500 text-sm">kg</span>
+          </p>
+          <p class="text-slate-600 text-xs">{{ overview.athlete.height ? overview.athlete.height + ' cm' : 'Height not set' }}</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- No data fallback -->
+  <div *ngIf="!isLoading && !overview" class="flex flex-col items-center justify-center py-32 opacity-40">
+    <p class="text-5xl mb-4">⚠️</p>
+    <p class="text-white font-black uppercase tracking-widest">Could not load athlete data</p>
+    <button (click)="loadOverview()" class="mt-6 px-6 py-3 bg-gosport-orange text-white rounded-xl font-black uppercase tracking-widest text-xs">Retry</button>
+  </div>
+
+</app-dashboard-layout>

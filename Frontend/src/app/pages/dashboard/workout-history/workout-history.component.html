@@ -1,0 +1,111 @@
+<app-dashboard-layout>
+    <div class="space-y-8">
+        <header>
+            <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Your Journey</p>
+            <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">
+                Workout <span class="text-galio-orange">History</span>
+            </h1>
+        </header>
+
+
+        <div *ngIf="isLoading" class="flex justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-galio-orange"></div>
+        </div>
+
+
+        <div *ngIf="!isLoading && logs.length === 0"
+            class="bg-galio-surface border border-galio-border rounded-3xl p-12 text-center">
+            <div class="text-6xl mb-4">📋</div>
+            <h3 class="text-xl font-bold text-white mb-2">No Workouts Yet</h3>
+            <p class="text-slate-400">Complete your first workout to see your history here.</p>
+        </div>
+
+
+        <div *ngIf="!isLoading && logs.length > 0" class="space-y-4">
+            <div *ngFor="let log of logs"
+                class="bg-galio-surface border border-galio-border rounded-2xl overflow-hidden transition-all hover:border-slate-600">
+
+
+                <div class="flex items-center gap-4 p-5 cursor-pointer" (click)="toggleExpand(log.id!)">
+
+                    <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center text-2xl"
+                        [ngClass]="getStatusClass(log.status)">
+                        {{ getStatusIcon(log.status) }}
+                    </div>
+
+
+                    <div class="flex-1 min-w-0">
+                        <h3 class="font-bold text-white truncate">{{ log.programDay?.title || 'Workout Session' }}</h3>
+                        <p class="text-slate-500 text-sm">{{ formatDate(log.scheduledDate) }}</p>
+                    </div>
+
+
+                    <div class="hidden md:flex items-center gap-6 text-center">
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Volume</p>
+                            <p class="font-bold text-white">{{ getVolume(log) | number }} kg</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Duration</p>
+                            <p class="font-bold text-white">{{ log.durationMinutes ? log.durationMinutes + 'm' : '—' }}
+                            </p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Rating</p>
+                            <p class="font-bold text-yellow-400">{{ log.overallRating ? '★'.repeat(log.overallRating) :
+                                '—' }}</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500 uppercase font-bold">Status</p>
+                            <span class="px-2 py-1 rounded-lg text-xs font-bold uppercase"
+                                [ngClass]="getStatusClass(log.status)">
+                                {{ log.status }}
+                            </span>
+                        </div>
+                    </div>
+
+
+                    <svg class="w-5 h-5 text-slate-600 transition-transform"
+                        [class.rotate-180]="expandedLogId === log.id" fill="none" stroke="currentColor"
+                        viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                </div>
+
+
+                <div *ngIf="expandedLogId === log.id"
+                    class="border-t border-galio-border px-5 py-4 space-y-4 bg-slate-900/30">
+
+                    <div *ngIf="log.notes" class="text-slate-400 text-sm italic">
+                        "{{ log.notes }}"
+                    </div>
+
+
+                    <div *ngIf="log.programDay?.exercises?.length">
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Exercises</p>
+                        <div class="space-y-2">
+                            <div *ngFor="let ex of log.programDay?.exercises" class="flex items-center gap-3 text-sm">
+                                <div class="w-8 h-8 rounded-lg overflow-hidden bg-slate-800 flex-shrink-0">
+                                    <img *ngIf="ex.exercise_gif" [src]="ex.exercise_gif"
+                                        class="w-full h-full object-cover">
+                                    <span *ngIf="!ex.exercise_gif"
+                                        class="flex items-center justify-center h-full text-base">💪</span>
+                                </div>
+                                <span class="font-bold text-white uppercase flex-1">{{ ex.exercise_name }}</span>
+                                <span class="text-slate-500">{{ ex.sets }}×{{ ex.reps }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div *ngIf="logs.length < total" class="text-center pt-4">
+                <button (click)="loadMore()"
+                    class="px-8 py-3 border border-galio-border rounded-xl text-slate-400 font-bold text-sm hover:bg-slate-800 transition-all">
+                    Load More ({{ total - logs.length }} remaining)
+                </button>
+            </div>
+        </div>
+    </div>
+</app-dashboard-layout>

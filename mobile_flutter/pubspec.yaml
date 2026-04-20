@@ -1,0 +1,65 @@
+name: coaching_mobile
+description: "GOSPORT Coaching Platform - Flutter Mobile App"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # HTTP client
+  dio: ^5.8.0+1
+
+  # Secure local storage (JWT token)
+  flutter_secure_storage: ^9.2.4
+
+  # General local storage (user profile)
+  shared_preferences: ^2.5.3
+
+  # Icons
+  cupertino_icons: ^1.0.8
+  flutter_svg: ^2.0.10+1
+
+  # Forms & UX
+  pinput: ^5.0.0          # OTP input for email verification
+  intl: ^0.20.2           # Date formatting
+
+  # Calendar
+  table_calendar: ^3.1.3
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Image handling
+  cached_network_image: ^3.4.1
+
+  # Animations
+  lottie: ^3.3.1
+
+  # Utils
+  equatable: ^2.0.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.15
+  riverpod_generator: ^2.6.5
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/animations/
+

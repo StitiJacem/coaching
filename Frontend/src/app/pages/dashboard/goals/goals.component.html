@@ -1,0 +1,92 @@
+<app-dashboard-layout>
+    <div class="space-y-8 pb-12">
+        <header class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <p class="text-slate-400 font-bold uppercase tracking-wider text-sm mb-1">Your Profile</p>
+                <h1 class="text-5xl md:text-6xl font-display font-bold text-white uppercase leading-none">Goals &amp; Setup</h1>
+            </div>
+        </header>
+
+        <div *ngIf="isLoading" class="flex justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-galio-orange"></div>
+        </div>
+
+        <form *ngIf="!isLoading && athlete" (ngSubmit)="onSubmit()" class="bg-galio-surface border border-galio-border rounded-3xl p-8 space-y-8 animate-fade-in shadow-xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Objectives -->
+                <div class="space-y-6 bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-xl font-bold text-white mb-4">Core Objectives</h3>
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Primary Goal</label>
+                        <select name="primaryObjective" [(ngModel)]="athleteFormData.primaryObjective" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-galio-orange transition-colors">
+                            <option value="">Select an objective</option>
+                            <option value="weight_loss">Weight Loss</option>
+                            <option value="muscle_gain">Muscle Gain</option>
+                            <option value="strength">Strength</option>
+                            <option value="sport_performance">Sport Performance</option>
+                            <option value="rehabilitation">Rehabilitation</option>
+                            <option value="general_fitness">General Fitness</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Target Metric</label>
+                        <input type="text" name="targetMetric" [(ngModel)]="athleteFormData.targetMetric" placeholder="e.g. lose 10kg, bench press 100kg" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-galio-orange transition-colors">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Target Deadline (Optional)</label>
+                        <input type="date" name="deadline" [(ngModel)]="athleteFormData.deadline" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-galio-orange transition-colors">
+                    </div>
+                </div>
+
+                <!-- Logistics & Details -->
+                <div class="space-y-6 bg-slate-900/50 p-6 rounded-2xl border border-slate-800">
+                    <h3 class="text-xl font-bold text-white mb-4">Training Logistics</h3>
+                    
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Available Time per Session</label>
+                        <select name="timePerSession" [(ngModel)]="athleteFormData.timePerSession" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-galio-orange transition-colors">
+                            <option value="">Select duration</option>
+                            <option value="30min">30 min</option>
+                            <option value="45min">45 min</option>
+                            <option value="60min">60 min</option>
+                            <option value="75min">75 min</option>
+                            <option value="90min+">90+ min</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Experience Level</label>
+                        <select name="experienceLevel" [(ngModel)]="athleteFormData.experienceLevel" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-galio-orange transition-colors">
+                            <option value="">Select level</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Equipment Available</label>
+                        <select name="equipment" [(ngModel)]="athleteFormData.equipment" class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 px-4 text-white text-sm focus:outline-none focus:border-galio-orange transition-colors">
+                            <option value="">Select equipment</option>
+                            <option value="gym">Full Gym Access</option>
+                            <option value="home_equip">Home (with equipment)</option>
+                            <option value="home_body">Home (bodyweight only)</option>
+                            <option value="outdoor">Outdoor / Track</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between pt-6 border-t border-slate-800">
+                <p class="text-galio-lime font-bold text-sm">{{ saveMessage }}</p>
+                <button type="submit" [disabled]="isSaving" class="px-10 py-4 bg-galio-orange text-white font-black uppercase tracking-wider rounded-xl hover:bg-orange-600 transition-all transform active:scale-95 disabled:opacity-50 disabled:hover:scale-100 shadow-xl shadow-galio-orange/20">
+                    {{ isSaving ? 'Saving...' : 'Save Goals &amp; Notify Coach' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</app-dashboard-layout>

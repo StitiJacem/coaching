@@ -1,0 +1,89 @@
+version: '3.9'
+
+services:
+  # PostgreSQL 
+  postgres:
+    image: postgres:16-alpine
+    container_name: coaching-app-db
+    environment:
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+      POSTGRES_DB: ${DB_NAME:-coaching_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - coaching-network
+
+  # pgAdmin 
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: coaching-app-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@coaching.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+    ports:
+      - "5050:80"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - coaching-network
+
+  # Backend APIi
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: coaching-app-api
+    environment:
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      DB_HOST: coaching-app-db
+      DB_NAME: ${DB_NAME:-coaching_db}
+      DB_PORT: 5432
+      NODE_ENV: ${NODE_ENV:-development}
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
+      EMAIL_SERVICE: ${EMAIL_SERVICE:-gmail}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-753006300463-55uqsul6tgac9elg4o5etarvh2fv1tcv.apps.googleusercontent.com}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-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}
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - coaching-network
+    restart: unless-stopped
+
+  # Frontend 
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: coaching-app-ui
+    ports:
+      - "8081:80"
+    environment:
+      - API_URL=http://backend:3000
+    depends_on:
+      - backend
+    networks:
+      - coaching-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  coaching-network:
+    driver: bridge

@@ -1,0 +1,20 @@
+import { Router } from 'express';
+import { CoachingRequestController } from '../controllers/CoachingRequestController';
+import { authenticateToken } from '../middleware/authenticateToken';
+
+const router = Router();
+
+
+router.get('/me', authenticateToken, CoachingRequestController.getMyRequests);
+
+
+router.post('/', authenticateToken, CoachingRequestController.sendRequest);
+router.get('/athlete/:athleteId', authenticateToken, CoachingRequestController.getRequestsByAthlete);
+
+
+router.get('/coach/:coachId', authenticateToken, CoachingRequestController.getRequestsByCoach);
+router.patch('/:id', authenticateToken, CoachingRequestController.updateStatus);
+router.delete('/disconnect-athlete/:athleteId', authenticateToken, CoachingRequestController.disconnectAthlete);
+router.delete('/:id', authenticateToken, CoachingRequestController.deleteRequest);
+
+export default router;

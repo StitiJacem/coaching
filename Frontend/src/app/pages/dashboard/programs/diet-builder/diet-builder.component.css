@@ -1,0 +1,442 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   DIET BUILDER COMPONENT — Premium Dark Theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
+.builder-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 6rem; /* space for fixed save bar */
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.builder-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.builder-back {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: color 0.15s;
+}
+.builder-back:hover { color: #f97316; }
+
+.builder-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 900;
+    color: #f1f5f9;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+
+.builder-sub {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 0.25rem;
+}
+
+.builder-header-actions { display: flex; gap: 0.75rem; }
+
+/* ── Alerts ───────────────────────────────────────────────────────────────── */
+.alert-error {
+    padding: 0.875rem 1rem;
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 0.875rem;
+    color: #f87171;
+    font-size: 0.85rem;
+    margin-bottom: 1rem;
+}
+.connection-error {
+    background: rgba(234,179,8,0.08);
+    border-color: rgba(234,179,8,0.25);
+    color: #fbbf24;
+}
+
+/* ── Save Button ──────────────────────────────────────────────────────────── */
+.btn-save {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.5rem;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+    border: none;
+    border-radius: 0.875rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.btn-save:hover { transform: translateY(-1px); box-shadow: 0 4px 24px rgba(249,115,22,0.35); }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+/* ── Plan Config Section ──────────────────────────────────────────────────── */
+.plan-config-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+}
+@media (max-width: 720px) {
+    .config-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Forms ────────────────────────────────────────────────────────────────── */
+.form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+.form-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #64748b;
+}
+.form-input {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    padding: 0.65rem 0.875rem;
+    color: #f1f5f9;
+    font-size: 0.875rem;
+    transition: border-color 0.2s;
+    width: 100%;
+}
+.form-input:focus { outline: none; border-color: #f97316; }
+.form-input option { background: #111827; }
+
+/* ── Builder Layout ───────────────────────────────────────────────────────── */
+.builder-layout {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 1rem;
+    align-items: start;
+}
+@media (max-width: 600px) {
+    .builder-layout { grid-template-columns: 1fr; }
+    .day-tabs { display: flex; flex-direction: row; overflow-x: auto; gap: 0.25rem; }
+}
+
+/* ── Day Tabs ─────────────────────────────────────────────────────────────── */
+.day-tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+    position: sticky;
+    top: 1rem;
+}
+
+.day-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 0.625rem 0.5rem;
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    gap: 0.15rem;
+}
+.day-tab:hover { border-color: #334155; }
+.day-tab.active { background: rgba(249,115,22,0.1); border-color: #f97316; }
+.day-tab.rest { opacity: 0.6; }
+
+.day-tab-num {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #f1f5f9;
+}
+.day-tab-label {
+    font-size: 0.6rem;
+    color: #64748b;
+    text-align: center;
+    white-space: nowrap;
+}
+.day-tab.active .day-tab-num { color: #f97316; }
+
+.day-tab-add {
+    padding: 0.5rem;
+    background: transparent;
+    border: 1px dashed #334155;
+    border-radius: 0.75rem;
+    color: #64748b;
+    font-size: 0.7rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.day-tab-add:hover { border-color: #f97316; color: #f97316; }
+
+/* ── Day Editor ───────────────────────────────────────────────────────────── */
+.day-editor {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+}
+
+.day-editor-header {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #1e293b;
+}
+
+.day-editor-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.day-title-input {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #1e293b;
+    color: #f1f5f9;
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 0.25rem 0;
+    flex: 1;
+    min-width: 0;
+    transition: border-color 0.2s;
+}
+.day-title-input:focus { outline: none; border-bottom-color: #f97316; }
+.day-title-input::placeholder { color: #475569; }
+
+.rest-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.rest-toggle input[type="checkbox"] { accent-color: #f97316; }
+
+.day-totals {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #0f172a;
+    padding: 0.4rem 0.875rem;
+    border-radius: 999px;
+    border: 1px solid #1e293b;
+    flex-wrap: wrap;
+}
+.total-cal { color: #f97316; }
+.total-p   { color: #10b981; }
+.total-c   { color: #60a5fa; }
+.total-f   { color: #a78bfa; }
+
+.day-editor-actions { }
+
+.btn-danger-sm {
+    padding: 0.4rem 0.875rem;
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: 0.625rem;
+    color: #f87171;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-danger-sm:hover { background: rgba(239,68,68,0.2); }
+
+/* ── Rest Day Message ─────────────────────────────────────────────────────── */
+.rest-day-msg {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 2rem;
+    background: rgba(100,116,139,0.05);
+    border: 1px dashed #1e293b;
+    border-radius: 0.875rem;
+}
+.rest-day-msg > span { font-size: 2rem; }
+.rest-title { font-weight: 600; color: #94a3b8; font-size: 0.95rem; }
+.rest-hint  { font-size: 0.8rem; color: #475569; margin-top: 0.2rem; }
+
+/* ── Meals Editor ─────────────────────────────────────────────────────────── */
+.meals-editor { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.meal-editor-row {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 0.875rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    transition: border-color 0.2s;
+}
+.meal-editor-row:hover { border-color: #334155; }
+
+.meal-editor-top { display: flex; flex-direction: column; gap: 0.5rem; }
+.meal-editor-row-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.meal-type-select {
+    padding: 0.35rem 0.625rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+.type-breakfast { background: rgba(251,191,36,0.15); color: #fbbf24; }
+.type-lunch     { background: rgba(34,197,94,0.15);  color: #22c55e; }
+.type-dinner    { background: rgba(99,102,241,0.15); color: #818cf8; }
+.type-snack     { background: rgba(249,115,22,0.15); color: #f97316; }
+
+.meal-time-input {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #1e293b;
+    border-radius: 0.5rem;
+    padding: 0.3rem 0.5rem;
+    color: #f1f5f9;
+    font-size: 0.8rem;
+    width: 100px;
+}
+.meal-time-input:focus { outline: none; border-color: #f97316; }
+
+.meal-remove {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: #475569;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: color 0.15s;
+    padding: 0.25rem;
+}
+.meal-remove:hover { color: #ef4444; }
+
+.meal-instructions-input {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid #1e293b;
+    border-radius: 0.625rem;
+    padding: 0.5rem 0.75rem;
+    color: #cbd5e1;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    resize: vertical;
+    transition: border-color 0.2s;
+}
+.meal-instructions-input:focus { outline: none; border-color: #f97316; }
+.meal-instructions-input::placeholder { color: #334155; }
+
+/* ── Macro Inputs ─────────────────────────────────────────────────────────── */
+.meal-macros-inputs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+}
+@media (max-width: 500px) {
+    .meal-macros-inputs { grid-template-columns: 1fr 1fr; }
+}
+
+.macro-input-group { display: flex; flex-direction: column; gap: 0.25rem; }
+.macro-input-group label {
+    font-size: 0.62rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+}
+.color-protein { color: #10b981 !important; }
+.color-carbs   { color: #60a5fa !important; }
+.color-fats    { color: #a78bfa !important; }
+
+.macro-input {
+    width: 100%;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #1e293b;
+    border-radius: 0.5rem;
+    padding: 0.4rem 0.5rem;
+    color: #f1f5f9;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: border-color 0.2s;
+}
+.macro-input:focus { outline: none; border-color: #f97316; }
+
+/* ── Add Meal Button ──────────────────────────────────────────────────────── */
+.add-meal-btn {
+    width: 100%;
+    padding: 0.875rem;
+    background: transparent;
+    border: 1px dashed #1e293b;
+    border-radius: 0.875rem;
+    color: #475569;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.add-meal-btn:hover { border-color: #f97316; color: #f97316; background: rgba(249,115,22,0.04); }
+
+/* ── Empty Meals ──────────────────────────────────────────────────────────── */
+.empty-meals {
+    padding: 2.5rem;
+    text-align: center;
+    color: #475569;
+    font-size: 0.875rem;
+}
+.empty-meals-hint { font-size: 0.75rem; margin-top: 0.25rem; color: #334155; }
+
+/* ── Save Bar ─────────────────────────────────────────────────────────────── */
+.save-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: #0f172a;
+    border-top: 1px solid #1e293b;
+    padding: 0.875rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+    gap: 1rem;
+}
+
+.save-bar-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: #64748b;
+}
+.save-bar-athlete { color: #f97316; font-weight: 600; }
