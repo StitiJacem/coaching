@@ -108,7 +108,7 @@ export interface ClientCompliance {
     providedIn: 'root'
 })
 export class NutritionService {
-    private apiUrl = `${environment.apiUrl}/nutrition`;
+    private apiUrl = `${environment.apiUrl}/api/nutrition`;
 
     constructor(
         private http: HttpClient,

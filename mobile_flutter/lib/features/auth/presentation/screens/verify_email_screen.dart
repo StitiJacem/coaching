@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,19 +21,56 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   bool _isLoading = false;
   bool _resendLoading = false;
   String? _error;
+  
+  int _secondsRemaining = 300; // 5 minutes
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    _secondsRemaining = 300;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_secondsRemaining == 0) {
+        timer.cancel();
+      } else {
+        setState(() => _secondsRemaining--);
+      }
+    });
+  }
+
+  String _getFormattedTime() {
+    final minutes = _secondsRemaining ~/ 60;
+    final seconds = _secondsRemaining % 60;
+    return '$minutes:${seconds.toString().padLeft(2, '0')}';
+  }
 
   Future<void> _verify() async {
     if (_pinController.text.length < 6) {
       setState(() => _error = 'Enter the 6-digit code');
       return;
     }
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+    
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.verifyEmail(
           email: widget.email, code: _pinController.text.trim());
       if (mounted) {
-        // Navigate to login (user must login after verification)
         context.go('/login');
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -44,17 +82,23 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
       }
     } on ApiException catch (e) {
       setState(() => _error = e.message);
+    } catch (e) {
+      setState(() => _error = 'An unexpected error occurred');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
   Future<void> _resend() async {
-    setState(() => _resendLoading = true);
+    setState(() {
+      _resendLoading = true;
+      _error = null;
+    });
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.resendCode(widget.email);
       if (mounted) {
+        _startTimer();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Code resent — check your inbox'),
@@ -77,15 +121,15 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final defaultPinTheme = PinTheme(
-      width: 56,
-      height: 60,
+      width: 50,
+      height: 56,
       textStyle: const TextStyle(
           fontSize: 22,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.bold,
           color: AppColors.textPrimary),
       decoration: BoxDecoration(
         color: AppColors.surfaceVariant,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.cardBorder),
       ),
     );
@@ -107,23 +151,22 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               ),
               const SizedBox(height: 24),
               const AuthHeader(
-                title: 'Check your email',
-                subtitle: '',
+                title: 'Verify your email',
+                subtitle: 'Enter the 6-digit code sent to your inbox',
               ),
               const SizedBox(height: 8),
-              RichText(
-                text: TextSpan(
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: AppColors.textSecondary),
-                  children: [
-                    const TextSpan(text: 'We sent a 6-digit code to '),
-                    TextSpan(
-                      text: widget.email,
-                      style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  widget.email,
+                  style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14),
                 ),
               ),
               const SizedBox(height: 40),
@@ -138,7 +181,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                     border: Border.all(color: AppColors.primary, width: 1.5),
                   ),
                   submittedPinTheme: defaultPinTheme.copyDecorationWith(
-                    color: AppColors.primary.withValues(alpha: 0.12),
+                    color: AppColors.primary.withValues(alpha: 0.1),
                     border: Border.all(color: AppColors.primary),
                   ),
                   errorPinTheme: defaultPinTheme.copyDecorationWith(
@@ -149,12 +192,51 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               ),
 
               if (_error != null) ...[
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Center(
-                  child: Text(_error!,
-                      style: const TextStyle(color: AppColors.error)),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: AppColors.error, fontSize: 13),
+                    ),
+                  ),
                 ),
               ],
+              
+              const SizedBox(height: 32),
+
+              // Timer Display
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceVariant,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: AppColors.cardBorder),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.timer_outlined, size: 16, color: _secondsRemaining <= 60 ? AppColors.error : AppColors.textSecondary),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Expires in: ${_getFormattedTime()}',
+                        style: TextStyle(
+                          color: _secondsRemaining <= 60 ? AppColors.error : AppColors.textSecondary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 32),
 
               _isLoading
@@ -162,8 +244,8 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                       child: CircularProgressIndicator(
                           color: AppColors.primary))
                   : ElevatedButton(
-                      onPressed: _verify,
-                      child: const Text('Verify Email'),
+                      onPressed: _secondsRemaining > 0 ? _verify : null,
+                      child: const Text('Verify Account'),
                     ),
               const SizedBox(height: 24),
 
@@ -176,12 +258,25 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
                       )
                     : TextButton(
                         onPressed: _resend,
-                        child: const Text(
-                          "Didn't get the code? Resend",
-                          style: TextStyle(color: AppColors.textSecondary),
+                        child: RichText(
+                          text: TextSpan(
+                            style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                            children: [
+                              const TextSpan(text: "Didn't receive the code? "),
+                              TextSpan(
+                                text: 'Resend',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
               ),
+              const SizedBox(height: 40),
             ],
           ),
         ),

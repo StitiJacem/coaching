@@ -12,7 +12,7 @@ export class UserInvitation {
     @Column()
     coachId!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "coachId" })
     coach!: User;
 

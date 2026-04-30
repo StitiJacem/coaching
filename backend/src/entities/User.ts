@@ -20,6 +20,12 @@ export class User {
     @Column({ nullable: true })
     phone?: string;
 
+    @Column({ nullable: true })
+    gender?: string;
+
+    @Column({ nullable: true })
+    age?: number;
+
     @Column({ unique: true })
     email!: string;
 
@@ -66,6 +72,8 @@ export class User {
             this.role = data.role || 'athlete';
             this.photo_url = data.photo_url;
             this.phone = data.phone;
+            this.gender = data.gender;
+            this.age = data.age;
             this.onboarding_completed = data.onboarding_completed || false;
             this.profile_completed = data.profile_completed || false;
             this.verification_code = data.verification_code;

@@ -71,11 +71,21 @@
                             </div>
                             <p *ngIf="n.body" class="text-slate-400 text-xs mt-0.5">{{ n.body }}</p>
                             <!-- Nutrition Invite Actions -->
-                            <div *ngIf="n.type === 'nutrition_invite' && !n.read" class="mt-3 flex gap-2">
-                                <button (click)="acceptNutritionInvite($event, n)" class="bg-gosport-orange hover:bg-orange-600 text-white text-[11px] font-bold px-3 py-1.5 rounded transition bg-orange-500">
+                            <div *ngIf="n.type === 'nutrition_invite' && !respondedIds.has(n.id)" class="mt-3 flex gap-2">
+                                <button
+                                    (click)="acceptNutritionInvite($event, n)"
+                                    [disabled]="processingIds.has(n.id)"
+                                    class="flex items-center gap-1 bg-gosport-orange hover:bg-orange-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-[11px] font-bold px-3 py-1.5 rounded transition">
+                                    <svg *ngIf="processingIds.has(n.id)" class="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                                    </svg>
                                     Accepter
                                 </button>
-                                <button (click)="rejectNutritionInvite($event, n)" class="bg-slate-700 hover:bg-slate-600 text-white text-[11px] font-bold px-3 py-1.5 rounded transition">
+                                <button
+                                    (click)="rejectNutritionInvite($event, n)"
+                                    [disabled]="processingIds.has(n.id)"
+                                    class="bg-slate-700 hover:bg-slate-600 disabled:opacity-60 disabled:cursor-not-allowed text-white text-[11px] font-bold px-3 py-1.5 rounded transition">
                                     Refuser
                                 </button>
                             </div>

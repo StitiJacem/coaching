@@ -20,6 +20,8 @@ export class MessagingComponent implements OnInit, OnDestroy {
   newMessage: string = '';
   activeTab: 'messages' | 'contacts' = 'messages';
   private messagesSubscription?: Subscription;
+  private contactsSubscription?: Subscription;
+  private conversationsSubscription?: Subscription;
 
   constructor(
     public roleService: RoleService,
@@ -34,14 +36,21 @@ export class MessagingComponent implements OnInit, OnDestroy {
       this.messages = msgs;
     });
 
-    this.chatService.getConversations().subscribe((convs: any[]) => {
+    this.conversationsSubscription = this.chatService.conversations$.subscribe(convs => {
       this.conversations = convs;
-      this.handleQueryParams();
+      // Only handle query params once we have conversations to check against
+      if (convs.length >= 0) {
+        this.handleQueryParams();
+      }
     });
 
-    this.chatService.getContacts().subscribe((contacts: any[]) => {
+    this.contactsSubscription = this.chatService.contacts$.subscribe(contacts => {
       this.contacts = contacts;
     });
+
+    // Initial refresh to trigger socket fetch
+    this.chatService.refreshContacts();
+    this.chatService.refreshConversations();
   }
 
   handleQueryParams() {
@@ -79,6 +88,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
       this.selectConversation(existing);
     } else {
       this.chatService.startConversation(receiverUserId, type).subscribe((newConv: any) => {
+        // Socket should refresh list, but we can unshift for instant feedback
         this.conversations.unshift(newConv);
         this.selectConversation(newConv);
       });
@@ -102,9 +112,9 @@ export class MessagingComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    if (this.messagesSubscription) {
-      this.messagesSubscription.unsubscribe();
-    }
+    this.messagesSubscription?.unsubscribe();
+    this.contactsSubscription?.unsubscribe();
+    this.conversationsSubscription?.unsubscribe();
   }
 
   loadConversations() {

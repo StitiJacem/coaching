@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { SocialAuthService } from '../../services/social-auth.service';
 import { RoleService } from '../../services/role.service';
+import { ChatService } from '../../services/chat.service';
 
 @Component({
   selector: 'app-login',
@@ -15,12 +16,18 @@ export class LoginComponent {
   loginForm: FormGroup;
   errorMessage: string = '';
   socialLoading = false;
+  showPassword = false;
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private socialAuthService: SocialAuthService,
     private roleService: RoleService,
+    private chatService: ChatService,
     private router: Router
   ) {
     this.loginForm = this.fb.group({
@@ -34,6 +41,7 @@ export class LoginComponent {
       this.authService.login(this.loginForm.value).subscribe({
         next: (response: any) => {
           this.roleService.refreshRole();
+          this.chatService.updateTokenAndReconnect();
           if (response.user && !response.user.profile_completed) {
             this.router.navigate(['/complete-profile']);
           } else {
@@ -57,6 +65,7 @@ export class LoginComponent {
         this.router.navigate(['/complete-profile']);
       } else {
         this.roleService.refreshRole();
+        this.chatService.updateTokenAndReconnect();
         this.router.navigate(['/dashboard']);
       }
     } catch (error: any) {

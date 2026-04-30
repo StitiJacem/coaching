@@ -7,6 +7,8 @@ class UserModel extends Equatable {
   final String firstName;
   final String lastName;
   final String role;
+  final String gender;
+  final int age;
   final bool emailVerified;
   final bool onboardingCompleted;
   final String? profilePicture;
@@ -18,6 +20,8 @@ class UserModel extends Equatable {
     required this.firstName,
     required this.lastName,
     required this.role,
+    this.gender = 'male',
+    this.age = 20,
     required this.emailVerified,
     required this.onboardingCompleted,
     this.profilePicture,
@@ -35,6 +39,8 @@ class UserModel extends Equatable {
         firstName: json['first_name'] as String? ?? '',
         lastName: json['last_name'] as String? ?? '',
         role: json['role'] as String? ?? 'athlete',
+        gender: json['gender'] as String? ?? 'male',
+        age: json['age'] as int? ?? 20,
         // Backend returns `is_verified` for registration and `profile_completed` for onboarding
         emailVerified: (json['is_verified'] as bool?) ??
             (json['email_verified'] as bool?) ??
@@ -52,6 +58,8 @@ class UserModel extends Equatable {
         'first_name': firstName,
         'last_name': lastName,
         'role': role,
+        'gender': gender,
+        'age': age,
         'email_verified': emailVerified,
         'onboarding_completed': onboardingCompleted,
         'profilePicture': profilePicture,
@@ -64,6 +72,8 @@ class UserModel extends Equatable {
     String? firstName,
     String? lastName,
     String? role,
+    String? gender,
+    int? age,
     bool? emailVerified,
     bool? onboardingCompleted,
     String? profilePicture,
@@ -75,11 +85,13 @@ class UserModel extends Equatable {
         firstName: firstName ?? this.firstName,
         lastName: lastName ?? this.lastName,
         role: role ?? this.role,
+        gender: gender ?? this.gender,
+        age: age ?? this.age,
         emailVerified: emailVerified ?? this.emailVerified,
         onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
         profilePicture: profilePicture ?? this.profilePicture,
       );
 
   @override
-  List<Object?> get props => [id, email, role, emailVerified, onboardingCompleted];
+  List<Object?> get props => [id, email, role, emailVerified, onboardingCompleted, gender, age];
 }

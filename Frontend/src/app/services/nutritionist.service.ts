@@ -34,13 +34,17 @@ export interface NutritionConnection {
     providedIn: 'root'
 })
 export class NutritionistService {
-    private apiUrl = `${environment.apiUrl}/nutrition`;
+    private apiUrl = `${environment.apiUrl}/api/nutrition`;
 
     constructor(private http: HttpClient) {}
 
     // Athlete -> Discovery
     getAllNutritionists(): Observable<NutritionistProfile[]> {
         return this.http.get<NutritionistProfile[]>(`${this.apiUrl}/nutritionists`);
+    }
+
+    getById(id: string): Observable<NutritionistProfile> {
+        return this.http.get<NutritionistProfile>(`${this.apiUrl}/nutritionists/${id}`);
     }
 
     // Athlete -> Request

@@ -9,6 +9,7 @@ import 'package:coaching_mobile/shared/providers/auth_provider.dart';
 import 'package:coaching_mobile/features/dashboard/data/dashboard_repository.dart';
 import 'package:coaching_mobile/features/workout/presentation/screens/workout_builder_screen.dart';
 import 'package:coaching_mobile/features/workout/presentation/screens/workout_player_screen.dart';
+import 'package:coaching_mobile/shared/widgets/animate_in.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   /// When [athleteId] is provided (coach viewing an athlete's calendar),
@@ -182,66 +183,70 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             child: Column(
               children: [
                 // ── Month navigator ───────────────────────────────────────
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: AppColors.cardBorder),
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            onPressed: _prevMonth,
-                            icon: const Icon(Icons.chevron_left_rounded,
-                                color: AppColors.textSecondary, size: 26),
-                          ),
-                          Text(
-                            _monthLabel(_focusedMonth),
-                            style: const TextStyle(
-                                color: AppColors.textPrimary,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w700),
-                          ),
-                          IconButton(
-                            onPressed: _nextMonth,
-                            icon: const Icon(Icons.chevron_right_rounded,
-                                color: AppColors.textSecondary, size: 26),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
+                AnimateIn(
+                  delay: 100,
+                  transitionType: AnimateInTransitionType.slideUp,
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.card,
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            IconButton(
+                              onPressed: _prevMonth,
+                              icon: const Icon(Icons.chevron_left_rounded,
+                                  color: AppColors.textSecondary, size: 26),
+                            ),
+                            Text(
+                              _monthLabel(_focusedMonth),
+                              style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                            IconButton(
+                              onPressed: _nextMonth,
+                              icon: const Icon(Icons.chevron_right_rounded,
+                                  color: AppColors.textSecondary, size: 26),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
 
-                      // Day of week labels
-                      Row(
-                        children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                            .map((d) => Expanded(
-                                  child: Center(
-                                    child: Text(d,
-                                        style: const TextStyle(
-                                            color: AppColors.textMuted,
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w700)),
-                                  ),
-                                ))
-                            .toList(),
-                      ),
-                      const SizedBox(height: 10),
+                        // Day of week labels
+                        Row(
+                          children: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+                              .map((d) => Expanded(
+                                    child: Center(
+                                      child: Text(d,
+                                          style: const TextStyle(
+                                              color: AppColors.textMuted,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700)),
+                                    ),
+                                  ))
+                              .toList(),
+                        ),
+                        const SizedBox(height: 10),
 
-                      // Grid of days
-                      if (_loading)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 40),
-                          child: Center(
-                              child: CircularProgressIndicator(
-                                  color: AppColors.primary)),
-                        )
-                      else
-                        _buildGrid(now),
-                    ],
+                        // Grid of days
+                        if (_loading)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 40),
+                            child: Center(
+                                child: CircularProgressIndicator(
+                                    color: AppColors.primary)),
+                          )
+                        else
+                          _buildGrid(now),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

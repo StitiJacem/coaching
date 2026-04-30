@@ -6,6 +6,7 @@ import 'package:coaching_mobile/core/api/api_client.dart';
 import 'package:coaching_mobile/features/auth/data/auth_repository.dart';
 import 'package:coaching_mobile/features/dashboard/data/dashboard_repository.dart';
 import 'package:intl/intl.dart';
+import 'package:coaching_mobile/shared/widgets/animate_in.dart';
 
 class WorkoutPlayerScreen extends ConsumerStatefulWidget {
   final int workoutLogId;
@@ -163,91 +164,175 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                    // Exercise Header
-                   Row(
-                     children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(currentEx['gifUrl'], width: 80, height: 80, fit: BoxFit.cover),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('EXERCISE ${_currentExIdx + 1} OF $totalEx', 
-                                  style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
-                              Text(currentEx['name'].toString().toUpperCase(), 
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                            ],
+                   AnimateIn(
+                     delay: 100,
+                     child: Row(
+                       children: [
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.2),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: Image.network(
+                                currentEx['gifUrl'], 
+                                width: 90, 
+                                height: 90, 
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Container(
+                                  width: 90, height: 90, color: AppColors.surfaceVariant,
+                                  child: const Icon(Icons.fitness_center_rounded, color: AppColors.textMuted),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                     ],
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('EXERCISE ${_currentExIdx + 1} OF $totalEx', 
+                                    style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.2)),
+                                const SizedBox(height: 4),
+                                Text(currentEx['name'].toString().toUpperCase(), 
+                                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
+                              ],
+                            ),
+                          ),
+                       ],
+                     ),
                    ),
-                   const SizedBox(height: 30),
+                   const SizedBox(height: 32),
 
                    // Set list
-                   const Text('SETS TO COMPLETE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textMuted, letterSpacing: 1)),
-                   const SizedBox(height: 12),
+                   AnimateIn(
+                     delay: 200,
+                     child: const Text('SETS TO COMPLETE', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textMuted, letterSpacing: 1.5)),
+                   ),
+                   const SizedBox(height: 14),
                    ...List.generate(int.tryParse(currentEx['sets'].toString()) ?? 1, (idx) {
                       final exId = currentEx['id'].toString();
                       final isDone = _setsDone[exId]![idx];
                       final targetWeight = (currentEx['targetWeights'] as List?)?[idx] ?? 0.0;
                       final rest = int.tryParse(currentEx['rest'].toString()) ?? 60;
 
-                      return GestureDetector(
-                        onTap: () => _toggleSet(exId, idx, rest),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(bottom: 12),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                          decoration: BoxDecoration(
-                            color: isDone ? AppColors.success.withOpacity(0.1) : AppColors.card,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isDone ? AppColors.success : AppColors.cardBorder),
-                          ),
-                          child: Row(
-                            children: [
-                               CircleAvatar(
-                                 radius: 12,
-                                 backgroundColor: isDone ? AppColors.success : AppColors.surface,
-                                 child: Text('${idx + 1}', style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isDone ? Colors.white : AppColors.textSecondary)),
-                               ),
-                               const SizedBox(width: 16),
-                               Expanded(
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   children: [
-                                     Text('${currentEx['reps']} REPS @ ${targetWeight}KG', 
-                                         style: TextStyle(fontWeight: FontWeight.w800, color: isDone ? AppColors.success : AppColors.textPrimary)),
-                                   ],
+                      return AnimateIn(
+                        delay: 300 + (idx * 50),
+                        child: GestureDetector(
+                          onTap: () => _toggleSet(exId, idx, rest),
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            margin: const EdgeInsets.only(bottom: 12),
+                            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+                            decoration: BoxDecoration(
+                              color: isDone ? AppColors.success.withOpacity(0.08) : AppColors.card,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: isDone ? AppColors.success.withOpacity(0.5) : AppColors.cardBorder,
+                                width: isDone ? 2 : 1,
+                              ),
+                              boxShadow: isDone ? [] : [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.03),
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
+                                )
+                              ],
+                            ),
+                            child: Row(
+                              children: [
+                                 Container(
+                                   width: 32,
+                                   height: 32,
+                                   decoration: BoxDecoration(
+                                     color: isDone ? AppColors.success : AppColors.surfaceVariant,
+                                     shape: BoxShape.circle,
+                                   ),
+                                   child: Center(
+                                     child: Text('${idx + 1}', 
+                                         style: TextStyle(
+                                           fontSize: 12, 
+                                           fontWeight: FontWeight.w800, 
+                                           color: isDone ? Colors.white : AppColors.textSecondary
+                                         )),
+                                   ),
                                  ),
-                               ),
-                               if (isDone) const Icon(Icons.check_circle, color: AppColors.success)
-                               else Icon(Icons.radio_button_off, color: AppColors.textMuted.withOpacity(0.3)),
-                            ],
+                                 const SizedBox(width: 16),
+                                 Expanded(
+                                   child: Column(
+                                     crossAxisAlignment: CrossAxisAlignment.start,
+                                     children: [
+                                       Text('${currentEx['reps']} REPS', 
+                                           style: TextStyle(
+                                             fontWeight: FontWeight.w600, 
+                                             fontSize: 12,
+                                             color: isDone ? AppColors.success : AppColors.textMuted
+                                           )),
+                                       Text('${targetWeight} KG', 
+                                           style: TextStyle(
+                                             fontWeight: FontWeight.w900, 
+                                             fontSize: 18,
+                                             color: isDone ? AppColors.success : AppColors.textPrimary
+                                           )),
+                                     ],
+                                   ),
+                                 ),
+                                 if (isDone) 
+                                   const Icon(Icons.check_circle_rounded, color: AppColors.success, size: 28)
+                                 else 
+                                   Icon(Icons.radio_button_off_rounded, color: AppColors.textMuted.withOpacity(0.3), size: 28),
+                              ],
+                            ),
                           ),
                         ),
                       );
                    }),
 
                    if (_restSeconds > 0)
-                    Container(
-                      margin: const EdgeInsets.only(top: 20),
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 10))],
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.timer, color: Colors.white),
-                          const SizedBox(width: 12),
-                          Text('REST TIMER: $_restSeconds s', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900)),
-                          const Spacer(),
-                          TextButton(onPressed: () => setState(() => _restSeconds = 0), child: const Text('SKIP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                        ],
+                    AnimateIn(
+                      delay: 0,
+                      transitionType: AnimateInTransitionType.slideUp,
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 20),
+                        padding: const EdgeInsets.all(22),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [AppColors.primary, Color(0xFFE8621A)],
+                          ),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [BoxShadow(color: AppColors.primary.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, 8))],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.timer_outlined, color: Colors.white, size: 28),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text('REST TIME', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                                Text('$_restSeconds s', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                              ],
+                            ),
+                            const Spacer(),
+                            TextButton(
+                              onPressed: () => setState(() => _restSeconds = 0),
+                              style: TextButton.styleFrom(
+                                backgroundColor: Colors.white.withOpacity(0.2),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                              child: const Text('SKIP', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12)),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                 ],
@@ -297,57 +382,103 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Visual flare
+          // Background Gradient Flares
           Positioned(
-            top: -100,
-            right: -100,
+            top: -150,
+            left: -100,
             child: Container(
-              width: 300,
-              height: 300,
+              width: 400,
+              height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withOpacity(0.1),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withOpacity(0.05),
-                    blurRadius: 100,
-                    spreadRadius: 50,
-                  ),
-                ],
+                color: AppColors.primary.withOpacity(0.08),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -100,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.accent.withOpacity(0.05),
               ),
             ),
           ),
           
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.all(30),
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Spacer(),
-                  const Text('GET READY', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 12)),
-                  const SizedBox(height: 8),
-                  Text(_session['title']?.toString().toUpperCase() ?? 'DAILY WORKOUT', 
-                      style: const TextStyle(fontSize: 42, fontWeight: FontWeight.w900, height: 1.1)),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                       _InfoBadge(icon: Icons.timer, label: '${_session['duration'] ?? 45} MIN'),
-                       const SizedBox(width: 12),
-                       _InfoBadge(icon: Icons.fitness_center, label: '${(_session['workoutData']?['exercises'] as List?)?.length ?? 0} EXERCISES'),
-                    ],
+                  const AnimateIn(
+                    delay: 200,
+                    child: Text('GET READY', 
+                        style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, letterSpacing: 3, fontSize: 13)),
                   ),
-                  const SizedBox(height: 40),
-                  const Text('YOUR FOCUS FOR TODAY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.textMuted)),
-                  const SizedBox(height: 8),
-                  Text(_session['notes'] ?? 'Push your limits and stay consistent. You\'ve got this!', 
-                      style: const TextStyle(fontSize: 15, color: AppColors.textSecondary, height: 1.5)),
+                  const SizedBox(height: 12),
+                  AnimateIn(
+                    delay: 400,
+                    child: Text(_session['title']?.toString().toUpperCase() ?? 'DAILY WORKOUT', 
+                        style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w900, height: 1.0, letterSpacing: -1.5)),
+                  ),
+                  const SizedBox(height: 24),
+                  AnimateIn(
+                    delay: 600,
+                    child: Row(
+                      children: [
+                         _InfoBadge(icon: Icons.timer_rounded, label: '${_session['duration'] ?? 45} MIN'),
+                         const SizedBox(width: 12),
+                         _InfoBadge(icon: Icons.fitness_center_rounded, label: '${(_session['workoutData']?['exercises'] as List?)?.length ?? 0} EXERCISES'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 48),
+                  AnimateIn(
+                    delay: 800,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('YOUR FOCUS FOR TODAY', 
+                            style: TextStyle(fontSize: 11, fontWeight: FontWeight.w800, color: AppColors.textMuted, letterSpacing: 1)),
+                        const SizedBox(height: 12),
+                        Text(_session['notes'] ?? 'Push your limits and stay consistent. You\'ve got this!', 
+                            style: TextStyle(fontSize: 16, color: AppColors.textPrimary.withOpacity(0.7), height: 1.6, fontWeight: FontWeight.w500)),
+                      ],
+                    ),
+                  ),
                   const Spacer(),
-                  ElevatedButton(
-                    onPressed: () => setState(() => _started = true),
-                    child: const Text('START WORKOUT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 2)),
+                  AnimateIn(
+                    delay: 1000,
+                    transitionType: AnimateInTransitionType.slideUp,
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withOpacity(0.3),
+                            blurRadius: 25,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => setState(() => _started = true),
+                        style: ElevatedButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 64),
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        ),
+                        child: const Text('START WORKOUT', 
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 2, color: Colors.white)),
+                      ),
+                    ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),

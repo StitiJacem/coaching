@@ -3,22 +3,88 @@ import { HttpClient } from '@angular/common/http';
 import { io, Socket } from 'socket.io-client';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ChatService {
-  private socket: Socket;
+  private socket!: Socket;
+  
   private messagesSubject = new BehaviorSubject<any[]>([]);
   public messages$ = this.messagesSubject.asObservable();
+  
+  private contactsSubject = new BehaviorSubject<any[]>([]);
+  public contacts$ = this.contactsSubject.asObservable();
+  
+  private conversationsSubject = new BehaviorSubject<any[]>([]);
+  public conversations$ = this.conversationsSubject.asObservable();
 
-  constructor(private http: HttpClient) {
-    this.socket = io(environment.apiUrl);
+  constructor(private http: HttpClient, private authService: AuthService) {
+    this.initializeSocket();
+    this.setupListeners();
+  }
 
-    this.socket.on('new_message', (message: any) => {
-      const currentMessages = this.messagesSubject.value;
-      this.messagesSubject.next([...currentMessages, message]);
+  private initializeSocket() {
+    const token = this.authService.getToken();
+    
+    // Connect with token if available
+    this.socket = io(environment.apiUrl, {
+      auth: { token },
+      autoConnect: !!token // Only connect if we have a token initially
     });
+
+    if (token) {
+      this.socket.connect();
+    }
+  }
+
+  /**
+   * Updates the socket connection with a new token (e.g. after login)
+   */
+  updateTokenAndReconnect() {
+    const token = this.authService.getToken();
+    if (token) {
+      this.socket.auth = { token };
+      if (this.socket.connected) {
+        this.socket.disconnect();
+      }
+      this.socket.connect();
+    }
+  }
+
+  private setupListeners() {
+    this.socket.on('connect', () => {
+      console.log('[Socket] Connected to server');
+      this.refreshContacts();
+      this.refreshConversations();
+    });
+
+    this.socket.on('contacts_update', (contacts: any[]) => {
+      console.log('[Socket] Received contacts update:', contacts.length);
+      this.contactsSubject.next(contacts);
+    });
+
+    this.socket.on('conversations_update', (conversations: any[]) => {
+      console.log('[Socket] Received conversations update:', conversations.length);
+      this.conversationsSubject.next(conversations);
+    });
+
+    this.socket.on('refresh_conversations', () => {
+      this.refreshConversations();
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('[Socket] Connection error:', error.message);
+    });
+  }
+
+  refreshContacts() {
+    this.socket.emit('get_contacts');
+  }
+
+  refreshConversations() {
+    this.socket.emit('get_conversations');
   }
 
   getConversations(): Observable<any[]> {

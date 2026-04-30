@@ -86,4 +86,43 @@ export class EmailService {
       return false;
     }
   }
+
+  static async sendPasswordResetEmail(email: string, code: string, username: string): Promise<boolean> {
+    const transporter = this.createTransporter();
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'GOSPORT - Réinitialisation de votre mot de passe',
+      html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #FF6B35 0%, #ff8a63 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0;">GOSPORT</h1>
+        </div>
+        <div style="background: #f9f9f9; padding: 30px;">
+          <h2 style="color: #333;">Bonjour ${username},</h2>
+          <p style="color: #666; font-size: 16px;">Vous avez demandé la réinitialisation de votre mot de passe pour votre compte GOSPORT.</p>
+          <p style="color: #666; font-size: 16px;">Voici votre code de réinitialisation :</p>
+          <div style="background: white; border: 2px solid #FF6B35; border-radius: 10px; padding: 20px; text-align: center; margin: 20px 0;">
+            <h1 style="color: #FF6B35; font-size: 36px; margin: 0; letter-spacing: 5px;">${code}</h1>
+          </div>
+          <p style="color: #666; font-size: 14px;">Ce code est valide pendant 60 minutes.</p>
+          <p style="color: #666; font-size: 14px;">Si vous n'êtes pas à l'origine de cette demande, vous pouvez ignorer cet email en toute sécurité.</p>
+        </div>
+        <div style="background: #333; padding: 20px; text-align: center;">
+          <p style="color: #999; font-size: 12px; margin: 0;">© 2026 GOSPORT. Tous droits réservés.</p>
+        </div>
+      </div>
+    `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Password reset email sent to:', email);
+      return true;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      throw error;
+    }
+  }
 }

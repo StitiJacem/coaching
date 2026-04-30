@@ -24,11 +24,6 @@ export class AthletesComponent implements OnInit {
   isLoading = true;
   searchTerm = '';
   showInviteModal = false;
-  
-  showMessageModal = false;
-  selectedAthleteForMessage: Athlete | null = null;
-  messageText = "";
-  isSendingMessage = false;
 
   constructor(
     public roleService: RoleService,
@@ -93,37 +88,5 @@ export class AthletesComponent implements OnInit {
         }
       });
     }
-  }
-
-  openMessageModal(athlete: Athlete): void {
-    this.selectedAthleteForMessage = athlete;
-    this.messageText = "";
-    this.showMessageModal = true;
-  }
-
-  closeMessageModal(): void {
-    this.showMessageModal = false;
-    this.selectedAthleteForMessage = null;
-  }
-
-  sendMessage(): void {
-    if (!this.selectedAthleteForMessage?.userId || !this.messageText.trim()) return;
-
-    this.isSendingMessage = true;
-    const type = this.roleService.currentRole === 'nutritionist' ? 'nutritionist-athlete' : 'coach-athlete';
-    
-    this.chatService.startConversation(this.selectedAthleteForMessage.userId, type).subscribe({
-      next: (conv) => {
-        this.chatService.sendMessage(conv.id, this.roleService.user.id, this.messageText);
-        this.isSendingMessage = false;
-        this.closeMessageModal();
-        alert('Message envoyé !');
-      },
-      error: (err) => {
-        console.error('Error starting conversation:', err);
-        alert('Erreur lors de l’envoi du message.');
-        this.isSendingMessage = false;
-      }
-    });
   }
 }

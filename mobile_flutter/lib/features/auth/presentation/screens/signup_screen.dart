@@ -21,13 +21,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  final _ageCtrl = TextEditingController();
   String _selectedRole = AppConstants.roleAthlete;
+  String _selectedGender = 'male';
   bool _passwordVisible = false;
   bool _isLoading = false;
 
   final _roles = [
     (value: AppConstants.roleAthlete, label: 'Athlete', icon: Icons.fitness_center_rounded),
     (value: AppConstants.roleCoach, label: 'Coach', icon: Icons.sports_rounded),
+    (value: AppConstants.roleNutritionist, label: 'Nutrition', icon: Icons.restaurant_rounded),
+    (value: AppConstants.roleDoctor, label: 'Doctor', icon: Icons.medical_services_rounded),
   ];
 
   @override
@@ -37,6 +41,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
+    _ageCtrl.dispose();
     super.dispose();
   }
 
@@ -50,6 +55,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
           email: _emailCtrl.text.trim(),
           password: _passwordCtrl.text,
           role: _selectedRole,
+          gender: _selectedGender,
+          age: int.tryParse(_ageCtrl.text) ?? 20,
         );
 
     if (mounted) {
@@ -100,49 +107,44 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                 // Role selector
                 Text('I am a...', style: Theme.of(context).textTheme.titleSmall),
                 const SizedBox(height: 12),
-                Row(
+                GridView.count(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  crossAxisCount: 2,
+                  childAspectRatio: 1.5,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
                   children: _roles.map((r) {
                     final selected = _selectedRole == r.value;
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () => setState(() => _selectedRole = r.value),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 8),
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? AppColors.primary.withValues(alpha: 0.15)
-                                : AppColors.surfaceVariant,
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(
-                              color: selected
-                                  ? AppColors.primary
-                                  : AppColors.cardBorder,
-                              width: selected ? 1.5 : 1,
-                            ),
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedRole = r.value),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                        decoration: BoxDecoration(
+                          color: selected
+                              ? AppColors.primary.withValues(alpha: 0.15)
+                              : AppColors.surfaceVariant,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: selected ? AppColors.primary : AppColors.cardBorder,
+                            width: selected ? 1.5 : 1,
                           ),
-                          child: Column(
-                            children: [
-                              Icon(r.icon,
-                                  color: selected
-                                      ? AppColors.primary
-                                      : AppColors.textMuted,
-                                  size: 28),
-                              const SizedBox(height: 6),
-                              Text(r.label,
-                                  style: TextStyle(
-                                    color: selected
-                                        ? AppColors.primary
-                                        : AppColors.textSecondary,
-                                    fontWeight: selected
-                                        ? FontWeight.w600
-                                        : FontWeight.normal,
-                                    fontSize: 13,
-                                  )),
-                            ],
-                          ),
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(r.icon,
+                                color: selected ? AppColors.primary : AppColors.textMuted,
+                                size: 24),
+                            const SizedBox(height: 4),
+                            Text(r.label,
+                                style: TextStyle(
+                                  color: selected ? AppColors.primary : AppColors.textSecondary,
+                                  fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                                  fontSize: 12,
+                                )),
+                          ],
                         ),
                       ),
                     );
@@ -189,6 +191,58 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     if (!v.contains('@')) return 'Enter a valid email';
                     return null;
                   },
+                ),
+                const SizedBox(height: 16),
+
+                // Age and Gender Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: AuthTextField(
+                        controller: _ageCtrl,
+                        label: 'Age',
+                        hint: '25',
+                        keyboardType: TextInputType.number,
+                        prefixIcon: Icons.calendar_today_outlined,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Required';
+                          final age = int.tryParse(v);
+                          if (age == null || age < 13) return 'Invalid';
+                          return null;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(left: 4, bottom: 8),
+                            child: Text('Gender', style: TextStyle(fontSize: 12, color: AppColors.textSecondary)),
+                          ),
+                          Container(
+                            height: 52,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceVariant,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.cardBorder),
+                            ),
+                            child: Row(
+                              children: [
+                                _buildGenderOption('male', Icons.male),
+                                _buildGenderOption('female', Icons.female),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
@@ -266,4 +320,37 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       ),
     );
   }
+
+  Widget _buildGenderOption(String value, IconData icon) {
+    final selected = _selectedGender == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _selectedGender = value),
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+          decoration: BoxDecoration(
+            color: selected ? AppColors.background : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: selected ? [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))] : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 16, color: selected ? AppColors.primary : AppColors.textMuted),
+              const SizedBox(width: 4),
+              Text(
+                value[0].toUpperCase() + value.substring(1),
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+                  color: selected ? AppColors.textPrimary : AppColors.textMuted,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+

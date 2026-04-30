@@ -1,19 +1,131 @@
-.input-group {
-    @apply mb-4;
+:host {
+    display: block;
+    height: 100vh;
+    overflow: hidden;
 }
 
-.input-group label {
-    @apply block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2;
+.home-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    filter: blur(8px);
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.premium-modal {
+    background: rgba(15, 17, 21, 0.9);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    border-radius: 2rem;
+    width: 100%;
+    max-width: 800px;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(255, 107, 53, 0.1);
+    animation: modalIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.premium-modal::-webkit-scrollbar {
+    width: 6px;
+}
+
+.premium-modal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.premium-modal::-webkit-scrollbar-thumb {
+    background: rgba(255, 107, 53, 0.3);
+    border-radius: 10px;
+}
+
+@keyframes modalIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
 .input-field {
-    @apply w-full bg-galio-surface border border-slate-700/50 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200;
+    @apply w-full bg-[#1A1A1A] border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder:text-slate-600 focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition-all;
+}
+
+.label-text {
+    @apply text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2 block;
 }
 
 .btn-primary {
-    @apply inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 text-sm bg-galio-orange hover:bg-orange-600 text-white transition-all duration-200 active:scale-[0.98];
+    @apply bg-[#FF6B35] hover:bg-orange-600 text-white font-bold py-4 px-12 rounded-full text-lg transition-all duration-300 shadow-[0_0_30px_rgba(255,107,53,0.3)] hover:shadow-[0_0_40px_rgba(255,107,53,0.5)] active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
-.btn-soft {
-    @apply inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 text-sm bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-all duration-200;
+.role-card {
+    @apply relative flex flex-col p-6 rounded-3xl cursor-pointer transition-all duration-300 transform hover:-translate-y-1;
+}
+
+.role-card.selected {
+    @apply bg-[#FF6B35]/10 border-2 border-[#FF6B35] shadow-xl shadow-[#FF6B35]/20;
+}
+
+.role-card.unselected {
+    @apply bg-[#111111] border-2 border-white/5 hover:border-white/20 hover:bg-[#161616];
+}
+
+.icon-box {
+    @apply w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-colors;
+}
+
+.icon-box.selected {
+    @apply bg-[#FF6B35]/20 text-[#FF6B35];
+}
+
+.icon-box.unselected {
+    @apply bg-white/5 text-slate-400;
+}
+
+.role-card:hover .icon-box.unselected {
+    @apply text-white;
+}
+
+.checkmark {
+    @apply absolute top-4 right-4 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-colors;
+}
+
+.checkmark.selected {
+    @apply border-[#FF6B35] bg-[#FF6B35];
+}
+
+.checkmark.unselected {
+    @apply border-slate-700;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.4s ease-out forwards;
 }

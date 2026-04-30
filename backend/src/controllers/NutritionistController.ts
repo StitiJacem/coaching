@@ -26,6 +26,55 @@ export class NutritionistController {
             res.status(500).json({ message: "Server error" });
         }
     }
+ 
+    // Get nutritionist profile by ID (UUID or userId)
+    async getOne(req: Request, res: Response) {
+        try {
+            const idParam = String(req.params.id);
+            const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idParam);
+            const userRepo = AppDataSource.getRepository("User") as any;
+
+            let profile = null;
+
+            if (isUUID) {
+                profile = await this.nutritionistRepo.findOne({
+                    where: { id: idParam },
+                    relations: ["user"]
+                });
+            }
+
+            // Fallback: If not found by ID (or not a UUID), try finding by userId
+            const userId = parseInt(idParam);
+            if (!profile && !isNaN(userId)) {
+                profile = await this.nutritionistRepo.findOne({
+                    where: { userId: userId },
+                    relations: ["user"]
+                });
+            }
+
+            // If still not found, check if the user exists and is a nutritionist
+            if (!profile && !isNaN(userId)) {
+                const user = await userRepo.findOne({ where: { id: userId, role: 'nutritionist' } });
+                if (user) {
+                    profile = this.nutritionistRepo.create({
+                        userId: user.id,
+                        user: user,
+                        verified: true,
+                        rating: 4.5,
+                        experience_years: 0,
+                        bio: 'Professional Nutritionist'
+                    });
+                    await this.nutritionistRepo.save(profile);
+                }
+            }
+
+            if (!profile) return res.status(404).json({ message: "Nutritionist profile not found" });
+            res.json(profile);
+        } catch (error) {
+            console.error("Error fetching nutritionist profile", error);
+            res.status(500).json({ message: "Server error" });
+        }
+    }
 
     // Connect (athlete requesting a nutritionist)
     async sendConnectionRequest(req: Request, res: Response) {
@@ -233,13 +282,28 @@ export class NutritionistController {
         }
     }
 
-    // Accept/Reject connection request
+    // Accept/Reject connection request (called by athlete or nutritionist)
     async respondToRequest(req: Request, res: Response) {
         try {
             const connectionId = String(req.params.connectionId);
             const { status } = req.body;
+            const requestingUser = (req as any).user;
 
-            const connection = await this.connectionRepo.findOne({ where: { id: connectionId } });
+            // Primary lookup: by UUID
+            let connection = await this.connectionRepo.findOne({ where: { id: connectionId } });
+
+            // Fallback: if not found by UUID (e.g. stale notification after DB reset),
+            // find the latest pending connection for this athlete
+            if (!connection && requestingUser.role === 'athlete') {
+                const athlete = await this.athleteRepo.findOne({ where: { userId: requestingUser.id } });
+                if (athlete) {
+                    connection = await this.connectionRepo.findOne({
+                        where: { athleteId: athlete.id, status: 'pending' },
+                        order: { created_at: 'DESC' }
+                    });
+                }
+            }
+
             if (!connection) return res.status(404).json({ message: "Request not found" });
 
             connection.status = status as NutritionConnectionStatus;
@@ -247,6 +311,7 @@ export class NutritionistController {
 
             res.json(connection);
         } catch (error) {
+            console.error('Error responding to nutrition request:', error);
             res.status(500).json({ message: "Server error" });
         }
     }

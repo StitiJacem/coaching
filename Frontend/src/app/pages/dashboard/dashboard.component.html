@@ -116,7 +116,7 @@
                         </a>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <a *ngFor="let athlete of recentAthletes" [routerLink]="'/dashboard/athletes/' + athlete.id">
+                        <a *ngFor="let athlete of recentAthletes" [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]">
                             <app-card [hover]="true" class="flex items-center gap-4">
                                 <app-avatar [src]="athlete.avatar" [fallback]="athlete.name[0]"
                                     [status]="getAthleteStatus(athlete)">

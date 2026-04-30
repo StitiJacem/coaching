@@ -46,6 +46,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen<AsyncValue<AuthState>>(authProvider, (_, next) {
       final error = next.valueOrNull?.error;
       if (error != null && mounted) {
+        // If error is about verification, redirect to verify screen
+        if (error.toLowerCase().contains('verify your email')) {
+          context.push('/verify-email?email=${Uri.encodeComponent(_emailCtrl.text.trim())}');
+          return;
+        }
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(error),

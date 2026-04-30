@@ -62,7 +62,7 @@ export class CoachController {
                     id: profile.id || null,
                     userId: coachUser.id,
                     name: `${coachUser.first_name || ''} ${coachUser.last_name || ''}`.trim() || coachUser.username || 'Coach',
-                    avatar: `https://ui-avatars.com/api/?name=${coachUser.first_name || 'Coach'}+${coachUser.last_name || ''}&background=random`,
+                    avatar: coachUser.photo_url ? (coachUser.photo_url.startsWith('http') ? coachUser.photo_url : `http://localhost:3000${coachUser.photo_url}`) : `https://ui-avatars.com/api/?name=${coachUser.first_name || 'Coach'}+${coachUser.last_name || ''}&background=random`,
                     specializations: (profile.specializations || []).map((s: any) => s.specialization),
                     bio: profile.bio || 'Professional Coach available for training.',
                     rating: parseFloat(profile.rating as any) || 4.5,

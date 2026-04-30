@@ -41,6 +41,8 @@ class AuthRepository {
     required String email,
     required String password,
     required String role,
+    required String gender,
+    required int age,
   }) async {
     try {
       await _api.post('/auth/signup', data: {
@@ -50,6 +52,8 @@ class AuthRepository {
         'email': email,
         'password': password,
         'role': role,
+        'gender': gender,
+        'age': age,
       });
     } catch (e) {
       throw ApiException.fromDioError(e);

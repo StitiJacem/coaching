@@ -14,217 +14,402 @@
       <p class="text-slate-400 mb-6">{{ error }}</p>
       <button (click)="loadData()" class="btn-primary">Réessayer</button>
     </div>
-
-    <!-- DATA DASHBOARD (Athlete View) -->
+    <!-- DATA DASHBOARD (Athlete View) -->
     <ng-container *ngIf="!loading && !error && viewType === 'athlete' && overview">
       
       <!-- HEADER / IDENTITY -->
-      <header class="flex flex-col md:flex-row items-center gap-8 bg-gosport-surface/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
-        <div class="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10"></div>
+      <header class="flex flex-col md:flex-row items-center gap-10 bg-gosport-surface/40 backdrop-blur-xl p-12 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-gradient-to-br from-gosport-orange/5 to-transparent"></div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gosport-orange/5 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
         
-        <div class="relative shrink-0">
-          <div class="w-32 h-32 rounded-[2.5rem] overflow-hidden border-4 border-gosport-orange/20 shadow-2xl">
-            <img [src]="overview.athlete?.profilePicture || 'https://ui-avatars.com/api/?name=' + overview.athlete?.name + '&background=random'" 
+        <div class="relative shrink-0 flex flex-col items-center gap-6">
+          <div class="w-40 h-40 rounded-[3rem] overflow-hidden border-4 border-white/5 shadow-2xl group cursor-pointer relative"
+               (click)="isOwnProfile && athleteFileInput.click()">
+            <div *ngIf="isOwnProfile" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+              <lucide-icon name="camera" class="w-8 h-8 text-white"></lucide-icon>
+            </div>
+            <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
+              <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
+            </div>
+            <img [src]="(overview.athlete?.profilePicture?.startsWith('/') ? 'http://localhost:3000' + overview.athlete.profilePicture : overview.athlete?.profilePicture) || 'https://ui-avatars.com/api/?name=' + overview.athlete?.name + '&background=random'" 
                  class="w-full h-full object-cover">
+            <input #athleteFileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
           </div>
           <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gosport-orange rounded-2xl flex items-center justify-center text-white border-4 border-gosport-surface shadow-lg">
-            <lucide-icon name="user" class="w-5 h-5"></lucide-icon>
+            <lucide-icon name="award" class="w-5 h-5"></lucide-icon>
           </div>
         </div>
 
         <div class="flex-1 text-center md:text-left relative z-10">
-          <div class="flex items-center justify-center md:justify-start gap-3 mb-3">
+          <div class="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-4">
             <button (click)="goBack()" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all group">
               <lucide-icon name="arrow-left" class="w-4 h-4 text-slate-400 group-hover:text-white"></lucide-icon>
             </button>
             <span class="px-3 py-1 bg-gosport-orange/10 text-gosport-orange text-[10px] font-black uppercase tracking-widest border border-gosport-orange/20 rounded-full">
-              Profil Athlète
+              Athlete Elite
             </span>
-            <span class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">
-              ID: #{{ overview.athlete?.id }}
+            
+            <button *ngIf="isOwnProfile && !editingAthleteProfile" (click)="toggleAthleteEditProfile()"
+                    class="px-8 py-3 bg-white text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:bg-gosport-orange hover:text-white transition-all transform active:scale-95 shadow-xl">
+              Modifier le profil
+            </button>
+            
+            <span class="text-slate-500 text-[10px] font-bold uppercase tracking-widest ml-auto md:ml-0">
+              Membre depuis {{ formatDate(overview.athlete?.joinedDate) }}
             </span>
           </div>
-          <h1 class="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-            {{ overview.athlete?.name }}
-          </h1>
-          <div class="flex flex-wrap justify-center md:justify-start gap-6">
-            <div class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
-              <lucide-icon name="map-pin" class="w-3.5 h-3.5"></lucide-icon>
-              {{ overview.athlete?.location || 'Non spécifié' }}
+
+          <!-- Normal view -->
+          <div *ngIf="!editingAthleteProfile">
+            <h1 class="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
+              {{ overview.athlete?.name }}
+            </h1>
+            <div class="flex flex-wrap justify-center md:justify-start gap-4">
+              <div class="px-4 py-2 bg-white/5 rounded-xl border border-white/5 flex items-center gap-3">
+                <lucide-icon name="activity" class="w-4 h-4 text-gosport-orange"></lucide-icon>
+                <span class="text-[10px] font-black text-white uppercase tracking-widest">{{ overview.athlete?.sport || 'Multi-Sport' }}</span>
+              </div>
+              <div class="px-4 py-2 bg-white/5 rounded-xl border border-white/5 flex items-center gap-3">
+                <lucide-icon name="map-pin" class="w-4 h-4 text-slate-500"></lucide-icon>
+                <span class="text-[10px] font-black text-white uppercase tracking-widest">{{ overview.athlete?.location || 'Paris, FR' }}</span>
+              </div>
+              <div class="px-4 py-2 bg-white/5 rounded-xl border border-white/5 flex items-center gap-3">
+                <lucide-icon name="zap" class="w-4 h-4 text-yellow-500"></lucide-icon>
+                <span class="text-[10px] font-black text-white uppercase tracking-widest">{{ overview.athlete?.experienceLevel || 'Intermédiaire' }}</span>
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
-              <lucide-icon name="activity" class="w-3.5 h-3.5 text-gosport-orange"></lucide-icon>
-              {{ overview.athlete?.sport || 'Omnisport' }}
+          </div>
+
+          <!-- Edit form -->
+          <div *ngIf="editingAthleteProfile" class="space-y-4 mt-2">
+            <div class="flex flex-col md:flex-row gap-3">
+              <div class="flex-1">
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Prénom</label>
+                <input [(ngModel)]="athleteEditForm.first_name"
+                       class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all"
+                       placeholder="Prénom">
+              </div>
+              <div class="flex-1">
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Nom</label>
+                <input [(ngModel)]="athleteEditForm.last_name"
+                       class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all"
+                       placeholder="Nom">
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-slate-400 text-xs font-bold uppercase tracking-widest">
-              <lucide-icon name="clock" class="w-3.5 h-3.5"></lucide-icon>
-              Dernière activité: {{ getTimeAgo(overview.athlete?.lastActive) }}
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div>
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Sport</label>
+                <input [(ngModel)]="athleteEditForm.sport"
+                       class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all"
+                       placeholder="Ex: Football">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Niveau</label>
+                <input [(ngModel)]="athleteEditForm.experienceLevel"
+                       class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all"
+                       placeholder="Intermédiaire">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Poids (kg)</label>
+                <input type="number" [(ngModel)]="athleteEditForm.weight"
+                       class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all"
+                       placeholder="75">
+              </div>
+              <div>
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Taille (cm)</label>
+                <input type="number" [(ngModel)]="athleteEditForm.height"
+                       class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all"
+                       placeholder="180">
+              </div>
             </div>
-            <div *ngIf="overview.athlete?.height" class="flex items-center gap-2 text-gosport-orange text-xs font-bold uppercase tracking-widest">
-              <lucide-icon name="user" class="w-3.5 h-3.5"></lucide-icon>
-              {{ overview.athlete.height }} M
+            <div>
+              <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1 block">Objectifs</label>
+              <textarea [(ngModel)]="athleteEditForm.goals" rows="2"
+                        class="w-full bg-black/40 border border-white/10 rounded-2xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all resize-none"
+                        placeholder="Décrivez vos objectifs sportifs..."></textarea>
             </div>
-            <div *ngIf="overview.athlete?.weight" class="flex items-center gap-2 text-gosport-orange text-xs font-bold uppercase tracking-widest">
-              <lucide-icon name="activity" class="w-3.5 h-3.5"></lucide-icon>
-              {{ overview.athlete.weight }} KG
+            <div class="flex flex-col gap-3 pt-6">
+              <button (click)="saveAthleteProfile()" [disabled]="loading"
+                      class="px-10 py-5 bg-gosport-orange text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-white hover:text-black transition-all transform active:scale-95 shadow-xl disabled:opacity-50">
+                {{ loading ? 'Enregistrement...' : 'Enregistrer' }}
+              </button>
+              <button (click)="cancelAthleteEditProfile()"
+                      class="px-10 py-5 bg-white/5 text-slate-400 font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all">
+                Annuler
+              </button>
             </div>
           </div>
         </div>
 
         <div class="flex gap-4 relative z-10">
-          <button class="px-8 py-4 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-gosport-orange hover:text-white transition-all transform active:scale-95 shadow-xl">
-            Assigner Programme
+          <button *ngIf="!editingAthleteProfile"
+                  class="px-10 py-5 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-gosport-orange hover:text-white transition-all transform active:scale-95 shadow-xl">
+            Nouveau Programme
           </button>
         </div>
       </header>
 
-      <!-- DASHBOARD TILES -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <!-- STATS STRIP -->
+      <div class="stats-strip mt-8">
+        <div class="stat-tile">
+          <p class="section-label">Adhérence</p>
+          <div class="flex flex-col items-center">
+            <span class="metric-value font-mono" [style.color]="getAdherenceColor(overview.trainingStats?.adherence)">{{ overview.trainingStats?.adherence }}%</span>
+            <span class="text-[9px] text-slate-500 font-bold mt-1">30 DERNIERS JOURS</span>
+          </div>
+        </div>
+        <div class="stat-tile">
+          <p class="section-label">Séances Finies</p>
+          <div class="flex flex-col items-center">
+            <span class="metric-value font-mono text-white">{{ overview.trainingStats?.totalCompleted || 0 }}</span>
+            <span class="text-[9px] text-slate-500 font-bold mt-1">TOTAL CUMULÉ</span>
+          </div>
+        </div>
+        <div class="stat-tile border-gosport-orange/20 bg-gosport-orange/5">
+          <p class="section-label text-gosport-orange">Prochaine Séance</p>
+          <div class="flex flex-col items-center">
+            <span class="metric-value font-mono text-white text-[1.5rem]">{{ formatDate(overview.nextSession?.date) }}</span>
+            <span class="text-[9px] text-gosport-orange font-bold mt-1 uppercase">{{ overview.nextSession?.title || 'Non planifiée' }}</span>
+          </div>
+        </div>
+        <div class="stat-tile">
+          <p class="section-label">Dernière Sync</p>
+          <div class="flex flex-col items-center">
+            <span class="metric-value font-mono text-slate-300 text-[1.5rem]">{{ getTimeAgo(overview.athlete?.lastActive) }}</span>
+            <span class="text-[9px] text-slate-500 font-bold mt-1">TEMPS RÉEL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mt-8">
         
-        <!-- ROW 1: TRAINING & METRICS -->
+        <!-- LEFT COLUMN: MAIN CONTENT -->
         <div class="lg:col-span-8 space-y-8">
           
-          <!-- Training Widget -->
-          <div class="tile-card">
-            <span class="section-label flex justify-between items-center">
-              ENTRAÎNEMENT (30 DERNIERS JOURS)
-              <span class="text-gosport-orange">{{ overview.trainingStats?.adherence }}% ADHÉRENCE</span>
-            </span>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4">7 DERNIERS JOURS</p>
-                <div class="flex items-baseline gap-2">
-                  <span class="metric-value">{{ overview.trainingStats?.last7Completed }}</span>
-                  <span class="metric-unit">/ {{ overview.trainingStats?.last7Total }} SÉANCES</span>
+          <!-- Active Program Overview -->
+          <div class="tile-card relative overflow-hidden group">
+            <div class="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
+              <lucide-icon name="dumbbell" class="w-32 h-32"></lucide-icon>
+            </div>
+            
+            <div class="flex justify-between items-start mb-8 relative z-10">
+              <div>
+                <span class="section-label">PROGRAMME ACTUEL</span>
+                <h3 class="text-3xl font-display font-black text-white uppercase italic tracking-tight">
+                  {{ overview.activeProgram?.name || 'Aucun programme actif' }}
+                </h3>
+              </div>
+              <div *ngIf="overview.activeProgram" class="text-right">
+                <span class="status-badge bg-gosport-orange/10 text-gosport-orange border border-gosport-orange/20">Phase 1: Accumulation</span>
+              </div>
+            </div>
+
+            <div *ngIf="overview.activeProgram" class="space-y-8 relative z-10">
+              <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div class="info-box">
+                  <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">PROGRÈS</p>
+                  <p class="text-xl font-black text-white">{{ overview.activeProgram.progress?.completed }} / {{ overview.activeProgram.progress?.total }}</p>
+                  <p class="text-[9px] text-slate-500 font-bold">SÉANCES</p>
                 </div>
-                <div class="mt-4 progress-track">
-                  <div class="progress-fill" 
-                       [style.width.%]="(overview.trainingStats?.last7Completed / (overview.trainingStats?.last7Total || 1)) * 100"
-                       [style.background]="getAdherenceColor((overview.trainingStats?.last7Completed / (overview.trainingStats?.last7Total || 1)) * 100)"></div>
+                <div class="info-box">
+                  <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">TYPE</p>
+                  <p class="text-xl font-black text-white">{{ overview.activeProgram.type || 'Force' }}</p>
+                  <p class="text-[9px] text-slate-500 font-bold">MÉTHODOLOGIE</p>
+                </div>
+                <div class="info-box">
+                  <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">DÉBUT</p>
+                  <p class="text-xl font-black text-white">{{ formatDate(overview.activeProgram.startDate) }}</p>
+                  <p class="text-[9px] text-slate-500 font-bold">DATE D'ACTIVATION</p>
+                </div>
+                <div class="info-box">
+                  <p class="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">INTENSITÉ</p>
+                  <p class="text-xl font-black text-white">ÉLEVÉE</p>
+                  <p class="text-[9px] text-slate-500 font-bold">RPE MOYEN 8.5</p>
                 </div>
               </div>
 
-              <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
-                <p class="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-4">30 DERNIERS JOURS</p>
-                <div class="flex items-baseline gap-2">
-                  <span class="metric-value">{{ overview.trainingStats?.last30Completed }}</span>
-                  <span class="metric-unit">/ {{ overview.trainingStats?.last30Total }} SÉANCES</span>
+              <div class="space-y-2">
+                <div class="flex justify-between text-[10px] font-black uppercase tracking-widest">
+                  <span class="text-slate-500 text-xs">Complétion du programme</span>
+                  <span class="text-gosport-orange text-xs">{{ (overview.activeProgram.progress?.completed / overview.activeProgram.progress?.total) * 100 | number:'1.0-0' }}%</span>
                 </div>
-                <div class="mt-4 progress-track">
-                  <div class="progress-fill" 
-                       [style.width.%]="(overview.trainingStats?.last30Completed / (overview.trainingStats?.last30Total || 1)) * 100"
-                       [style.background]="getAdherenceColor((overview.trainingStats?.last30Completed / (overview.trainingStats?.last30Total || 1)) * 100)"></div>
+                <div class="progress-track h-3 bg-white/5">
+                  <div class="progress-fill bg-gradient-to-r from-gosport-orange to-orange-400" 
+                       [style.width.%]="(overview.activeProgram.progress?.completed / (overview.activeProgram.progress?.total || 1)) * 100"></div>
                 </div>
               </div>
+            </div>
 
-              <div class="p-6 bg-gosport-orange/5 rounded-3xl border border-gosport-orange/10">
-                <p class="text-gosport-orange text-[10px] font-black uppercase tracking-widest mb-4">LA SEMAINE PROCHAINE</p>
-                <div class="flex items-baseline gap-2">
-                  <span class="metric-value text-gosport-orange">{{ overview.trainingStats?.nextWeekScheduled }}</span>
-                  <span class="metric-unit">PLANIFIÉES</span>
-                </div>
-                <p class="mt-4 text-[10px] text-slate-500 uppercase font-black">Prochain: {{ overview.nextSession?.title || 'Aucun' }}</p>
-              </div>
+            <div *ngIf="!overview.activeProgram" class="py-12 bg-white/5 border border-dashed border-white/10 rounded-3xl text-center">
+              <lucide-icon name="plus-circle" class="w-10 h-10 text-slate-600 mx-auto mb-4"></lucide-icon>
+              <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Aucun programme n'est assigné à cet athlète</p>
             </div>
           </div>
 
-          <!-- Body Metrics Overview -->
+          <!-- Multi-Metric Chart -->
           <div class="tile-card">
-            <div class="flex justify-between items-start mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
               <div>
-                <span class="section-label">MÉTRIQUES CORPORELLES</span>
-                <h3 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Suivi Anthropométrique</h3>
+                <span class="section-label">PERFORMANCE & BIOMÉTRIE</span>
+                <h3 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">{{ getMetricLabel(selectedMetric) }}</h3>
               </div>
-              <div class="flex gap-8">
-                <div class="text-right">
-                  <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Poids</p>
-                  <span class="metric-value">{{ overview.athlete?.weight || '-' }}</span>
-                  <span class="metric-unit">KG</span>
-                </div>
-                <div class="text-right">
-                  <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Taille</p>
-                  <span class="metric-value">{{ overview.athlete?.height || '-' }}</span>
-                  <span class="metric-unit">M</span>
-                </div>
+              
+              <div class="chart-toggle">
+                <button (click)="setMetric('weight')" [class.active]="selectedMetric === 'weight'" class="toggle-btn">Poids</button>
+                <button (click)="setMetric('bodyFat')" [class.active]="selectedMetric === 'bodyFat'" class="toggle-btn">Masse Grasse</button>
+                <button (click)="setMetric('vo2max')" [class.active]="selectedMetric === 'vo2max'" class="toggle-btn">VO2 Max</button>
               </div>
             </div>
 
-            <div class="h-48 relative flex items-end justify-center group">
-              <!-- SVG Sparkline -->
-              <svg class="w-full h-full drop-shadow-2xl" viewBox="0 0 1000 200" preserveAspectRatio="none">
-                <!-- Grid lines -->
-                <line x1="0" y1="50" x2="1000" y2="50" stroke="white" stroke-opacity="0.03" />
-                <line x1="0" y1="100" x2="1000" y2="100" stroke="white" stroke-opacity="0.03" />
-                <line x1="0" y1="150" x2="1000" y2="150" stroke="white" stroke-opacity="0.03" />
+            <div class="h-64 relative flex items-end justify-center group overflow-hidden">
+               <svg class="w-full h-full drop-shadow-[0_0_20px_rgba(249,115,22,0.2)]" viewBox="0 0 1000 200" preserveAspectRatio="none" *ngIf="$any(overview.metrics)?.length">
+                <defs>
+                  <linearGradient id="metricGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.3" />
+                    <stop offset="100%" stop-color="#f97316" stop-opacity="0" />
+                  </linearGradient>
+                </defs>
                 
-                <!-- The Path -->
-                <path [attr.d]="getSparklinePath(overview.metrics, 'weight', 1000, 200)"
+                <path [attr.d]="getSparklinePath(overview.metrics, selectedMetric, 1000, 200)"
                       fill="none" 
                       stroke="#f97316" 
-                      stroke-width="4" 
+                      stroke-width="5" 
                       stroke-linecap="round" 
                       stroke-linejoin="round"
                       class="sparkline-path" />
                 
-                <!-- Gradient under the path -->
-                <path [attr.d]="getSparklinePath(overview.metrics, 'weight', 1000, 200) + ' L 1000,200 L 0,200 Z'"
-                      fill="url(#sparklineGradient)"
+                <path [attr.d]="getSparklinePath(overview.metrics, selectedMetric, 1000, 200) + ' L 1000,200 L 0,200 Z'"
+                      fill="url(#metricGradient)"
                       class="sparkline-gradient" />
-                
-                <defs>
-                  <linearGradient id="sparklineGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="#f97316" stop-opacity="0.2" />
-                    <stop offset="100%" stop-color="#f97316" stop-opacity="0" />
-                  </linearGradient>
-                </defs>
               </svg>
 
-              <!-- Points -->
-              <div class="absolute inset-0 flex justify-between px-2">
-                <div *ngFor="let m of overview.metrics" 
-                     class="group/dot relative h-full flex items-end">
-                   <div class="w-1.5 h-1.5 bg-gosport-orange rounded-full mb-[-3px] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              <div class="absolute inset-x-0 bottom-0 flex justify-between px-2 pt-4">
+                <div *ngFor="let m of $any(overview.metrics)" class="group/dot relative h-full flex items-end">
+                   <div class="w-2 h-2 bg-gosport-orange rounded-full mb-[-4px] ring-4 ring-gosport-surface opacity-0 group-hover/dot:opacity-100 transition-opacity z-10"></div>
                 </div>
               </div>
             </div>
 
-            <div class="grid grid-cols-4 md:grid-cols-6 mt-8 pt-6 border-t border-white/5">
-               <div *ngFor="let m of overview.metrics" class="text-center group">
-                 <p class="text-[10px] text-slate-500 font-bold group-hover:text-white transition-colors">{{ formatDate(m.date) }}</p>
-                 <p class="text-xs font-black text-white mt-1 group-hover:text-gosport-orange">{{ m.weight }}</p>
-               </div>
+            <div class="flex justify-between mt-6 px-2 text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">
+               <span *ngFor="let m of $any(overview.metrics) | slice:-6" class="hover:text-white transition-colors cursor-default">{{ formatDate($any(m).date) | slice:0:6 }}</span>
             </div>
+          </div>
+
+          <!-- Recent Activity Feed -->
+          <div class="space-y-4">
+            <span class="section-label">ACTIVITÉS RÉCENTES</span>
+            
+            <div class="activity-card" *ngIf="overview.lastWorkout">
+              <div class="activity-icon bg-gosport-orange/20 text-gosport-orange">
+                <lucide-icon name="check-circle" class="w-8 h-8"></lucide-icon>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                  <h4 class="text-white font-black uppercase text-sm italic tracking-tight">Séance Complétée</h4>
+                  <span class="text-[10px] text-slate-500 font-bold">{{ getTimeAgo(overview.lastWorkout.date) }}</span>
+                </div>
+                <div class="flex gap-6">
+                  <div class="flex items-center gap-2">
+                    <lucide-icon name="clock" class="w-3.5 h-3.5 text-slate-500"></lucide-icon>
+                    <span class="text-[10px] text-white font-black uppercase">{{ overview.lastWorkout.durationMinutes || 45 }} MIN</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <lucide-icon name="star" class="w-3.5 h-3.5 text-yellow-500 fill-current"></lucide-icon>
+                    <span class="text-[10px] text-white font-black uppercase">RETOUR : {{ overview.lastWorkout.overallRating || 8 }}/10</span>
+                  </div>
+                </div>
+              </div>
+              <button class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl transition-all">
+                <lucide-icon name="chevron-right" class="w-4 h-4 text-slate-400"></lucide-icon>
+              </button>
+            </div>
+
+            <div class="activity-card opacity-60" *ngIf="overview.activeProgram">
+              <div class="activity-icon bg-blue-500/20 text-blue-500">
+                <lucide-icon name="calendar" class="w-8 h-8"></lucide-icon>
+              </div>
+              <div class="flex-1">
+                <div class="flex justify-between items-center mb-1">
+                  <h4 class="text-white font-black uppercase text-sm italic tracking-tight">Programme Actif</h4>
+                  <span class="text-[10px] text-slate-500 font-bold">SYNCHRONISÉ</span>
+                </div>
+                <p class="text-[10px] text-slate-400 uppercase tracking-widest">{{ overview.activeProgram.name }}</p>
+              </div>
+            </div>
+            
+            <button class="w-full py-4 bg-white/5 hover:bg-white/10 border border-dashed border-white/10 rounded-2xl text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] transition-all">
+              Voir tout l'historique
+            </button>
           </div>
 
         </div>
 
-        <!-- RIGHT COLUMN: SIDE INFO -->
+        <!-- RIGHT COLUMN: SIDEBAR -->
         <div class="lg:col-span-4 space-y-8">
           
-          <!-- Primary Goal -->
-          <div class="tile-card bg-gradient-to-br from-gosport-orange/20 to-transparent border-gosport-orange/20">
-            <span class="section-label text-gosport-orange">OBJECTIF PRINCIPAL</span>
-            <h4 class="text-xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-              {{ overview.primaryGoal?.name || 'Aucun objectif actif' }}
+          <!-- Primary Goal (Enhanced) -->
+          <div class="tile-card bg-gradient-to-br from-gosport-orange/20 to-transparent border-gosport-orange/30 shadow-[0_20px_50px_rgba(249,115,22,0.1)]">
+            <div class="flex justify-between items-center mb-6">
+              <span class="section-label text-gosport-orange">OBJECTIF PRINCIPAL</span>
+              <lucide-icon name="target" class="w-5 h-5 text-gosport-orange"></lucide-icon>
+            </div>
+            
+            <h4 class="text-2xl font-display font-black text-white uppercase italic tracking-tight mb-6">
+              {{ overview.primaryGoal?.name || 'Veuillez définir un objectif' }}
             </h4>
             
             <div *ngIf="overview.primaryGoal" class="space-y-6">
-              <div class="flex justify-between items-end">
-                <div>
-                  <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">PROGRÈS</p>
-                  <p class="text-lg font-black text-white">
-                    {{ overview.primaryGoal.currentValue || 0 }} / {{ overview.primaryGoal.targetValue }}
+              <div class="grid grid-cols-2 gap-4">
+                <div class="p-4 bg-black/30 rounded-2xl border border-white/5">
+                  <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">ACTUEL</p>
+                  <p class="text-xl font-black text-white">
+                    {{ overview.primaryGoal.currentValue || 0 }}
                     <span class="text-xs text-slate-500">{{ overview.primaryGoal.unit }}</span>
                   </p>
                 </div>
-                <div class="text-right">
-                  <p class="text-[10px] text-gosport-orange font-bold uppercase tracking-widest mb-1">FIN DANS</p>
-                  <p class="text-lg font-black text-white">{{ overview.primaryGoal.daysLeft || 0 }} JOURS</p>
+                <div class="p-4 bg-black/30 rounded-2xl border border-white/5">
+                  <p class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mb-1">CIBLE</p>
+                  <p class="text-xl font-black text-gosport-orange">
+                    {{ overview.primaryGoal.targetValue }}
+                    <span class="text-xs text-slate-500">{{ overview.primaryGoal.unit }}</span>
+                  </p>
                 </div>
               </div>
-              <div class="progress-track bg-black/20">
-                <div class="progress-fill bg-gosport-orange" 
-                     [style.width.%]="(overview.primaryGoal.currentValue / overview.primaryGoal.targetValue) * 100"></div>
+
+              <div class="space-y-3">
+                <div class="flex justify-between">
+                  <span class="text-[10px] text-slate-500 font-black uppercase">Progression temporelle</span>
+                  <span class="text-[10px] text-gosport-orange font-black uppercase">{{ overview.primaryGoal.daysLeft || 0 }} JOURS RESTANTS</span>
+                </div>
+                <div class="progress-track bg-black/40 h-2">
+                  <div class="progress-fill bg-gosport-orange" 
+                       [style.width.%]="(overview.primaryGoal.currentValue / (overview.primaryGoal.targetValue || 1)) * 100"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Background & Equipment -->
+          <div class="tile-card">
+            <span class="section-label">PARCOURS & ÉQUIPEMENT</span>
+            <div class="grid grid-cols-1 gap-4 mt-4">
+              <div class="info-box flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400">
+                  <lucide-icon name="award" class="w-5 h-5"></lucide-icon>
+                </div>
+                <div>
+                  <p class="text-[9px] text-slate-500 font-black uppercase">Niveau</p>
+                  <p class="text-[11px] text-white font-black uppercase">{{ overview.athlete?.experienceLevel || 'INTERMÉDIAIRE' }}</p>
+                </div>
+              </div>
+              <div class="info-box flex items-center gap-4">
+                <div class="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center text-slate-400">
+                  <lucide-icon name="box" class="w-5 h-5"></lucide-icon>
+                </div>
+                <div>
+                  <p class="text-[9px] text-slate-500 font-black uppercase">Matériel</p>
+                  <p class="text-[11px] text-white font-black uppercase">{{ overview.athlete?.equipment || 'SALLE COMPLÈTE' }}</p>
+                </div>
               </div>
             </div>
           </div>
@@ -232,65 +417,60 @@
           <!-- Coach Notes -->
           <div class="tile-card">
             <div class="flex justify-between items-center mb-4">
-              <span class="section-label">NOTES DU COACH</span>
+              <span class="section-label">OBSERVATIONS TECHNIQUES</span>
               <button (click)="startEdit('notes')" class="text-slate-500 hover:text-white transition-all">
-                <lucide-icon name="edit-2" class="w-3.5 h-3.5"></lucide-icon>
+                <lucide-icon name="edit-3" class="w-3.5 h-3.5"></lucide-icon>
               </button>
             </div>
             
-            <div *ngIf="!editingNotes" class="bg-white/5 rounded-2xl p-4 border border-white/5 min-h-[100px] text-sm text-slate-300 italic leading-relaxed">
-              "{{ overview.athlete?.notes || 'Aucune note pour cet athlète. Ajoutez des observations ici.' }}"
+            <div *ngIf="!editingNotes" class="bg-white/5 rounded-2xl p-4 border border-white/5 min-h-[100px] text-xs text-slate-400 italic leading-relaxed">
+              "{{ overview.athlete?.notes || 'Aucune note stratégique. Ajoutez des observations ici.' }}"
             </div>
 
             <div *ngIf="editingNotes" class="space-y-3">
               <textarea [(ngModel)]="tempField" 
                         rows="4" 
-                        class="w-full bg-black/40 border border-gosport-orange/50 rounded-2xl p-4 text-white text-sm outline-none resize-none focus:border-gosport-orange transition-all"></textarea>
+                        class="w-full bg-black/40 border border-gosport-orange/50 rounded-2xl p-4 text-white text-xs outline-none resize-none focus:border-gosport-orange transition-all"></textarea>
               <div class="flex gap-2">
-                <button (click)="saveEdit('notes')" class="flex-1 py-2 bg-gosport-orange text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Sauvegarder</button>
-                <button (click)="cancelEdit()" class="px-4 py-2 bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl">Annuler</button>
+                <button (click)="saveEdit('notes')" class="flex-1 py-3 bg-gosport-orange text-white text-[9px] font-black uppercase tracking-widest rounded-xl">Sauvegarder</button>
+                <button (click)="cancelEdit()" class="px-4 py-3 bg-white/5 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-xl">Annuler</button>
               </div>
             </div>
           </div>
 
           <!-- Limitations / Injuries -->
-          <div class="tile-card border-red-500/10">
+          <div class="tile-card border-red-500/10 bg-red-500/5">
             <div class="flex justify-between items-center mb-4">
               <span class="section-label text-red-500 flex items-center gap-2">
-                <lucide-icon name="alert-triangle" class="w-3.5 h-3.5"></lucide-icon>
-                LIMITATIONS & BLESSURES
+                <lucide-icon name="activity" class="w-3.5 h-3.5"></lucide-icon>
+                CONTRE-INDICATIONS
               </span>
               <button (click)="startEdit('injuries')" class="text-slate-500 hover:text-white transition-all">
-                <lucide-icon name="edit-2" class="w-3.5 h-3.5"></lucide-icon>
+                <lucide-icon name="edit-3" class="w-3.5 h-3.5"></lucide-icon>
               </button>
             </div>
             
             <div *ngIf="!editingInjuries" 
-                 class="p-4 rounded-2xl border transition-all duration-300"
-                 [ngClass]="overview.athlete?.injuries ? 'bg-red-500/10 border-red-500/20 text-red-100' : 'bg-white/5 border-white/5 text-slate-500 italic'">
+                 class="p-4 rounded-2xl border transition-all duration-300 text-xs text-red-200"
+                 [ngClass]="overview.athlete?.injuries ? 'bg-red-500/10 border-red-500/20' : 'bg-white/5 border-white/5 text-slate-500 italic'">
               {{ overview.athlete?.injuries || 'Aucune limitation signalée.' }}
             </div>
 
             <div *ngIf="editingInjuries" class="space-y-3">
               <input [(ngModel)]="tempField" 
-                     class="w-full bg-black/40 border border-red-500/50 rounded-2xl p-4 text-white text-sm outline-none focus:border-red-500 transition-all">
+                     class="w-full bg-black/40 border border-red-500/50 rounded-2xl p-4 text-white text-xs outline-none focus:border-red-500 transition-all">
               <div class="flex gap-2">
-                <button (click)="saveEdit('injuries')" class="flex-1 py-2 bg-red-500 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">Sauvegarder</button>
-                <button (click)="cancelEdit()" class="px-4 py-2 bg-white/5 text-slate-400 text-[10px] font-black uppercase tracking-widest rounded-xl">Annuler</button>
+                <button (click)="saveEdit('injuries')" class="flex-1 py-3 bg-red-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl">Enregistrer</button>
+                <button (click)="cancelEdit()" class="px-4 py-3 bg-white/5 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-xl">Annuler</button>
               </div>
             </div>
           </div>
-
-
-
         </div>
-
       </div>
-
     </ng-container>
 
-    <!-- DATA DASHBOARD (Coach View - Public) -->
-    <ng-container *ngIf="!loading && !error && viewType === 'coach' && profile">
+    <!-- DATA DASHBOARD (Specialist View - Coach or Nutritionist) -->
+    <ng-container *ngIf="!loading && !error && (viewType === 'coach' || viewType === 'nutritionist') && profile">
        <header class="flex flex-col md:flex-row items-center gap-10 bg-gosport-surface/40 backdrop-blur-xl p-12 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
           <div class="absolute inset-0 bg-gradient-to-r from-gosport-orange/20 to-transparent"></div>
           
@@ -303,7 +483,7 @@
               <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
                 <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <img [src]="profile?.user?.photo_url ? 'http://localhost:3000' + profile.user.photo_url : (profile?.user?.avatar || 'https://ui-avatars.com/api/?name=' + profile?.user?.first_name + '+' + profile?.user?.last_name + '&background=random')" 
+              <img [src]="profile?.user?.photo_url ? (profile.user.photo_url.startsWith('/') ? 'http://localhost:3000' + profile.user.photo_url : profile.user.photo_url) : (profile?.user?.avatar || 'https://ui-avatars.com/api/?name=' + profile?.user?.first_name + '+' + profile?.user?.last_name + '&background=random')" 
                    class="w-full h-full object-cover">
               <input #fileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
             </div>
@@ -312,7 +492,9 @@
 
           <div class="flex-1 text-center md:text-left relative z-10">
             <div class="flex items-center justify-center md:justify-start gap-4 mb-4">
-              <span class="px-3 py-1 bg-gosport-orange/10 text-gosport-orange text-[10px] font-black uppercase tracking-widest border border-gosport-orange/20 rounded-full">Coach Certifié</span>
+              <span class="px-3 py-1 bg-gosport-orange/10 text-gosport-orange text-[10px] font-black uppercase tracking-widest border border-gosport-orange/20 rounded-full">
+                {{ viewType === 'nutritionist' ? 'Nutritionniste' : 'Coach' }} Certifié
+              </span>
               <button *ngIf="isOwnProfile && !editingProfile" (click)="toggleEditProfile()" class="text-slate-400 hover:text-white transition-all flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
                 <lucide-icon name="edit-2" class="w-3.5 h-3.5"></lucide-icon>
                 Modifier le profil
@@ -341,6 +523,14 @@
               <div>
                 <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2 block">Téléphone</label>
                 <input [(ngModel)]="editForm.phone" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all" placeholder="+33 6 ...">
+              </div>
+              <div *ngIf="viewType === 'nutritionist'">
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2 block">Spécialisations (séparées par des virgules)</label>
+                <input [ngModel]="editForm.specializations.join(', ')" (ngModelChange)="editForm.specializations = $event.split(',')" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all" placeholder="Perte de poids, Sport, Kéto...">
+              </div>
+              <div *ngIf="viewType === 'nutritionist'">
+                <label class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-2 block">Services (séparés par des virgules)</label>
+                <input [ngModel]="editForm.offerTypes.join(', ')" (ngModelChange)="editForm.offerTypes = $event.split(',')" class="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm outline-none focus:border-gosport-orange transition-all" placeholder="Plan alimentaire, Suivi hebdomadaire...">
               </div>
             </div>
             <div class="flex flex-wrap justify-center md:justify-start gap-8">
@@ -389,7 +579,7 @@
             <div class="mt-8 pt-8 border-t border-white/5">
               <span class="section-label mb-6">SERVICES PROPOSÉS</span>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div *ngFor="let offer of profile?.offerTypes" class="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
+                <div *ngFor="let offer of $any(profile?.offerTypes)" class="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-4">
                   <div class="w-10 h-10 bg-gosport-orange/20 rounded-xl flex items-center justify-center text-gosport-orange">
                     <lucide-icon name="check-circle" class="w-5 h-5"></lucide-icon>
                   </div>
@@ -403,7 +593,7 @@
             <div class="tile-card">
               <span class="section-label">SPÉCIALISATIONS</span>
               <div class="flex flex-wrap gap-2">
-                <span *ngFor="let spec of profile?.specializations" class="px-4 py-2 bg-gosport-orange/10 border border-gosport-orange/20 rounded-xl text-gosport-orange text-[10px] font-black uppercase tracking-widest">
+                <span *ngFor="let spec of $any(profile?.specializations)" class="px-4 py-2 bg-gosport-orange/10 border border-gosport-orange/20 rounded-xl text-gosport-orange text-[10px] font-black uppercase tracking-widest">
                   {{ spec.specialization || spec }}
                 </span>
               </div>
@@ -411,7 +601,7 @@
 
             <div class="tile-card border-gosport-orange/20 bg-gosport-orange/5">
                <lucide-icon name="award" class="w-12 h-12 text-gosport-orange mb-4"></lucide-icon>
-               <h4 class="text-white font-black uppercase italic tracking-tight text-lg mb-2">Coach Vérifié</h4>
+                <h4 class="text-white font-black uppercase italic tracking-tight text-lg mb-2">{{ viewType === 'nutritionist' ? 'Nutritionniste' : 'Coach' }} Vérifié</h4>
                <p class="text-slate-400 text-xs leading-relaxed">Ce profil a été vérifié par l'équipe GoSport pour garantir l'expertise et la qualité des services.</p>
             </div>
           </div>

@@ -6,6 +6,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../data/programs_repository.dart';
 import '../../../connections/data/athletes_repository.dart';
+import '../../../../shared/widgets/animate_in.dart';
 
 class ProgramsScreen extends ConsumerStatefulWidget {
   const ProgramsScreen({super.key});
@@ -170,13 +171,23 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     }
 
     return [
-      const _SectionLabel(text: 'YOUR PROGRAMS'),
+      const AnimateIn(
+        delay: 100,
+        child: _SectionLabel(text: 'YOUR PROGRAMS'),
+      ),
       const SizedBox(height: 12),
-      ..._programs.map((p) => _CoachProgramCard(
-        program: p,
-        athletes: _athletes,
-        onAssigned: _load,
-      )),
+      ..._programs.asMap().entries.map((entry) {
+        final i = entry.key;
+        final p = entry.value;
+        return AnimateIn(
+          delay: 150 + (i * 100),
+          child: _CoachProgramCard(
+            program: p,
+            athletes: _athletes,
+            onAssigned: _load,
+          ),
+        );
+      }),
     ];
   }
 
@@ -185,49 +196,80 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
     return [
       // Pending inbox
       if (_pendingPrograms.isNotEmpty) ...[
-        Row(
-          children: [
-            const Text('PENDING PROGRAMS',
-                style: TextStyle(
-                    color: AppColors.warning,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1)),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                  color: AppColors.warning, borderRadius: BorderRadius.circular(20)),
-              child: Text('${_pendingPrograms.length} NEW',
-                  style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900)),
-            ),
-          ],
+        AnimateIn(
+          delay: 100,
+          child: Row(
+            children: [
+              const Text('PENDING PROGRAMS',
+                  style: TextStyle(
+                      color: AppColors.warning,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1)),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                    color: AppColors.warning, borderRadius: BorderRadius.circular(20)),
+                child: Text('${_pendingPrograms.length} NEW',
+                    style: const TextStyle(
+                        color: Colors.black,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900)),
+              ),
+            ],
+          ),
         ),
         const SizedBox(height: 12),
-        ..._pendingPrograms.map((p) => _PendingProgramCard(
-          program: p,
-          onAction: _load,
-        )),
+        ..._pendingPrograms.asMap().entries.map((entry) {
+          final i = entry.key;
+          final p = entry.value;
+          return AnimateIn(
+            delay: 150 + (i * 100),
+            child: _PendingProgramCard(
+              program: p,
+              onAction: _load,
+            ),
+          );
+        }),
         const SizedBox(height: 24),
       ],
 
       // Active programs
       if (_activePrograms.isNotEmpty) ...[
-        const _SectionLabel(text: 'MY PROGRAM LIBRARY'),
+        const AnimateIn(
+          delay: 300,
+          child: _SectionLabel(text: 'MY PROGRAM LIBRARY'),
+        ),
         const SizedBox(height: 12),
-        ..._activePrograms.map((p) => _ActiveProgramCard(program: p)),
+        ..._activePrograms.asMap().entries.map((entry) {
+          final i = entry.key;
+          final p = entry.value;
+          return AnimateIn(
+            delay: 350 + (i * 100),
+            child: _ActiveProgramCard(program: p),
+          );
+        }),
         const SizedBox(height: 12),
       ],
 
       // Archived
       if (_programs.isNotEmpty) ...[
         if (_activePrograms.isEmpty)
-          const _SectionLabel(text: 'MY PROGRAM LIBRARY'),
+          const AnimateIn(
+            delay: 450,
+            child: _SectionLabel(text: 'MY PROGRAM LIBRARY'),
+          ),
         if (_activePrograms.isEmpty) const SizedBox(height: 12),
-        ..._programs.map((p) => _ArchivedProgramCard(program: p)),
+        ..._programs.asMap().entries.map((entry) {
+          final i = entry.key;
+          final p = entry.value;
+          final delayOffset = _activePrograms.length * 100;
+          return AnimateIn(
+            delay: 500 + delayOffset + (i * 100),
+            child: _ArchivedProgramCard(program: p),
+          );
+        }),
       ],
 
       // True empty

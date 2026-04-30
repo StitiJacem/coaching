@@ -12,7 +12,7 @@ export class CoachProfile {
     @Column()
     userId!: number;
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "userId" })
     user!: User;
 

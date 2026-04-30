@@ -9,7 +9,7 @@ export class ProgramExercise {
     @Column()
     programDayId!: number;
 
-    @ManyToOne(() => ProgramDay, (day) => day.exercises)
+    @ManyToOne(() => ProgramDay, (day) => day.exercises, { onDelete: "CASCADE" })
     @JoinColumn({ name: "programDayId" })
     programDay!: ProgramDay;
 

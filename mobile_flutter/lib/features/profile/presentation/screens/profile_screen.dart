@@ -6,6 +6,7 @@ import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../connections/data/athletes_repository.dart';
+import '../../../../shared/widgets/animate_in.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -36,9 +37,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Map<String, dynamic>? _profile;
 
   final _specs = [
-    'Padel', 'Tennis', 'Football', 'Basketball', 'Swimming',
-    'Cycling', 'Running', 'Weightlifting', 'Pilates', 'Yoga',
-    'CrossFit', 'Boxing', 'Musculation', 'Rehabilitation', 'Nutrition',
+    'Padel', 'Football','Swimming',
+    'Running', 'Weightlifting',
+    'CrossFit','Musculation', 'Nutrition',
   ];
 
   @override
@@ -157,160 +158,187 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // ── Avatar block ──────────────────────────────────────
-                    Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 88,
-                            height: 88,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFE8621A), Color(0xFFBF4D10)],
+                    AnimateIn(
+                      delay: 100,
+                      child: Center(
+                        child: Stack(
+                          children: [
+                            Container(
+                              width: 96,
+                              height: 96,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [AppColors.primary, Color(0xFFBF4D10)],
+                                ),
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.3),
+                                    blurRadius: 15,
+                                    offset: const Offset(0, 5),
+                                  ),
+                                ],
                               ),
-                              shape: BoxShape.circle,
+                              child: Center(
+                                child: Text(initial,
+                                    style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 38)),
+                              ),
                             ),
-                            child: Center(
-                              child: Text(initial,
-                                  style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 34)),
+                            Positioned(
+                              bottom: 0,
+                              right: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                    color: AppColors.surface,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(color: AppColors.background, width: 2)
+                                ),
+                                child: const Icon(Icons.camera_alt_rounded,
+                                    color: AppColors.primary, size: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (user != null)
+                      AnimateIn(
+                        delay: 150,
+                        child: Center(
+                          child: _RolePill(role: user.role),
+                        ),
+                      ),
+                    const SizedBox(height: 28),
+
+                    // ── Basic info card ───────────────────────────────────
+                    AnimateIn(
+                      delay: 200,
+                      child: _Section(
+                        title: 'Basic Info',
+                        children: [
+                          _TwoColRow(
+                            left: _InputField(
+                              label: 'FIRST NAME',
+                              controller: _firstNameCtrl,
+                            ),
+                            right: _InputField(
+                              label: 'LAST NAME',
+                              controller: _lastNameCtrl,
                             ),
                           ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: const BoxDecoration(
-                                  color: AppColors.primary, shape: BoxShape.circle),
-                              child: const Icon(Icons.camera_alt_rounded,
-                                  color: Colors.white, size: 14),
-                            ),
+                          const SizedBox(height: 14),
+                          _InputField(
+                            label: 'EMAIL (READ-ONLY)',
+                            initialValue: user?.email ?? '',
+                            readOnly: true,
+                          ),
+                          const SizedBox(height: 14),
+                          _InputField(
+                            label: 'PHONE',
+                            controller: _phoneCtrl,
+                            keyboardType: TextInputType.phone,
+                          ),
+                          const SizedBox(height: 14),
+                          _InputField(
+                            label: 'BIO',
+                            controller: _bioCtrl,
+                            maxLines: 3,
+                            hint: 'Tell your clients about yourself...',
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (user != null)
-                      Center(
-                        child: _RolePill(role: user.role),
-                      ),
-                    const SizedBox(height: 24),
-
-                    // ── Basic info card ───────────────────────────────────
-                    _Section(
-                      title: 'Basic Info',
-                      children: [
-                        _TwoColRow(
-                          left: _InputField(
-                            label: 'FIRST NAME',
-                            controller: _firstNameCtrl,
-                          ),
-                          right: _InputField(
-                            label: 'LAST NAME',
-                            controller: _lastNameCtrl,
-                          ),
-                        ),
-                        const SizedBox(height: 14),
-                        _InputField(
-                          label: 'EMAIL (READ-ONLY)',
-                          initialValue: user?.email ?? '',
-                          readOnly: true,
-                        ),
-                        const SizedBox(height: 14),
-                        _InputField(
-                          label: 'PHONE',
-                          controller: _phoneCtrl,
-                          keyboardType: TextInputType.phone,
-                        ),
-                        const SizedBox(height: 14),
-                        _InputField(
-                          label: 'BIO',
-                          controller: _bioCtrl,
-                          maxLines: 3,
-                          hint: 'Tell your clients about yourself...',
-                        ),
-                      ],
                     ),
                     const SizedBox(height: 14),
 
                     // ── Athlete-specific ──────────────────────────────────
                     if (isAthlete) ...[
-                      _Section(
-                        title: 'Athletic Profile',
-                        children: [
-                          _InputField(
-                            label: 'SPORT',
-                            initialValue: _sport,
-                            onChanged: (v) => _sport = v,
-                            hint: 'e.g. Football, CrossFit, Padel',
-                          ),
-                          const SizedBox(height: 14),
-                          _TwoColRow(
-                            left: _InputField(
-                              label: 'WEIGHT (KG)',
-                              initialValue: _weight?.toString() ?? '',
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) => _weight = double.tryParse(v),
+                      AnimateIn(
+                        delay: 300,
+                        child: _Section(
+                          title: 'Athletic Profile',
+                          children: [
+                            _InputField(
+                              label: 'SPORT',
+                              initialValue: _sport,
+                              onChanged: (v) => _sport = v,
+                              hint: 'e.g. Football, CrossFit, Padel',
                             ),
-                            right: _InputField(
-                              label: 'HEIGHT (CM)',
-                              initialValue: _height?.toString() ?? '',
-                              keyboardType: TextInputType.number,
-                              onChanged: (v) => _height = double.tryParse(v),
+                            const SizedBox(height: 14),
+                            _TwoColRow(
+                              left: _InputField(
+                                label: 'WEIGHT (KG)',
+                                initialValue: _weight?.toString() ?? '',
+                                keyboardType: TextInputType.number,
+                                onChanged: (v) => _weight = double.tryParse(v),
+                              ),
+                              right: _InputField(
+                                label: 'HEIGHT (CM)',
+                                initialValue: _height?.toString() ?? '',
+                                keyboardType: TextInputType.number,
+                                onChanged: (v) => _height = double.tryParse(v),
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 14),
                     ],
 
                     // ── Coach-specific ────────────────────────────────────
                     if (isCoach) ...[
-                      _Section(
-                        title: 'Specializations',
-                        children: [
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: _specs.map((s) {
-                              final selected = _specializations.contains(s);
-                              return GestureDetector(
-                                onTap: () => setState(() {
-                                  if (selected) {
-                                    _specializations.remove(s);
-                                  } else {
-                                    _specializations.add(s);
-                                  }
-                                }),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 14, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: selected
-                                        ? AppColors.primary
-                                        : AppColors.surfaceVariant,
-                                    borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(
+                      AnimateIn(
+                        delay: 300,
+                        child: _Section(
+                          title: 'Specializations',
+                          children: [
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _specs.map((s) {
+                                final selected = _specializations.contains(s);
+                                return GestureDetector(
+                                  onTap: () => setState(() {
+                                    if (selected) {
+                                      _specializations.remove(s);
+                                    } else {
+                                      _specializations.add(s);
+                                    }
+                                  }),
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 150),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 14, vertical: 8),
+                                    decoration: BoxDecoration(
                                       color: selected
                                           ? AppColors.primary
-                                          : AppColors.cardBorder,
+                                          : AppColors.surfaceVariant,
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: selected
+                                            ? AppColors.primary
+                                            : AppColors.cardBorder,
+                                      ),
                                     ),
+                                    child: Text(s,
+                                        style: TextStyle(
+                                            color: selected
+                                                ? Colors.white
+                                                : AppColors.textSecondary,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600)),
                                   ),
-                                  child: Text(s,
-                                      style: TextStyle(
-                                          color: selected
-                                              ? Colors.white
-                                              : AppColors.textSecondary,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600)),
-                                ),
-                              );
-                            }).toList(),
-                          ),
-                        ],
+                                );
+                              }).toList(),
+                            ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: 14),
                     ],
@@ -342,20 +370,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     const SizedBox(height: 16),
 
                     // ── Logout ────────────────────────────────────────────
-                    Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.card,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.cardBorder),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(Icons.logout_rounded,
-                            color: AppColors.error, size: 22),
-                        title: const Text('Log out',
-                            style: TextStyle(
-                                color: AppColors.error,
-                                fontWeight: FontWeight.w600)),
-                        onTap: () => _logout(context),
+                    AnimateIn(
+                      delay: 400,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.card,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: AppColors.cardBorder),
+                        ),
+                        child: ListTile(
+                          leading: const Icon(Icons.logout_rounded,
+                              color: AppColors.error, size: 22),
+                          title: const Text('Log out',
+                              style: TextStyle(
+                                  color: AppColors.error,
+                                  fontWeight: FontWeight.w600)),
+                          onTap: () => _logout(context),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 40),

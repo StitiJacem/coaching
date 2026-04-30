@@ -8,6 +8,8 @@ import '../../../../shared/providers/auth_provider.dart';
 import '../../../../shared/widgets/stat_card.dart';
 import '../../data/dashboard_repository.dart';
 import '../../../notifications/data/notifications_repository.dart';
+import '../../../notifications/presentation/widgets/notification_popup.dart';
+import '../../../../shared/widgets/animate_in.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -162,7 +164,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                       IconButton(
                         icon: const Icon(Icons.notifications_outlined,
                             color: AppColors.textPrimary, size: 24),
-                        onPressed: () => context.push('/notifications'),
+                        onPressed: () => NotificationPopup.show(context),
                       ),
                       if (_unreadCount > 0)
                         Positioned(
@@ -225,79 +227,108 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                     sliver: SliverList(
                       delegate: SliverChildListDelegate([
                         // ─── Role Badge ──────────────────────────────────
-                        _RoleBadge(role: user?.role ?? 'athlete'),
+                        AnimateIn(
+                          delay: 100,
+                          child: _RoleBadge(role: user?.role ?? 'athlete'),
+                        ),
                         const SizedBox(height: 20),
 
                         // ─── Hero Header ─────────────────────────────────
-                        if (isAthlete) ...[
-                          _AthleteHero(
-                            firstName: user!.firstName,
-                            streak: _stats?['currentStreak'] ?? 0,
-                          ),
-                          const SizedBox(height: 20),
-                        ] else ...[
-                          _CoachHero(name: user!.firstName),
-                          const SizedBox(height: 20),
-                        ],
+                        AnimateIn(
+                          delay: 200,
+                          child: isAthlete
+                              ? _AthleteHero(
+                                  firstName: user!.firstName,
+                                  streak: _stats?['currentStreak'] ?? 0,
+                                )
+                              : _CoachHero(name: user!.firstName),
+                        ),
+                        const SizedBox(height: 20),
 
                         // ─── Stats Grid ──────────────────────────────────
-                        if (isCoach)
-                          _CoachStatsGrid(stats: _stats)
-                        else
-                          _AthleteStatsGrid(stats: _stats),
+                        AnimateIn(
+                          delay: 300,
+                          child: isCoach
+                              ? _CoachStatsGrid(stats: _stats)
+                              : _AthleteStatsGrid(stats: _stats),
+                        ),
                         const SizedBox(height: 28),
 
                         // ─── ATHLETE SECTION ─────────────────────────────
                         if (isAthlete) ...[
                           // Weekly schedule
-                          _WeeklyScheduleCard(
-                            sessions: _weeklySessions,
-                            weekStart: _weekStart(),
+                          AnimateIn(
+                            delay: 400,
+                            child: _WeeklyScheduleCard(
+                              sessions: _weeklySessions,
+                              weekStart: _weekStart(),
+                            ),
                           ),
                           const SizedBox(height: 24),
 
                           // Pending invitations from coaches
                           if (_pendingRequests.isNotEmpty) ...[
-                            _SectionHeader(
-                              title: 'New Invitations',
-                              badge: '${_pendingRequests.length} NEW',
+                            AnimateIn(
+                              delay: 500,
+                              child: Column(
+                                children: [
+                                  _SectionHeader(
+                                    title: 'New Invitations',
+                                    badge: '${_pendingRequests.length} NEW',
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ..._pendingRequests.map((r) => _InvitationCard(
+                                        request: r,
+                                        isCoach: false,
+                                        onAccept: () => _handleRequest(
+                                            r['id'].toString(), 'accepted'),
+                                        onReject: () => _handleRequest(
+                                            r['id'].toString(), 'rejected'),
+                                      )),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            ..._pendingRequests
-                                .map((r) => _InvitationCard(
-                                      request: r,
-                                      isCoach: false,
-                                      onAccept: () => _handleRequest(
-                                          r['id'].toString(), 'accepted'),
-                                      onReject: () => _handleRequest(
-                                          r['id'].toString(), 'rejected'),
-                                    ))
-                                .toList(),
                             const SizedBox(height: 24),
                           ],
 
                           // Connect with specialist CTA
-                          _ConnectSpecialistBanner(),
+                          AnimateIn(
+                            delay: 600,
+                            child: _ConnectSpecialistBanner(),
+                          ),
                           const SizedBox(height: 24),
 
                           // Today's workout
-                          _SectionHeader(title: "Today's Workout"),
-                          const SizedBox(height: 12),
-                          _TodayWorkoutCard(data: _todayWorkout),
+                          AnimateIn(
+                            delay: 700,
+                            child: Column(
+                              children: [
+                                _SectionHeader(title: "Today's Workout"),
+                                const SizedBox(height: 12),
+                                _TodayWorkoutCard(data: _todayWorkout),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 24),
 
                           // Pending programs from coach
                           if (_pendingPrograms.isNotEmpty) ...[
-                            _SectionHeader(
-                              title: 'Pending Programs',
-                              actionLabel: 'View All',
-                              onAction: () => context.push('/programs'),
+                            AnimateIn(
+                              delay: 800,
+                              child: Column(
+                                children: [
+                                  _SectionHeader(
+                                    title: 'Pending Programs',
+                                    actionLabel: 'View All',
+                                    onAction: () => context.push('/programs'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ..._pendingPrograms
+                                      .take(3)
+                                      .map((p) => _PendingProgramTile(program: p)),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            ..._pendingPrograms
-                                .take(3)
-                                .map((p) => _PendingProgramTile(program: p))
-                                .toList(),
                             const SizedBox(height: 24),
                           ],
                         ],
@@ -306,44 +337,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         if (isCoach) ...[
                           // Connection requests
                           if (_pendingRequests.isNotEmpty) ...[
-                            _SectionHeader(
-                              title: 'Connection Requests',
-                              badge: '${_pendingRequests.length} NEW',
+                            AnimateIn(
+                              delay: 400,
+                              child: Column(
+                                children: [
+                                  _SectionHeader(
+                                    title: 'Connection Requests',
+                                    badge: '${_pendingRequests.length} NEW',
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ..._pendingRequests.map((r) => _InvitationCard(
+                                        request: r,
+                                        isCoach: true,
+                                        onAccept: () => _handleRequest(
+                                            r['id'].toString(), 'accepted'),
+                                        onReject: () => _handleRequest(
+                                            r['id'].toString(), 'rejected'),
+                                      )),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            ..._pendingRequests
-                                .map((r) => _InvitationCard(
-                                      request: r,
-                                      isCoach: true,
-                                      onAccept: () => _handleRequest(
-                                          r['id'].toString(), 'accepted'),
-                                      onReject: () => _handleRequest(
-                                          r['id'].toString(), 'rejected'),
-                                    ))
-                                .toList(),
                             const SizedBox(height: 24),
                           ],
 
                           // Recent athletes
                           if (_recentAthletes.isNotEmpty) ...[
-                            _SectionHeader(
-                              title: 'Recent Athletes',
-                              actionLabel: 'View All',
-                              onAction: () => context.push('/athletes'),
+                            AnimateIn(
+                              delay: 500,
+                              child: Column(
+                                children: [
+                                  _SectionHeader(
+                                    title: 'Recent Athletes',
+                                    actionLabel: 'View All',
+                                    onAction: () => context.push('/athletes'),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ..._recentAthletes
+                                      .take(4)
+                                      .map((a) => _RecentAthleteTile(athlete: a)),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
-                            ..._recentAthletes
-                                .take(4)
-                                .map((a) => _RecentAthleteTile(athlete: a))
-                                .toList(),
                             const SizedBox(height: 24),
                           ],
                         ],
 
                         // ─── Activity Log (PRs) — both roles ────────────
-                        _SectionHeader(title: 'Activity Log'),
-                        const SizedBox(height: 12),
-                        _ActivityLog(prs: _recentPRs, isCoach: isCoach),
+                        AnimateIn(
+                          delay: 600,
+                          child: Column(
+                            children: [
+                              _SectionHeader(title: 'Activity Log'),
+                              const SizedBox(height: 12),
+                              _ActivityLog(prs: _recentPRs, isCoach: isCoach),
+                            ],
+                          ),
+                        ),
                         const SizedBox(height: 32),
                       ]),
                     ),
@@ -516,7 +565,7 @@ class _CoachStatsGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.55,
+      childAspectRatio: 1.7,
       children: [
         StatCard(
           label: 'ATHLETES',
@@ -560,7 +609,7 @@ class _AthleteStatsGrid extends StatelessWidget {
       physics: const NeverScrollableScrollPhysics(),
       crossAxisSpacing: 12,
       mainAxisSpacing: 12,
-      childAspectRatio: 1.55,
+      childAspectRatio: 1.7,
       children: [
         StatCard(
           label: 'SESSIONS DONE',

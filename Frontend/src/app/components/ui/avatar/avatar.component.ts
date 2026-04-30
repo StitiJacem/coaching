@@ -19,6 +19,11 @@ export class AvatarComponent {
   @Input() status?: AvatarStatus;
   @Input() className: string = '';
 
+  get displaySrc(): string | undefined {
+    if (!this.src) return undefined;
+    return this.src.startsWith('/') ? `http://localhost:3000${this.src}` : this.src;
+  }
+
   get sizeClasses(): string {
     const sizes: Record<AvatarSize, string> = {
       sm: 'w-8 h-8 text-xs',

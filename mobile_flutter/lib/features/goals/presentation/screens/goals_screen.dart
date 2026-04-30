@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../shared/providers/auth_provider.dart';
 import '../../../connections/data/athletes_repository.dart';
+import '../../../../shared/widgets/animate_in.dart';
 
 class GoalsScreen extends ConsumerStatefulWidget {
   const GoalsScreen({super.key});
@@ -114,79 +115,85 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     // ── Core Objectives ────────────────────────────────────
-                    _FormSection(
-                      title: 'Core Objectives',
-                      children: [
-                        _DropdownField(
-                          label: 'PRIMARY GOAL',
-                          value: _primaryObjective.isEmpty ? null : _primaryObjective,
-                          items: const [
-                            DropdownMenuItem(value: 'weight_loss', child: Text('Weight Loss')),
-                            DropdownMenuItem(value: 'muscle_gain', child: Text('Muscle Gain')),
-                            DropdownMenuItem(value: 'strength', child: Text('Strength')),
-                            DropdownMenuItem(value: 'sport_performance', child: Text('Sport Performance')),
-                            DropdownMenuItem(value: 'rehabilitation', child: Text('Rehabilitation')),
-                            DropdownMenuItem(value: 'general_fitness', child: Text('General Fitness')),
-                            DropdownMenuItem(value: 'other', child: Text('Other')),
-                          ],
-                          onChanged: (v) => setState(() => _primaryObjective = v ?? ''),
-                        ),
-                        const SizedBox(height: 16),
-                        _TextField(
-                          label: 'TARGET METRIC',
-                          hint: 'e.g. lose 10kg, bench press 100kg',
-                          controller: _metricCtrl,
-                        ),
-                        const SizedBox(height: 16),
-                        _DateField(
-                          label: 'TARGET DEADLINE (OPTIONAL)',
-                          value: _deadline,
-                          onChanged: (v) => setState(() => _deadline = v),
-                        ),
-                      ],
+                    AnimateIn(
+                      delay: 100,
+                      child: _FormSection(
+                        title: 'Core Objectives',
+                        children: [
+                          _DropdownField(
+                            label: 'PRIMARY GOAL',
+                            value: _primaryObjective.isEmpty ? null : _primaryObjective,
+                            items: const [
+                              DropdownMenuItem(value: 'Build Muscle', child: Text('Build Muscle')),
+                              DropdownMenuItem(value: 'Lose Weight', child: Text('Lose Weight')),
+                              DropdownMenuItem(value: 'Improve Endurance', child: Text('Improve Endurance')),
+                              DropdownMenuItem(value: 'Increase Strength', child: Text('Increase Strength')),
+                              DropdownMenuItem(value: 'Improve Flexibility', child: Text('Improve Flexibility')),
+                              DropdownMenuItem(value: 'Athletic Performance', child: Text('Athletic Performance')),
+                              DropdownMenuItem(value: 'Other', child: Text('Other')),
+                            ],
+                            onChanged: (v) => setState(() => _primaryObjective = v ?? ''),
+                          ),
+                          const SizedBox(height: 16),
+                          _TextField(
+                            label: 'TARGET METRIC',
+                            hint: 'e.g. lose 10kg, bench press 100kg',
+                            controller: _metricCtrl,
+                          ),
+                          const SizedBox(height: 16),
+                          _DateField(
+                            label: 'TARGET DEADLINE (OPTIONAL)',
+                            value: _deadline,
+                            onChanged: (v) => setState(() => _deadline = v),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
 
                     // ── Training Logistics ─────────────────────────────────
-                    _FormSection(
-                      title: 'Training Logistics',
-                      children: [
-                        _DropdownField(
-                          label: 'AVAILABLE TIME PER SESSION',
-                          value: _timePerSession.isEmpty ? null : _timePerSession,
-                          items: const [
-                            DropdownMenuItem(value: '30min', child: Text('30 min')),
-                            DropdownMenuItem(value: '45min', child: Text('45 min')),
-                            DropdownMenuItem(value: '60min', child: Text('60 min')),
-                            DropdownMenuItem(value: '75min', child: Text('75 min')),
-                            DropdownMenuItem(value: '90min+', child: Text('90+ min')),
-                          ],
-                          onChanged: (v) => setState(() => _timePerSession = v ?? ''),
-                        ),
-                        const SizedBox(height: 16),
-                        _DropdownField(
-                          label: 'EXPERIENCE LEVEL',
-                          value: _experienceLevel.isEmpty ? null : _experienceLevel,
-                          items: const [
-                            DropdownMenuItem(value: 'beginner', child: Text('Beginner')),
-                            DropdownMenuItem(value: 'intermediate', child: Text('Intermediate')),
-                            DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
-                          ],
-                          onChanged: (v) => setState(() => _experienceLevel = v ?? ''),
-                        ),
-                        const SizedBox(height: 16),
-                        _DropdownField(
-                          label: 'EQUIPMENT AVAILABLE',
-                          value: _equipment.isEmpty ? null : _equipment,
-                          items: const [
-                            DropdownMenuItem(value: 'gym', child: Text('Full Gym Access')),
-                            DropdownMenuItem(value: 'home_equip', child: Text('Home (with equipment)')),
-                            DropdownMenuItem(value: 'home_body', child: Text('Home (bodyweight only)')),
-                            DropdownMenuItem(value: 'outdoor', child: Text('Outdoor / Track')),
-                          ],
-                          onChanged: (v) => setState(() => _equipment = v ?? ''),
-                        ),
-                      ],
+                    AnimateIn(
+                      delay: 250,
+                      child: _FormSection(
+                        title: 'Training Logistics',
+                        children: [
+                          _DropdownField(
+                            label: 'AVAILABLE TIME PER SESSION',
+                            value: _timePerSession.isEmpty ? null : _timePerSession,
+                            items: const [
+                              DropdownMenuItem(value: '30min', child: Text('30 min')),
+                              DropdownMenuItem(value: '45min', child: Text('45 min')),
+                              DropdownMenuItem(value: '60min', child: Text('60 min')),
+                              DropdownMenuItem(value: '75min', child: Text('75 min')),
+                              DropdownMenuItem(value: '90min+', child: Text('90+ min')),
+                            ],
+                            onChanged: (v) => setState(() => _timePerSession = v ?? ''),
+                          ),
+                          const SizedBox(height: 16),
+                          _DropdownField(
+                            label: 'EXPERIENCE LEVEL',
+                            value: _experienceLevel.isEmpty ? null : _experienceLevel,
+                            items: const [
+                              DropdownMenuItem(value: 'beginner', child: Text('Beginner')),
+                              DropdownMenuItem(value: 'intermediate', child: Text('Intermediate')),
+                              DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
+                            ],
+                            onChanged: (v) => setState(() => _experienceLevel = v ?? ''),
+                          ),
+                          const SizedBox(height: 16),
+                          _DropdownField(
+                            label: 'EQUIPMENT AVAILABLE',
+                            value: _equipment.isEmpty ? null : _equipment,
+                            items: const [
+                              DropdownMenuItem(value: 'gym', child: Text('Full Gym Access')),
+                              DropdownMenuItem(value: 'home_equip', child: Text('Home (with equipment)')),
+                              DropdownMenuItem(value: 'home_body', child: Text('Home (bodyweight only)')),
+                              DropdownMenuItem(value: 'outdoor', child: Text('Outdoor / Track')),
+                            ],
+                            onChanged: (v) => setState(() => _equipment = v ?? ''),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
@@ -205,25 +212,28 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
                           ),
                         ),
                       ),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _saving ? null : _save,
-                        style: ElevatedButton.styleFrom(
-                          minimumSize: const Size(0, 54),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14)),
+                    AnimateIn(
+                      delay: 400,
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: _saving ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(0, 54),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14)),
+                          ),
+                          child: _saving
+                              ? const SizedBox(
+                                  width: 22, height: 22,
+                                  child: CircularProgressIndicator(
+                                      color: Colors.white, strokeWidth: 2))
+                              : const Text('Save Goals & Notify Coach',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      letterSpacing: 0.5)),
                         ),
-                        child: _saving
-                            ? const SizedBox(
-                                width: 22, height: 22,
-                                child: CircularProgressIndicator(
-                                    color: Colors.white, strokeWidth: 2))
-                            : const Text('Save Goals & Notify Coach',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 15,
-                                    letterSpacing: 0.5)),
                       ),
                     ),
                     const SizedBox(height: 32),

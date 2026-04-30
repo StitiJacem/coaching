@@ -1,7 +1,7 @@
 <div [class]="'relative inline-block ' + className">
   <div [class]="sizeClasses + ' rounded-full overflow-hidden bg-slate-700 border border-slate-600 flex items-center justify-center'">
-    <img *ngIf="src" [src]="src" [alt]="alt || fallback" class="w-full h-full object-cover" />
-    <span *ngIf="!src" class="font-bold text-white">{{ fallback }}</span>
+    <img *ngIf="displaySrc" [src]="displaySrc" [alt]="alt || fallback" class="w-full h-full object-cover" />
+    <span *ngIf="!displaySrc" class="font-bold text-white">{{ fallback }}</span>
   </div>
   <span
     *ngIf="status"

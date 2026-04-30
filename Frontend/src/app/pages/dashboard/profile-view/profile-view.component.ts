@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule, Router } from '@angular/router';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, of, Observable } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { LucideAngularModule } from 'lucide-angular';
 import { AthleteService } from '../../../services/athlete.service';
@@ -9,9 +9,11 @@ import { CoachService } from '../../../services/coach.service';
 import { WorkoutLogService } from '../../../services/workout-log.service';
 import { SessionService } from '../../../services/session.service';
 import { ProgramService } from '../../../services/program.service';
+import { NutritionistService } from '../../../services/nutritionist.service';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { SocialAuthService } from '../../../services/social-auth.service';
+import { UserService } from '../../../services/user.service';
 
 @Component({
   selector: 'app-profile-view',
@@ -20,7 +22,7 @@ import { SocialAuthService } from '../../../services/social-auth.service';
   styleUrls: ['./profile-view.component.css']
 })
 export class ProfileViewComponent implements OnInit {
-  viewType: 'athlete' | 'coach' = 'athlete';
+  viewType: 'athlete' | 'coach' | 'nutritionist' = 'athlete';
   entityId = '';
   loading = true;
   error = '';
@@ -33,6 +35,7 @@ export class ProfileViewComponent implements OnInit {
   coachStats: { connectedAthletes: number; activePrograms: number } | null = null;
 
   activeTab: 'overview' | 'training' | 'metrics' = 'overview';
+  selectedMetric: 'weight' | 'bodyFat' | 'vo2max' = 'weight';
   
   // UI Helpers
   editingNotes = false;
@@ -41,16 +44,33 @@ export class ProfileViewComponent implements OnInit {
   isOwnProfile = false;
   tempField = '';
   
+  // Stats helpers
+  adherenceColor = '#10b981';
+  
   // Field editing
   editForm = {
     first_name: '',
     last_name: '',
     bio: '',
     experience_years: 0,
-    phone: ''
+    phone: '',
+    specializations: [] as string[],
+    offerTypes: [] as string[]
   };
 
   uploadingPhoto = false;
+
+  // Athlete edit mode
+  editingAthleteProfile = false;
+  athleteEditForm = {
+    first_name: '',
+    last_name: '',
+    sport: '',
+    weight: null as number | null,
+    height: null as number | null,
+    goals: '',
+    experienceLevel: ''
+  };
 
   constructor(
     private route: ActivatedRoute,
@@ -61,12 +81,14 @@ export class ProfileViewComponent implements OnInit {
     private sessionService: SessionService,
     private programService: ProgramService,
     private authService: AuthService,
-    private socialAuthService: SocialAuthService
+    private nutritionistService: NutritionistService,
+    private socialAuthService: SocialAuthService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
-      this.viewType = (params.get('type') as 'athlete' | 'coach') || 'athlete';
+      this.viewType = (params.get('type') as 'athlete' | 'coach' | 'nutritionist') || 'athlete';
       this.entityId = params.get('id') || '';
       this.loadData();
     });
@@ -86,6 +108,11 @@ export class ProfileViewComponent implements OnInit {
       this.athleteService.getOverview(Number(this.entityId)).subscribe({
         next: (data) => {
           this.overview = data;
+          
+          // Ownership check for athlete
+          const currentUser = this.authService.getUser();
+          this.isOwnProfile = currentUser && (Number(currentUser.id) === Number(this.overview.athlete?.userId));
+          
           this.loading = false;
         },
         error: (err) => {
@@ -97,14 +124,18 @@ export class ProfileViewComponent implements OnInit {
       return;
     }
 
-    // Coach View (Athlete Perspective)
-    this.coachService.getById(this.entityId).subscribe({
-      next: (coachProfile: any) => {
-        this.profile = coachProfile;
+    // Coach or Nutritionist View
+    const serviceObs: Observable<any> = this.viewType === 'nutritionist'
+      ? this.nutritionistService.getById(this.entityId)
+      : this.coachService.getById(this.entityId);
+
+    serviceObs.subscribe({
+      next: (profileData: any) => {
+        this.profile = profileData;
         
         // Ownership check
         const currentUser = this.authService.getUser();
-        this.isOwnProfile = currentUser && (currentUser.id === this.profile.userId);
+        this.isOwnProfile = currentUser && (Number(currentUser.id) === Number(this.profile.userId));
 
         if (typeof this.profile.offerTypes === 'string') {
           try {
@@ -114,24 +145,104 @@ export class ProfileViewComponent implements OnInit {
           }
         }
 
-        forkJoin({
-          requests: this.coachService.getCoachRequests(coachProfile?.id).pipe(catchError(() => of([]))),
-          programs: this.programService.getAll({ coachId: coachProfile?.userId }).pipe(catchError(() => of([])))
-        }).subscribe({
-          next: ({ requests, programs }) => {
-            const accepted = (requests || []).filter((r: any) => r.status === 'accepted').length;
-            const activePrograms = (programs || []).filter((p: any) => p.status === 'active').length;
-            this.coachStats = { connectedAthletes: accepted, activePrograms };
-            this.loading = false;
-          },
-          error: () => {
-            this.coachStats = { connectedAthletes: 0, activePrograms: 0 };
-            this.loading = false;
-          }
-        });
+        // Stats loading (simplified for nutritionist if needed)
+        if (this.viewType === 'coach') {
+          forkJoin({
+            requests: this.coachService.getCoachRequests(profileData?.id).pipe(catchError(() => of([]))),
+            programs: this.programService.getAll({ coachId: profileData?.userId }).pipe(catchError(() => of([])))
+          }).subscribe({
+            next: ({ requests, programs }) => {
+              const accepted = (requests || []).filter((r: any) => r.status === 'accepted').length;
+              const activePrograms = (programs || []).filter((p: any) => p.status === 'active').length;
+              this.coachStats = { connectedAthletes: accepted, activePrograms };
+              this.loading = false;
+            },
+            error: () => {
+              this.coachStats = { connectedAthletes: 0, activePrograms: 0 };
+              this.loading = false;
+            }
+          });
+        } else {
+          // Nutritionist specific stats (future improvement)
+          this.coachStats = { connectedAthletes: this.profile.total_clients || 0, activePrograms: 0 };
+          this.loading = false;
+        }
       },
       error: () => {
-        this.error = 'Impossible de charger le profil du coach.';
+        this.error = `Impossible de charger le profil du ${this.viewType === 'nutritionist' ? 'nutritionniste' : 'coach'}.`;
+        this.loading = false;
+      }
+    });
+  }
+
+  // --- Athlete Profile Editing ---
+
+  toggleAthleteEditProfile(): void {
+    if (!this.isOwnProfile || !this.overview) return;
+    this.athleteEditForm = {
+      first_name: this.overview.athlete?.user?.first_name || this.overview.athlete?.name?.split(' ')[0] || '',
+      last_name: this.overview.athlete?.user?.last_name || this.overview.athlete?.name?.split(' ').slice(1).join(' ') || '',
+      sport: this.overview.athlete?.sport || '',
+      weight: this.overview.athlete?.weight || null,
+      height: this.overview.athlete?.height || null,
+      goals: this.overview.athlete?.goals || '',
+      experienceLevel: this.overview.athlete?.experienceLevel || ''
+    };
+    this.editingAthleteProfile = true;
+  }
+
+  cancelAthleteEditProfile(): void {
+    this.editingAthleteProfile = false;
+  }
+
+  saveAthleteProfile(): void {
+    if (!this.isOwnProfile || !this.overview?.athlete) return;
+    this.loading = true;
+
+    const userUpdate = {
+      first_name: this.athleteEditForm.first_name,
+      last_name: this.athleteEditForm.last_name
+    };
+
+    const athleteUpdate: any = {
+      sport: this.athleteEditForm.sport,
+      goals: this.athleteEditForm.goals,
+      experienceLevel: this.athleteEditForm.experienceLevel
+    };
+    if (this.athleteEditForm.weight !== null) athleteUpdate.weight = this.athleteEditForm.weight;
+    if (this.athleteEditForm.height !== null) athleteUpdate.height = this.athleteEditForm.height;
+
+    forkJoin({
+      user: this.userService.updateProfile(userUpdate),
+      athlete: this.athleteService.update(this.overview.athlete.id, athleteUpdate)
+    }).subscribe({
+      next: () => {
+        // Update in-memory state
+        this.overview.athlete.name = `${userUpdate.first_name} ${userUpdate.last_name}`.trim();
+        if (this.overview.athlete.user) {
+          this.overview.athlete.user.first_name = userUpdate.first_name;
+          this.overview.athlete.user.last_name = userUpdate.last_name;
+        }
+        this.overview.athlete.sport = athleteUpdate.sport;
+        this.overview.athlete.goals = athleteUpdate.goals;
+        this.overview.athlete.experienceLevel = athleteUpdate.experienceLevel;
+        if (athleteUpdate.weight) this.overview.athlete.weight = athleteUpdate.weight;
+        if (athleteUpdate.height) this.overview.athlete.height = athleteUpdate.height;
+
+        // Persist name change to localStorage
+        const savedUser = this.authService.getUser();
+        if (savedUser) {
+          savedUser.first_name = userUpdate.first_name;
+          savedUser.last_name = userUpdate.last_name;
+          localStorage.setItem('user', JSON.stringify(savedUser));
+        }
+
+        this.editingAthleteProfile = false;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error saving athlete profile:', err);
+        alert('Erreur lors de la mise à jour du profil.');
         this.loading = false;
       }
     });
@@ -146,7 +257,9 @@ export class ProfileViewComponent implements OnInit {
       last_name: this.profile.user?.last_name || '',
       bio: this.profile.bio || '',
       experience_years: this.profile.experience_years || 0,
-      phone: this.profile.user?.phone || ''
+      phone: this.profile.user?.phone || '',
+      specializations: this.profile.specializations || [],
+      offerTypes: this.profile.offerTypes || []
     };
     this.editingProfile = true;
   }
@@ -159,7 +272,15 @@ export class ProfileViewComponent implements OnInit {
     if (!this.isOwnProfile) return;
     this.loading = true;
     
-    this.coachService.updateProfile(this.editForm).subscribe({
+    const updateData = {
+      ...this.editForm
+    };
+
+    const updateObs = this.viewType === 'nutritionist'
+      ? this.nutritionistService.updateProfile(this.profile.userId, updateData)
+      : this.coachService.updateProfile(updateData);
+
+    updateObs.subscribe({
       next: (updated) => {
         this.profile = { ...this.profile, ...updated };
         this.editingProfile = false;
@@ -186,24 +307,31 @@ export class ProfileViewComponent implements OnInit {
       this.uploadingPhoto = true;
       this.socialAuthService.uploadPhoto(file).subscribe({
         next: (res) => {
-          this.coachService.updateProfile({ photo_url: res.photoUrl }).subscribe({
-            next: () => {
-              if (this.profile && this.profile.user) {
-                this.profile.user.photo_url = res.photoUrl;
-              }
-              // Update local storage
-              const user = this.authService.getUser();
-              if (user) {
-                user.photo_url = res.photoUrl;
-                localStorage.setItem('user', JSON.stringify(user));
-              }
-              this.uploadingPhoto = false;
-            },
-            error: () => {
-              this.uploadingPhoto = false;
-              alert('Erreur lors de la mise à jour de la photo.');
-            }
-          });
+          // Build absolute URL
+          const absoluteUrl = res.photoUrl.startsWith('http')
+            ? res.photoUrl
+            : `http://localhost:3000${res.photoUrl}`;
+
+          // Update local state based on view type
+          if ((this.viewType === 'coach' || this.viewType === 'nutritionist') && this.profile && this.profile.user) {
+            this.profile.user.photo_url = res.photoUrl;
+            this.profile.user.avatar = absoluteUrl;
+          } else if (this.viewType === 'athlete' && this.overview && this.overview.athlete) {
+            this.overview.athlete.profilePicture = absoluteUrl;
+            // Persist to database
+            this.athleteService.update(this.overview.athlete.id, { profilePicture: res.photoUrl }).subscribe({
+              error: (err) => console.error('Error persisting athlete photo:', err)
+            });
+          }
+
+          // Update localStorage so avatar persists after logout/login
+          const user = this.authService.getUser();
+          if (user) {
+            user.photo_url = res.photoUrl;
+            user.avatar = absoluteUrl;
+            localStorage.setItem('user', JSON.stringify(user));
+          }
+          this.uploadingPhoto = false;
         },
         error: () => {
           this.uploadingPhoto = false;
@@ -232,6 +360,26 @@ export class ProfileViewComponent implements OnInit {
     });
 
     return `M ${points.join(' L ')}`;
+  }
+
+  setMetric(metric: 'weight' | 'bodyFat' | 'vo2max'): void {
+    this.selectedMetric = metric;
+  }
+
+  getMetricLabel(field: string): string {
+    const labels: any = {
+      weight: 'Poids (kg)',
+      bodyFat: 'Masse Grasse (%)',
+      vo2max: 'VO2 Max (ml/kg/min)'
+    };
+    return labels[field] || field;
+  }
+
+  getLatestValue(field: string): string {
+    if (!this.overview?.metrics || this.overview.metrics.length === 0) return '-';
+    // Find latest metric that has this field
+    const latest = [...this.overview.metrics].reverse().find(m => m[field] !== null && m[field] !== undefined);
+    return latest ? latest[field] : '-';
   }
 
   getAdherenceColor(percent: number): string {

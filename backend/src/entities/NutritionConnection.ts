@@ -12,14 +12,14 @@ export class NutritionConnection {
     @Column()
     athleteId!: number;
 
-    @ManyToOne(() => Athlete, (athlete) => athlete.nutritionConnections)
+    @ManyToOne(() => Athlete, (athlete) => athlete.nutritionConnections, { onDelete: "CASCADE" })
     @JoinColumn({ name: "athleteId" })
     athlete!: Athlete;
 
     @Column()
     nutritionistProfileId!: string;
 
-    @ManyToOne(() => NutritionistProfile)
+    @ManyToOne(() => NutritionistProfile, { onDelete: "CASCADE" })
     @JoinColumn({ name: "nutritionistProfileId" })
     nutritionistProfile!: NutritionistProfile;
 

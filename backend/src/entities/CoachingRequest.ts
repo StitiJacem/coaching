@@ -12,14 +12,14 @@ export class CoachingRequest {
     @Column()
     athleteId!: number;
 
-    @ManyToOne(() => Athlete)
+    @ManyToOne(() => Athlete, { onDelete: "CASCADE" })
     @JoinColumn({ name: "athleteId" })
     athlete!: Athlete;
 
     @Column()
     coachProfileId!: string;
 
-    @ManyToOne(() => CoachProfile)
+    @ManyToOne(() => CoachProfile, { onDelete: "CASCADE" })
     @JoinColumn({ name: "coachProfileId" })
     coachProfile!: CoachProfile;
 

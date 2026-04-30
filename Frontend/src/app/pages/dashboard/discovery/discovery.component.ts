@@ -14,9 +14,7 @@ export class DiscoveryComponent implements OnInit {
   specializations = [
     { id: 'ALL', label: 'All Sports' },
     { id: 'PADEL', label: 'Padel' },
-    { id: 'PILATES', label: 'Pilates' },
     { id: 'MUSCULATION', label: 'Musculation' },
-    { id: 'YOGA', label: 'Yoga' },
     { id: 'CROSSFIT', label: 'CrossFit' }
   ];
 

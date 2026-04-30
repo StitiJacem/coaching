@@ -9,7 +9,7 @@ export class ActivityEvent {
     @Column()
     athleteId!: number;
 
-    @ManyToOne(() => Athlete)
+    @ManyToOne(() => Athlete, { onDelete: "CASCADE" })
     @JoinColumn({ name: "athleteId" })
     athlete!: Athlete;
 

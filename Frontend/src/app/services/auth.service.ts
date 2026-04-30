@@ -21,7 +21,14 @@ export class AuthService {
         if (response && response.token) {
           localStorage.setItem('auth_token', response.token);
           if (response.user) {
-            localStorage.setItem('user', JSON.stringify(response.user));
+            // Build avatar URL from photo_url
+            const user = response.user;
+            if (user.photo_url && !user.avatar) {
+              user.avatar = user.photo_url.startsWith('http')
+                ? user.photo_url
+                : `http://localhost:3000${user.photo_url}`;
+            }
+            localStorage.setItem('user', JSON.stringify(user));
           }
         }
       })

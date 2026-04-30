@@ -10,7 +10,7 @@ export class NutritionistProfile {
     @Column()
     userId!: number;
 
-    @OneToOne(() => User)
+    @OneToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "userId" })
     user!: User;
 
@@ -37,6 +37,12 @@ export class NutritionistProfile {
 
     @Column({ default: true })
     verified!: boolean;
+
+    @Column({ type: "simple-array", nullable: true })
+    specializations?: string[];
+
+    @Column({ type: "simple-array", nullable: true })
+    offerTypes?: string[];
 
     @OneToMany(() => DietPlan, (dietPlan) => dietPlan.nutritionistProfile)
     dietPlans!: DietPlan[];

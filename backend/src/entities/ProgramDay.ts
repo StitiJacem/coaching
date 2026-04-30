@@ -10,7 +10,7 @@ export class ProgramDay {
     @Column()
     programId!: number;
 
-    @ManyToOne(() => Program)
+    @ManyToOne(() => Program, { onDelete: "CASCADE" })
     @JoinColumn({ name: "programId" })
     program!: Program;
 

@@ -29,7 +29,7 @@ import { CardComponent } from './components/ui/card/card.component';
 import { BadgeComponent } from './components/ui/badge/badge.component';
 import { ButtonComponent } from './components/ui/button/button.component';
 import { AvatarComponent } from './components/ui/avatar/avatar.component';
-import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, Camera, Phone } from 'lucide-angular';
+import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight } from 'lucide-angular';
 import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
@@ -42,6 +42,8 @@ import { ProfileViewComponent } from './pages/dashboard/profile-view/profile-vie
 import { AthleteOverviewComponent } from './pages/dashboard/athletes/athlete-overview/athlete-overview.component';
 import { DietaryProfileComponent } from './pages/dashboard/athletes/dietary-profile/dietary-profile.component';
 import { DietBuilderComponent } from './pages/dashboard/programs/diet-builder/diet-builder.component';
+import { JwtInterceptor } from './interceptors/jwt.interceptor';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -89,7 +91,19 @@ import { DietBuilderComponent } from './pages/dashboard/programs/diet-builder/di
       Award,
       CheckCircle,
       Camera,
-      Phone
+      Phone,
+      MessageSquare,
+      MessageCircle,
+      Users,
+      Video,
+      MoreVertical,
+      Smile,
+      Send,
+      Zap,
+      ShieldCheck,
+      Check,
+      CheckCheck,
+      ChevronRight
     }),
     StatsCardComponent,
     CardComponent,
@@ -109,7 +123,9 @@ import { DietBuilderComponent } from './pages/dashboard/programs/diet-builder/di
     DietaryProfileComponent,
     DietBuilderComponent
   ],
-  providers: [],
+  providers: [
+    { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

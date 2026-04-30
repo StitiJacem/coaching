@@ -528,6 +528,7 @@ export class AthleteController {
             res.json({
                 athlete: {
                     id: athlete.id,
+                    userId: athlete.userId,
                     name: `${athlete.user?.first_name || ""} ${athlete.user?.last_name || ""}`.trim() || athlete.user?.email,
                     email: athlete.user?.email,
                     sport: athlete.sport,

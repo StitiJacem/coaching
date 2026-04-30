@@ -9,7 +9,7 @@ export class Notification {
     @Column()
     userId!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "userId" })
     user!: User;
 

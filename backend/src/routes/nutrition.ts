@@ -10,6 +10,7 @@ const dietController = new DietController();
 // ── Nutritionist Discovery & Profile ─────────────────────────────────────────
 router.get("/nutritionists", nutritionistController.getAll.bind(nutritionistController));
 router.get("/nutritionists/me/profile", authenticateToken, nutritionistController.getMyProfile.bind(nutritionistController));
+router.get("/nutritionists/:id", nutritionistController.getOne.bind(nutritionistController));
 router.put("/nutritionists/:userId/profile", authenticateToken, nutritionistController.updateProfile.bind(nutritionistController));
 
 // ── Connection Requests ───────────────────────────────────────────────────────

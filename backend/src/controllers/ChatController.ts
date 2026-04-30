@@ -11,20 +11,104 @@ import { NutritionConnection } from "../entities/NutritionConnection";
 import { NutritionistProfile } from "../entities/NutritionistProfile";
 
 export class ChatController {
+    // Helper to get conversations
+    static async fetchConversations(userId: number) {
+        const conversationRepo = AppDataSource.getRepository(Conversation);
+        return await conversationRepo.find({
+            where: [
+                { participant1Id: userId },
+                { participant2Id: userId }
+            ],
+            relations: ["participant1", "participant2"],
+            order: { updated_at: "DESC" }
+        });
+    }
+
+    // Helper to get contacts
+    static async fetchContacts(userId: number, role: string) {
+        const contacts: any[] = [];
+        console.log(`[ChatController] Fetching contacts for userId: ${userId}, role: ${role}`);
+
+        if (role === 'coach') {
+            const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+            const coachProfile = await coachProfileRepo.findOne({ where: { userId } });
+            
+            console.log(`[ChatController] CoachProfile found: ${!!coachProfile} for userId: ${userId}`);
+            
+            if (coachProfile) {
+                const athleteRepo = AppDataSource.getRepository(Athlete);
+                // We use a cleaner JOIN approach instead of raw SQL EXISTS strings where possible
+                const athletes = await athleteRepo.createQueryBuilder("athlete")
+                    .leftJoinAndSelect("athlete.user", "user")
+                    .innerJoin("coaching_requests", "cr", 'cr."athleteId" = athlete.id AND cr."coachProfileId" = :profileId AND cr.status = \'accepted\'', { profileId: coachProfile.id })
+                    .getMany();
+
+                console.log(`[ChatController] Athletes found via coaching_requests: ${athletes.length} (ProfileId: ${coachProfile.id})`);
+
+                // Also get athletes from programs even if no coaching request (migration/edge cases)
+                const programAthletes = await athleteRepo.createQueryBuilder("athlete")
+                    .leftJoinAndSelect("athlete.user", "user")
+                    .innerJoin("programs", "p", 'p."athleteId" = athlete.id AND p."coachId" = :coachId', { coachId: userId })
+                    .getMany();
+
+                console.log(`[ChatController] Athletes found via programs: ${programAthletes.length}`);
+
+                [...athletes, ...programAthletes].forEach(a => {
+                    if (a.user) {
+                        console.log(`[ChatController] Adding contact: ${a.user.email}`);
+                        contacts.push(a.user);
+                    }
+                });
+            }
+        } else if (role === 'nutritionist') {
+            const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
+            const profile = await nutriProfileRepo.findOne({ where: { userId } });
+            
+            if (profile) {
+                const athleteRepo = AppDataSource.getRepository(Athlete);
+                const athletes = await athleteRepo.createQueryBuilder("athlete")
+                    .leftJoinAndSelect("athlete.user", "user")
+                    .innerJoin("nutrition_connections", "nc", 'nc."athleteId" = athlete.id AND nc."nutritionistProfileId" = :nutriId AND nc.status = \'accepted\'', { nutriId: profile.id })
+                    .getMany();
+
+                athletes.forEach(a => {
+                    if (a.user) contacts.push(a.user);
+                });
+            }
+        } else if (role === 'athlete') {
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const athlete = await athleteRepo.findOne({ where: { userId } });
+            
+            if (athlete) {
+                // Find all coaches through coaching_requests
+                const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+                const coaches = await coachProfileRepo.createQueryBuilder("coach")
+                    .leftJoinAndSelect("coach.user", "user")
+                    .innerJoin("coaching_requests", "cr", 'cr."coachProfileId" = coach.id AND cr."athleteId" = :athleteId AND cr.status = \'accepted\'', { athleteId: athlete.id })
+                    .getMany();
+                
+                coaches.forEach(c => { if (c.user) contacts.push(c.user); });
+
+                // Find all nutritionists through nutrition_connections
+                const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
+                const nutritionists = await nutriProfileRepo.createQueryBuilder("nutri")
+                    .leftJoinAndSelect("nutri.user", "user")
+                    .innerJoin("nutrition_connections", "nc", 'nc."nutritionistProfileId" = nutri.id AND nc."athleteId" = :athleteId AND nc.status = \'accepted\'', { athleteId: athlete.id })
+                    .getMany();
+                
+                nutritionists.forEach(n => { if (n.user) contacts.push(n.user); });
+            }
+        }
+
+        console.log(`[ChatController] Found ${contacts.length} raw contacts`);
+        // Filter out self and unique
+        return Array.from(new Map(contacts.filter(c => c.id !== userId).map(c => [c.id, c])).values());
+    }
+
     static async getConversations(req: Request, res: Response) {
         try {
             const userId = (req as any).user.id;
-            const conversationRepo = AppDataSource.getRepository(Conversation);
-
-            const conversations = await conversationRepo.find({
-                where: [
-                    { participant1Id: userId },
-                    { participant2Id: userId }
-                ],
-                relations: ["participant1", "participant2"],
-                order: { updated_at: "DESC" }
-            });
-
+            const conversations = await ChatController.fetchConversations(userId);
             res.json(conversations);
         } catch (error) {
             console.error("Error getting conversations:", error);
@@ -84,89 +168,8 @@ export class ChatController {
     static async getContacts(req: Request, res: Response) {
         try {
             const user = (req as any).user;
-            const userId = user.id;
-            const role = user.role;
-            const contacts: any[] = [];
-
-            if (role === 'coach') {
-                const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
-                const coachProfile = await coachProfileRepo.findOne({ where: { userId } });
-                
-                if (coachProfile) {
-                    const athleteRepo = AppDataSource.getRepository(Athlete);
-                    const athletes = await athleteRepo.createQueryBuilder("athlete")
-                        .leftJoinAndSelect("athlete.user", "user")
-                        .where(new Brackets((qb: WhereExpressionBuilder) => {
-                            qb.where(
-                                `EXISTS (SELECT 1 FROM coaching_requests cr WHERE cr."athleteId" = athlete.id AND cr."coachProfileId" = :profileId AND cr.status = 'accepted')`,
-                                { profileId: coachProfile.id }
-                            );
-                            qb.orWhere(
-                                `EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)`,
-                                { coachId: userId }
-                            );
-                        }))
-                        .getMany();
-
-                    athletes.forEach(a => {
-                        if (a.user) contacts.push(a.user);
-                    });
-                }
-            } else if (role === 'nutritionist') {
-                const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
-                const profile = await nutriProfileRepo.findOne({ where: { userId } });
-                
-                if (profile) {
-                    const athleteRepo = AppDataSource.getRepository(Athlete);
-                    const athletes = await athleteRepo.createQueryBuilder("athlete")
-                        .leftJoinAndSelect("athlete.user", "user")
-                        .where(new Brackets((qb: WhereExpressionBuilder) => {
-                            qb.where(
-                                `EXISTS (SELECT 1 FROM nutrition_connections nc WHERE nc."athleteId" = athlete.id AND nc."nutritionistProfileId" = :nutriId AND nc.status = 'accepted')`,
-                                { nutriId: profile.id }
-                            );
-                            qb.orWhere(
-                                `EXISTS (SELECT 1 FROM diet_plans dp WHERE dp."athleteId" = athlete.id AND dp."nutritionistProfileId" = :profileId)`,
-                                { profileId: profile.id }
-                            );
-                        }))
-                        .getMany();
-
-                    athletes.forEach(a => {
-                        if (a.user) contacts.push(a.user);
-                    });
-                }
-            } else if (role === 'athlete') {
-                const athleteRepo = AppDataSource.getRepository(Athlete);
-                const athlete = await athleteRepo.findOne({ where: { userId } });
-                
-                if (athlete) {
-                    // Coaches
-                    const rqRepo = AppDataSource.getRepository(CoachingRequest);
-                    const coachRelations = await rqRepo.find({
-                        where: { athleteId: athlete.id, status: 'accepted' },
-                        relations: ["coachProfile", "coachProfile.user"]
-                    });
-                    coachRelations.forEach(r => {
-                        if (r.coachProfile?.user) contacts.push(r.coachProfile.user);
-                    });
-
-                    // Nutritionists
-                    const connRepo = AppDataSource.getRepository(NutritionConnection);
-                    const nutriRelations = await connRepo.find({
-                        where: { athleteId: athlete.id, status: 'accepted' },
-                        relations: ["nutritionistProfile", "nutritionistProfile.user"]
-                    });
-                    nutriRelations.forEach(r => {
-                        if (r.nutritionistProfile?.user) contacts.push(r.nutritionistProfile.user);
-                    });
-                }
-            }
-
-            // Remove duplicates and self if any
-            const uniqueContacts = Array.from(new Map(contacts.filter(c => c.id !== userId).map(c => [c.id, c])).values());
-            
-            res.json(uniqueContacts);
+            const contacts = await ChatController.fetchContacts(user.id, user.role);
+            res.json(contacts);
         } catch (error) {
             console.error("Error getting contacts:", error);
             res.status(500).json({ message: "Internal server error" });

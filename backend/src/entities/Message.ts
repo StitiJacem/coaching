@@ -17,7 +17,7 @@ export class Message {
     @Column()
     senderId!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "senderId" })
     sender!: User;
 

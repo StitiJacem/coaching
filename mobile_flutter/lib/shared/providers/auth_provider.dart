@@ -84,6 +84,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
     required String email,
     required String password,
     required String role,
+    required String gender,
+    required int age,
   }) async {
     state = const AsyncValue.loading();
     final repo = ref.read(authRepositoryProvider);
@@ -94,6 +96,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
         email: email,
         password: password,
         role: role,
+        gender: gender,
+        age: age,
       );
       // Registration succeeded — user must verify email next
       state = AsyncValue.data(
@@ -107,6 +111,8 @@ class AuthNotifier extends AsyncNotifier<AuthState> {
             firstName: firstName,
             lastName: lastName,
             role: role,
+            gender: gender,
+            age: age,
             emailVerified: false,
             onboardingCompleted: false,
           ),

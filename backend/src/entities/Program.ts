@@ -18,14 +18,14 @@ export class Program {
     @Column({ nullable: true })
     athleteId?: number;
 
-    @ManyToOne(() => Athlete, { nullable: true })
+    @ManyToOne(() => Athlete, { nullable: true, onDelete: "CASCADE" })
     @JoinColumn({ name: "athleteId" })
     athlete?: Athlete;
 
     @Column({ nullable: true })
     coachId!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "coachId" })
     coach!: User;
 

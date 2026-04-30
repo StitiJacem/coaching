@@ -153,13 +153,26 @@ export class CompleteProfileComponent implements OnInit {
     }
 
     async onSubmit() {
-        if (this.profileForm.invalid) return;
+        console.log('Submitting form...', this.profileForm.value);
+        if (this.profileForm.invalid) {
+            this.errorMessage = 'Veuillez remplir tous les champs obligatoires.';
+            console.error('Form is invalid', this.profileForm.errors);
+            // Mark all fields as touched to show errors
+            Object.values(this.profileForm.controls).forEach(control => {
+                control.markAsTouched();
+            });
+            return;
+        }
 
         this.loading = true;
         this.errorMessage = '';
 
         try {
-            const payload = { ...this.profileForm.value };
+            const formValue = this.profileForm.value;
+            const payload = { 
+                ...formValue,
+                work_type: formValue.workType // Backend expects snake_case
+            };
 
             // Handle photo upload first if selected
             if (this.selectedFile) {
@@ -169,16 +182,15 @@ export class CompleteProfileComponent implements OnInit {
                 }
             }
 
-            // Map coachOfferTypes to offerTypes to match backend
-            if (payload.role === 'coach') {
-                payload.offerTypes = payload.coachOfferTypes;
-            }
+            console.log('Sending payload to backend:', payload);
 
             this.socialAuthService.completeProfile(payload).subscribe({
-                next: () => {
+                next: (response) => {
+                    console.log('Profile completion success:', response);
                     this.router.navigate(['/dashboard']);
                 },
                 error: (err: any) => {
+                    console.error('Profile completion error:', err);
                     this.errorMessage = err.error?.message || 'Profile completion failed';
                     this.loading = false;
                 }

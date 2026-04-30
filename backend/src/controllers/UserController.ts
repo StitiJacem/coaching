@@ -45,9 +45,12 @@ export class UserController {
                 return res.status(400).json({ message: "No file uploaded" });
             }
 
-            // Return the URL to the uploaded file
-            // Since public is the root, we return the path relative to public
-            const photoUrl = `http://localhost:3000/uploads/${req.file.filename}`;
+            const user = (req as any).user;
+            const photoUrl = `/uploads/${req.file.filename}`;
+            
+            const userRepo = AppDataSource.getRepository(User);
+            await userRepo.update(user.id, { photo_url: photoUrl });
+
             res.json({ photoUrl });
         } catch (error) {
             console.error("Error uploading photo:", error);

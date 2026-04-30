@@ -58,7 +58,9 @@ export class SignupComponent implements OnInit {
       last_name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      role: ['', [Validators.required]]
+      role: ['', [Validators.required]],
+      gender: ['', [Validators.required]],
+      age: ['', [Validators.required, Validators.min(13), Validators.max(100)]]
     });
   }
 
@@ -67,6 +69,10 @@ export class SignupComponent implements OnInit {
     if (roleId !== 'coach') {
       this.selectedSpecializations = [];
     }
+  }
+
+  setGender(gender: string): void {
+    this.signupForm.patchValue({ gender: gender });
   }
 
   toggleSpecialization(specId: string): void {
@@ -91,6 +97,8 @@ export class SignupComponent implements OnInit {
       first_name: formData.first_name,
       last_name: formData.last_name,
       role: formData.role,
+      gender: formData.gender,
+      age: formData.age,
       specializations: this.selectedSpecializations
     }).subscribe({
       next: () => {

@@ -69,7 +69,7 @@
                         class="w-10 h-10 rounded-full bg-gradient-to-br from-gosport-orange to-orange-600 flex items-center justify-center text-sm font-black text-white flex-shrink-0 shadow-md shadow-gosport-orange/20">
                         {{ getInitials(athlete) }}
                     </div>
-                    <div>
+                    <div [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" class="cursor-pointer">
                         <p class="font-bold text-white text-sm group-hover:text-gosport-orange transition-colors">
                             {{ athlete.user?.first_name }} {{ athlete.user?.last_name }}
                         </p>
@@ -97,7 +97,7 @@
 
                 <div class="flex items-center justify-end gap-1">
 
-                    <button (click)="openAssignModal(athlete)" title="Assign Program"
+                    <button *ngIf="roleService.currentRole !== 'nutritionist'" (click)="openAssignModal(athlete)" title="Assign Program"
                         class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -105,7 +105,7 @@
                         </svg>
                     </button>
 
-                    <button [routerLink]="['/dashboard/athletes', athlete.id, 'calendar']" title="Training Calendar"
+                    <button *ngIf="roleService.currentRole !== 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'calendar']" title="Training Calendar"
                         class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -113,7 +113,7 @@
                         </svg>
                     </button>
 
-                    <button (click)="openMessageModal(athlete)"
+                    <button [routerLink]="['/dashboard/messaging']" [queryParams]="{ athleteId: athlete.id }"
                         title="Send Message"
                         class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -152,44 +152,4 @@
 
     <app-invite-modal *ngIf="showInviteModal" (close)="showInviteModal = false"
         (invited)="loadAthletes()"></app-invite-modal>
-
-    <!-- Quick Message Modal -->
-    <div *ngIf="showMessageModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-        <div class="bg-gosport-surface border border-gosport-border rounded-2xl w-full max-w-md shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div class="p-6 border-b border-gosport-border flex justify-between items-center bg-black/20">
-                <div>
-                    <h3 class="text-xl font-display font-bold text-white uppercase tracking-wider">Envoyer un message</h3>
-                    <p class="text-xs text-slate-400 mt-1">À: {{ selectedAthleteForMessage?.user?.first_name }} {{ selectedAthleteForMessage?.user?.last_name }}</p>
-                </div>
-                <button (click)="closeMessageModal()" class="text-slate-500 hover:text-white transition-colors">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-            
-            <div class="p-6">
-                <div class="mb-4">
-                    <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Message</label>
-                    <textarea [(ngModel)]="messageText" rows="4" placeholder="Tapez votre message ici..."
-                        class="w-full bg-black/20 border border-gosport-border rounded-xl p-4 text-white text-sm focus:outline-none focus:border-gosport-orange transition-all resize-none placeholder:text-slate-600"></textarea>
-                </div>
-                
-                <div class="flex gap-3">
-                    <button (click)="closeMessageModal()" 
-                        class="flex-1 px-6 py-3 rounded-xl border border-gosport-border text-slate-300 font-bold uppercase tracking-wider text-xs hover:bg-white/5 transition-all">
-                        Annuler
-                    </button>
-                    <button (click)="sendMessage()" [disabled]="!messageText.trim() || isSendingMessage"
-                        class="flex-1 px-6 py-3 rounded-xl bg-gosport-orange hover:bg-orange-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold uppercase tracking-wider text-xs shadow-lg shadow-gosport-orange/20 transition-all active:scale-[0.98]">
-                        <span *ngIf="!isSendingMessage">Envoyer</span>
-                        <span *ngIf="isSendingMessage" class="flex items-center justify-center gap-2">
-                             <div class="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                             Envoi...
-                        </span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
 </app-dashboard-layout>

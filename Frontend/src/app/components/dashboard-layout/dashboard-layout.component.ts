@@ -18,6 +18,8 @@ export class DashboardLayoutComponent implements OnInit {
     notificationsOpen = false;
     notifications: Notification[] = [];
     unreadCount = 0;
+    processingIds = new Set<number>();
+    respondedIds = new Set<number>();
 
     badgeVariants: Record<string, string> = {
         coach: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20',
@@ -85,53 +87,60 @@ export class DashboardLayoutComponent implements OnInit {
         return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
     }
 
+    private extractConnectionId(notification: Notification): string | undefined {
+        if (!notification.payload) return undefined;
+        // payload is always an object (jsonb from DB), but handle string just in case
+        if (typeof notification.payload === 'string') {
+            try { return JSON.parse(notification.payload)['connectionId'] as string; } catch { return undefined; }
+        }
+        return notification.payload['connectionId'] as string | undefined;
+    }
+
     acceptNutritionInvite(event: Event, notification: Notification): void {
         event.stopPropagation();
-        
-        let connId: string | undefined;
-        if (typeof notification.payload === 'string') {
-            try {
-                connId = JSON.parse(notification.payload)['connectionId'];
-            } catch (e) {}
-        } else if (notification.payload) {
-            connId = notification.payload['connectionId'] as string;
-        }
+        if (this.processingIds.has(notification.id) || this.respondedIds.has(notification.id)) return;
 
+        const connId = this.extractConnectionId(notification);
         if (!connId) {
             console.error('No connectionId found in payload', notification.payload);
             return;
         }
 
+        this.processingIds.add(notification.id);
         this.nutritionService.respondToConnectionRequest(connId, 'accepted').subscribe({
             next: () => {
+                this.processingIds.delete(notification.id);
+                this.respondedIds.add(notification.id);
                 this.deleteNotification(event, notification);
             },
-            error: (err) => console.error('Error accepting invite:', err)
+            error: (err) => {
+                console.error('Error accepting invite:', err);
+                this.processingIds.delete(notification.id);
+            }
         });
     }
 
     rejectNutritionInvite(event: Event, notification: Notification): void {
         event.stopPropagation();
+        if (this.processingIds.has(notification.id) || this.respondedIds.has(notification.id)) return;
 
-        let connId: string | undefined;
-        if (typeof notification.payload === 'string') {
-            try {
-                connId = JSON.parse(notification.payload)['connectionId'];
-            } catch (e) {}
-        } else if (notification.payload) {
-            connId = notification.payload['connectionId'] as string;
-        }
-
+        const connId = this.extractConnectionId(notification);
         if (!connId) {
             console.error('No connectionId found in payload', notification.payload);
             return;
         }
 
+        this.processingIds.add(notification.id);
         this.nutritionService.respondToConnectionRequest(connId, 'rejected').subscribe({
             next: () => {
+                this.processingIds.delete(notification.id);
+                this.respondedIds.add(notification.id);
                 this.deleteNotification(event, notification);
             },
-            error: (err) => console.error('Error rejecting invite:', err)
+            error: (err) => {
+                console.error('Error rejecting invite:', err);
+                this.processingIds.delete(notification.id);
+            }
         });
     }
 }

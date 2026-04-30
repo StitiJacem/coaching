@@ -61,18 +61,40 @@
 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="w-full">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First
-                            Name</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
                         <input type="text" formControlName="first_name"
                             class="w-full bg-galio-surface border border-galio-border rounded-xl pl-4 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
                             placeholder="First Name" required>
                     </div>
                     <div class="w-full">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last
-                            Name</label>
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
                         <input type="text" formControlName="last_name"
                             class="w-full bg-galio-surface border border-galio-border rounded-xl pl-4 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
                             placeholder="Last Name" required>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gender</label>
+                        <div class="flex gap-2">
+                            <button type="button" (click)="setGender('male')"
+                                [ngClass]="signupForm.get('gender')?.value === 'male' ? 'bg-galio-orange border-galio-orange text-white' : 'bg-slate-800 border-slate-700 text-slate-400'"
+                                class="flex-1 py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all">
+                                Homme
+                            </button>
+                            <button type="button" (click)="setGender('female')"
+                                [ngClass]="signupForm.get('gender')?.value === 'female' ? 'bg-galio-orange border-galio-orange text-white' : 'bg-slate-800 border-slate-700 text-slate-400'"
+                                class="flex-1 py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all">
+                                Femme
+                            </button>
+                        </div>
+                    </div>
+                    <div class="w-full">
+                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age</label>
+                        <input type="number" formControlName="age"
+                            class="w-full bg-galio-surface border border-galio-border rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
+                            placeholder="Age" required>
                     </div>
                 </div>
 
@@ -131,8 +153,6 @@
         </div>
 
 
-        <div class="mt-8 text-center">
-            <p class="text-xs text-slate-500 uppercase tracking-widest">Go Sport Science Platform</p>
-        </div>
+   
     </div>
 </div>

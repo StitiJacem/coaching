@@ -89,20 +89,57 @@ export class AdminController {
     static deleteUser = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
+            const userId = Number(id);
             const userRepo = AppDataSource.getRepository(User);
-            const user = await userRepo.findOne({ where: { id: Number(id) } });
+            
+            // Find the user to know their role and related IDs
+            const user = await userRepo.findOne({ where: { id: userId } });
+            if (!user) return res.status(404).json({ message: "User not found" });
 
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
+            // Aggressive manual cleanup for tables that might block deletion
+            // 1. Delete notifications
+            await AppDataSource.getRepository("Notification").delete({ userId: userId });
+            
+            // 2. Delete conversations/messages where user is participant
+            await AppDataSource.query(`DELETE FROM messages WHERE "senderId" = $1`, [userId]);
+            await AppDataSource.query(`DELETE FROM conversations WHERE "participant1Id" = $1 OR "participant2Id" = $1`, [userId]);
+
+            // 3. Handle Role-Specific Profiles
+            if (user.role === 'athlete') {
+                const athlete = await AppDataSource.getRepository("Athlete").findOne({ where: { userId } });
+                if (athlete) {
+                    await AppDataSource.query(`DELETE FROM exercise_logs WHERE "athleteId" = $1`, [athlete.id]);
+                    await AppDataSource.query(`DELETE FROM workout_logs WHERE "athleteId" = $1`, [athlete.id]);
+                    await AppDataSource.query(`DELETE FROM programs WHERE "athleteId" = $1`, [athlete.id]);
+                    await AppDataSource.query(`DELETE FROM body_metrics WHERE "athleteId" = $1`, [athlete.id]);
+                    await AppDataSource.query(`DELETE FROM coaching_requests WHERE "athleteId" = $1`, [athlete.id]);
+                    await AppDataSource.query(`DELETE FROM nutrition_connections WHERE "athleteId" = $1`, [athlete.id]);
+                    await AppDataSource.getRepository("Athlete").delete({ id: athlete.id });
+                }
+            } else if (user.role === 'coach' || user.role === 'nutritionist') {
+                const profileRepo = AppDataSource.getRepository(user.role === 'coach' ? "CoachProfile" : "NutritionistProfile");
+                const profile = await profileRepo.findOne({ where: { userId } } as any) as any;
+                if (profile) {
+                    if (user.role === 'coach') {
+                        await AppDataSource.query(`DELETE FROM coach_specializations WHERE "coachProfileId" = $1`, [profile.id]);
+                        await AppDataSource.query(`DELETE FROM coach_certifications WHERE "coachProfileId" = $1`, [profile.id]);
+                        await AppDataSource.query(`DELETE FROM programs WHERE "coachProfileId" = $1`, [profile.id]);
+                        await AppDataSource.query(`DELETE FROM coaching_requests WHERE "coachProfileId" = $1`, [profile.id]);
+                    } else if (user.role === 'nutritionist') {
+                        await AppDataSource.query(`DELETE FROM nutrition_connections WHERE "nutritionistProfileId" = $1`, [profile.id]);
+                        await AppDataSource.query(`DELETE FROM diet_plans WHERE "nutritionistProfileId" = $1`, [profile.id]);
+                    }
+                    await profileRepo.delete({ id: profile.id });
+                }
             }
 
-            // Note: In a real app we'd handle cascading deletes or soft deletes
-            await userRepo.remove(user);
+            // Finally delete the user
+            await userRepo.delete(userId);
 
             res.json({ message: "User deleted successfully" });
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error deleting user:", error);
-            res.status(500).json({ message: "Error deleting user" });
+            res.status(500).json({ message: "Error deleting user", error: error.message });
         }
     };
 }

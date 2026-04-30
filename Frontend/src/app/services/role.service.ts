@@ -108,12 +108,15 @@ export class RoleService {
             user = JSON.parse(userStr);
         }
 
+        const avatarUrl = user.photo_url || user.profilePicture || '';
+        const fullAvatarUrl = avatarUrl && avatarUrl.startsWith('/') ? `http://localhost:3000${avatarUrl}` : avatarUrl;
+
         return {
             id: user.id || 0,
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || 'User',
             role: this.currentRole,
             roleLabel: this.currentRole.charAt(0).toUpperCase() + this.currentRole.slice(1),
-            avatar: user.profilePicture || '',
+            avatar: fullAvatarUrl,
             profileCompleted: !!user.profile_completed
         };
     }

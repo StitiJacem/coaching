@@ -2,17 +2,22 @@
     <div class="max-w-5xl mx-auto space-y-10 animate-fade-in pb-20">
         <!-- Header Section -->
         <header class="flex flex-col md:flex-row items-center gap-8 bg-gosport-surface/40 backdrop-blur-xl p-10 rounded-[2.5rem] border border-gosport-border shadow-2xl">
-            <div class="relative group cursor-pointer">
+            <div class="relative group cursor-pointer" (click)="fileInput.click()">
                 <div class="w-32 h-32 rounded-[2rem] overflow-hidden border-4 border-gosport-orange/20 shadow-2xl relative">
                     <img [src]="user.avatar || 'https://ui-avatars.com/api/?name=' + user.first_name + '+' + user.last_name + '&background=random'" 
                          class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                     <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                         <lucide-icon name="camera" class="w-8 h-8 text-white"></lucide-icon>
                     </div>
+                    <!-- Loading Spinner -->
+                    <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-10">
+                        <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
+                    </div>
                 </div>
                 <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gosport-orange rounded-full flex items-center justify-center text-white border-4 border-gosport-surface shadow-lg">
                     <lucide-icon name="edit-3" class="w-4 h-4"></lucide-icon>
                 </div>
+                <input #fileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
             </div>
             
             <div class="flex-1 text-center md:text-left">
@@ -25,7 +30,7 @@
                 <button (click)="activeTab = 'general'" [class.bg-gosport-orange]="activeTab === 'general'"
                         class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">General</button>
                 <button (click)="activeTab = 'role'" [class.bg-gosport-orange]="activeTab === 'role'"
-                        class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">{{ role === 'coach' ? 'Career' : 'Body Stats' }}</button>
+                        class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">{{ (role === 'coach' || role === 'nutritionist') ? 'Career' : 'Body Stats' }}</button>
                 <button (click)="activeTab = 'security'" [class.bg-gosport-orange]="activeTab === 'security'"
                         class="px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all hover:text-white">Security</button>
             </div>
@@ -102,11 +107,11 @@
                 </div>
             </div>
 
-            <!-- Role-Specific Tab (Coach) -->
-            <div *ngIf="activeTab === 'role' && role === 'coach'" class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
+            <!-- Role-Specific Tab (Coach/Nutritionist) -->
+            <div *ngIf="activeTab === 'role' && (role === 'coach' || role === 'nutritionist')" class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl animate-in slide-in-from-bottom-4 duration-500">
                 <div class="flex items-center justify-between mb-10">
                     <div>
-                        <h2 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Professional Coaching Profile</h2>
+                        <h2 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">Professional {{ role === 'nutritionist' ? 'Nutritionist' : 'Coaching' }} Profile</h2>
                         <p class="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Manage your expert credentials</p>
                     </div>
                     <button (click)="updateRoleProfile()" [disabled]="isLoading"

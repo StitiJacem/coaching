@@ -66,8 +66,7 @@ export class AuthService {
         }
 
         const greetingName = savedUser.first_name || savedUser.username || 'Sportif';
-        EmailService.sendVerificationEmail(savedUser.email, verificationCode, greetingName)
-            .catch(err => console.error('Failed to send verification email:', err));
+        await EmailService.sendVerificationEmail(savedUser.email, verificationCode, greetingName);
 
         return savedUser;
     }
@@ -156,7 +155,63 @@ export class AuthService {
         await this.userRepository.create(user);
 
         const greetingName = user.first_name || user.username || 'Sportif';
-        EmailService.sendVerificationEmail(user.email, verificationCode, greetingName)
-            .catch(err => console.error('Failed to resend verification email:', err));
+        await EmailService.sendVerificationEmail(user.email, verificationCode, greetingName);
+    }
+
+    async forgotPassword(email: string): Promise<void> {
+        const normalizedEmail = email.toLowerCase();
+        const user = await this.userRepository.findByEmail(normalizedEmail);
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        // Generate reset code (reusing verification code field)
+        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        user.verification_code = resetCode;
+        user.code_expires_at = new Date(Date.now() + 3600000); // 1 hour expiry
+
+        await this.userRepository.create(user);
+
+        const greetingName = user.first_name || user.username || 'Sportif';
+        await EmailService.sendPasswordResetEmail(user.email, resetCode, greetingName);
+    }
+
+    async resetPassword(data: any): Promise<void> {
+        try {
+            const { email, code, password, newPassword } = data;
+            const finalPassword = password || newPassword;
+            const normalizedEmail = String(email || '').toLowerCase();
+            
+            const user = await this.userRepository.findByEmail(normalizedEmail);
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            if (String(user.verification_code) !== String(code)) {
+                throw new Error('Invalid reset code');
+            }
+
+            if (user.code_expires_at && new Date() > user.code_expires_at) {
+                throw new Error('Reset code has expired');
+            }
+
+            if (!finalPassword) {
+                throw new Error('Password is required');
+            }
+
+            // Update password
+            const hashedPassword = await bcrypt.hash(finalPassword, 10);
+            user.password = hashedPassword;
+            
+            // Clear reset code
+            user.verification_code = null;
+            user.code_expires_at = null;
+
+            await this.userRepository.create(user);
+        } catch (error: any) {
+            console.error(`[ResetPassword] Error: ${error.message}`);
+            throw error;
+        }
     }
 }

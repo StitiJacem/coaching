@@ -18,14 +18,14 @@ export class Conversation {
     @Column()
     participant1Id!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "participant1Id" })
     participant1!: User;
 
     @Column()
     participant2Id!: number;
 
-    @ManyToOne(() => User)
+    @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "participant2Id" })
     participant2!: User;
 

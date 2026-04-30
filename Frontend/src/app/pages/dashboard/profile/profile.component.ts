@@ -7,6 +7,8 @@ import { AuthService } from '../../../services/auth.service';
 import { UserService } from '../../../services/user.service';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { CoachService } from '../../../services/coach.service';
+import { SocialAuthService } from '../../../services/social-auth.service';
+import { NutritionistService } from '../../../services/nutritionist.service';
 
 @Component({
   selector: 'app-profile',
@@ -38,13 +40,16 @@ export class ProfileComponent implements OnInit {
   coachForm: any = {};
   
   isLoading = false;
+  uploadingPhoto = false;
   message: { type: 'success' | 'error', text: string } | null = null;
 
   constructor(
     private authService: AuthService,
     private userService: UserService,
     private athleteService: AthleteService,
-    private coachService: CoachService
+    private coachService: CoachService,
+    private nutritionistService: NutritionistService,
+    private socialAuthService: SocialAuthService
   ) {}
 
   ngOnInit() {
@@ -58,6 +63,12 @@ export class ProfileComponent implements OnInit {
         last_name: this.user.last_name || '',
         email: this.user.email || ''
       };
+      // Build correct avatar URL from photo_url
+      if (this.user.photo_url) {
+        this.user.avatar = this.user.photo_url.startsWith('http')
+          ? this.user.photo_url
+          : `http://localhost:3000${this.user.photo_url}`;
+      }
     }
   }
 
@@ -78,6 +89,18 @@ export class ProfileComponent implements OnInit {
           experience_years: profile.experience_years,
           specializations: profile.specializations?.map((s: any) => s.specialization).join(', ')
         };
+      });
+    } else if (this.role === 'nutritionist') {
+      this.nutritionistService.getAllNutritionists().subscribe((list: any[]) => {
+        const myProfile = list.find(n => n.userId === this.user.id);
+        if (myProfile) {
+          this.profile = myProfile;
+          this.coachForm = { // Nutritionists use the same form as coaches for bio/exp
+            bio: myProfile.bio,
+            experience_years: myProfile.experience_years,
+            specializations: '' // Specializations might not be in nutritionist entity yet or handled differently
+          };
+        }
       });
     }
   }
@@ -113,19 +136,56 @@ export class ProfileComponent implements OnInit {
         }
       });
     } else {
-      // Coach update
+      // Coach or Nutritionist update
       const payload = {
         ...this.coachForm,
-        specializations: this.coachForm.specializations.split(',').map((s: string) => s.trim())
+        specializations: this.coachForm.specializations ? this.coachForm.specializations.split(',').map((s: string) => s.trim()) : []
       };
-      this.coachService.updateProfile(payload).subscribe({
+      
+      const updateObs = this.role === 'nutritionist' 
+        ? this.nutritionistService.updateProfile(this.user.id, payload)
+        : this.coachService.updateProfile(payload);
+
+      updateObs.subscribe({
         next: () => {
           this.isLoading = false;
-          this.showFeedback('success', 'Coach profile updated!');
+          this.showFeedback('success', `${this.role === 'nutritionist' ? 'Nutritionist' : 'Coach'} profile updated!`);
         },
         error: (err: any) => {
           this.isLoading = false;
-          this.showFeedback('error', 'Failed to update coach details');
+          this.showFeedback('error', `Failed to update ${this.role} details`);
+        }
+      });
+    }
+  }
+
+  onPhotoSelected(event: any): void {
+    const file = event.target.files[0];
+    if (file) {
+      this.uploadingPhoto = true;
+      this.socialAuthService.uploadPhoto(file).subscribe({
+        next: (res) => {
+          // Build absolute URL
+          const absoluteUrl = res.photoUrl.startsWith('http')
+            ? res.photoUrl
+            : `http://localhost:3000${res.photoUrl}`;
+          
+          // Update displayed avatar immediately
+          this.user.avatar = absoluteUrl;
+          this.user.photo_url = res.photoUrl;
+          
+          // Persist to localStorage so it survives logout/login
+          const current = JSON.parse(localStorage.getItem('user') || '{}');
+          current.photo_url = res.photoUrl;
+          current.avatar = absoluteUrl;
+          localStorage.setItem('user', JSON.stringify(current));
+          
+          this.uploadingPhoto = false;
+          this.showFeedback('success', 'Profile photo updated!');
+        },
+        error: () => {
+          this.uploadingPhoto = false;
+          this.showFeedback('error', 'Failed to upload photo');
         }
       });
     }

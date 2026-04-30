@@ -46,4 +46,23 @@ export class AuthController {
             res.status(400).json({ error: err.message });
         }
     }
+
+    forgotPassword = async (req: Request, res: Response) => {
+        try {
+            const { email } = req.body;
+            await this.authService.forgotPassword(email);
+            res.json({ message: 'Password reset code sent' });
+        } catch (err: any) {
+            res.status(400).json({ error: err.message });
+        }
+    }
+
+    resetPassword = async (req: Request, res: Response) => {
+        try {
+            await this.authService.resetPassword(req.body);
+            res.json({ message: 'Password reset successfully' });
+        } catch (err: any) {
+            res.status(400).json({ error: err.message });
+        }
+    }
 }

@@ -9,7 +9,7 @@ export class ExerciseLog {
     @Column()
     workoutLogId!: number;
 
-    @ManyToOne(() => WorkoutLog)
+    @ManyToOne(() => WorkoutLog, { onDelete: "CASCADE" })
     @JoinColumn({ name: "workoutLogId" })
     workoutLog!: WorkoutLog;
 
