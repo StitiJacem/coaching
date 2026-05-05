@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { WorkoutLogService, WorkoutLog, ExerciseLog } from '../../../services/workout-log.service';
 
 @Component({
@@ -13,6 +14,7 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
     exercises: any[] = [];
     currentExerciseIndex = 0;
     isLoading = true;
+    showOverviewMap = true;
     isCompleting = false;
     showCompletionScreen = false;
     showQuizModal = false;
@@ -36,7 +38,8 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
     constructor(
         private route: ActivatedRoute,
         private router: Router,
-        private workoutLogService: WorkoutLogService
+        private workoutLogService: WorkoutLogService,
+        private sanitizer: DomSanitizer
     ) { }
 
     ngOnInit(): void {
@@ -54,10 +57,28 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
         this.workoutLogService.getById(id).subscribe({
             next: (log: any) => {
                 this.workoutLog = log;
-                this.exercises = log.programDay?.exercises?.sort((a: any, b: any) => a.order - b.order) || [];
+                
+                // Load exercises from either programDay OR standalone session
+                let rawExercises = [];
+                if (log.programDay?.exercises) {
+                    rawExercises = log.programDay.exercises;
+                } else if (log.session?.workoutData?.exercises) {
+                    rawExercises = log.session.workoutData.exercises;
+                } else if (log.session?.workoutData) {
+                    // Handle case where workoutData might be a string (though it should be JSON)
+                    try {
+                        const data = typeof log.session.workoutData === 'string' ? JSON.parse(log.session.workoutData) : log.session.workoutData;
+                        rawExercises = data.exercises || [];
+                    } catch (e) {
+                        console.error('Error parsing workoutData:', e);
+                    }
+                }
+                
+                this.exercises = rawExercises.sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)) || [];
                 this.isLoading = false;
-                this.startTimer();
-                this.initSetLogs();
+                
+                // Do not start timer or init sets until they pick an exercise from the map
+                
                 if (log.status === 'scheduled') {
                     this.workoutLogService.triggerWorkoutStart(id).subscribe({
                         next: (updated) => { this.workoutLog = { ...this.workoutLog!, ...updated }; },
@@ -70,6 +91,54 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
                 this.router.navigate(['/dashboard']);
             }
         });
+    }
+
+    startAtExercise(index: number): void {
+        this.currentExerciseIndex = index;
+        this.showOverviewMap = false;
+        if (!this.timerInterval) {
+            this.startTimer();
+        }
+        this.initSetLogs();
+    }
+
+    returnToMap(): void {
+        this.showOverviewMap = true;
+    }
+
+    isVideo(url: string | null | undefined): boolean {
+        if (!url) return false;
+        return url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm') || url.toLowerCase().endsWith('.mov');
+    }
+
+    isYouTube(url: string | null | undefined): boolean {
+        if (!url) return false;
+        return url.includes('youtube.com') || url.includes('youtu.be');
+    }
+
+    getYouTubeEmbedUrl(exercise: any): SafeResourceUrl | null {
+        if (!exercise) return null;
+        
+        const url = exercise.exercise_gif;
+        let videoId = '';
+        
+        if (url) {
+            if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/watch')) {
+                try { videoId = new URL(url).searchParams.get('v') || ''; } catch(e){}
+            } else if (url.includes('youtube.com/embed/')) {
+                videoId = url.split('youtube.com/embed/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/shorts/')) {
+                videoId = url.split('youtube.com/shorts/')[1].split('?')[0];
+            }
+        }
+        
+        if (videoId) {
+            return this.sanitizer.bypassSecurityTrustResourceUrl(`https://www.youtube.com/embed/${videoId}?autoplay=0&rel=0`);
+        }
+        
+        return null;
     }
 
     startTimer(): void {

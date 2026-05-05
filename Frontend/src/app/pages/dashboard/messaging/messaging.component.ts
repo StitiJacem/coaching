@@ -34,6 +34,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.messagesSubscription = this.chatService.messages$.subscribe(msgs => {
       this.messages = msgs;
+      this.scrollToBottom();
     });
 
     this.conversationsSubscription = this.chatService.conversations$.subscribe(convs => {
@@ -140,6 +141,15 @@ export class MessagingComponent implements OnInit, OnDestroy {
       this.newMessage
     );
     this.newMessage = '';
+  }
+
+  scrollToBottom() {
+    setTimeout(() => {
+      const container = document.getElementById('chat-container');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 50);
   }
 
   getParticipant(conv: any) {

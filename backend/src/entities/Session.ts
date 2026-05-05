@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Athlete } from "./Athlete";
 import { Program } from "./Program";
 import { User } from "./User";
+import { ProgramDay } from "./ProgramDay";
 
 @Entity("sessions")
 export class Session {
@@ -15,12 +16,19 @@ export class Session {
     @JoinColumn({ name: "athleteId" })
     athlete!: Athlete;
 
-    @Column({ nullable: true })
-    programId?: number;
-
     @ManyToOne(() => Program, { nullable: true })
     @JoinColumn({ name: "programId" })
     program?: Program;
+
+    @Column({ nullable: true })
+    programId?: number;
+
+    @Column({ nullable: true })
+    programDayId?: number;
+
+    @ManyToOne(() => ProgramDay, { nullable: true })
+    @JoinColumn({ name: "programDayId" })
+    programDay?: ProgramDay;
 
     @Column({ nullable: true })
     coachId?: number;

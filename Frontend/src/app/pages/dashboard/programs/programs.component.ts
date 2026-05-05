@@ -115,7 +115,7 @@ export class ProgramsComponent implements OnInit {
           // If active or archived, go to the actual calendar
           const targetAthleteId = this.roleService.currentRole === 'athlete' ? this.athlete?.id : program.athleteId;
           if (targetAthleteId) {
-              this.router.navigate(['/dashboard/athletes/training-calendar', targetAthleteId]);
+              this.router.navigate(['/dashboard/athletes', targetAthleteId, 'calendar']);
           }
       }
   }

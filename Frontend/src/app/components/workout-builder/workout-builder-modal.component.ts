@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ExerciseService, Exercise } from '../../services/exercise.service';
 import { SessionService, Session } from '../../services/session.service';
+import { AthleteService } from '../../services/athlete.service';
 import { format } from 'date-fns';
 
 import { CommonModule } from '@angular/common';
@@ -54,6 +55,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
 
 
     playingVideoId: string | null = null;
+    athleteWeight: number = 0;
 
     get safeVideoUrl(): SafeResourceUrl | null {
         if (!this.playingVideoId) return null;
@@ -72,6 +74,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
     constructor(
         private exerciseService: ExerciseService,
         private sessionService: SessionService,
+        private athleteService: AthleteService, // Injected for smart weight calc
         private sanitizer: DomSanitizer
     ) { }
 
@@ -79,6 +82,18 @@ export class WorkoutBuilderModalComponent implements OnInit {
         this.loadLibrary();
         if (this.existingSession) {
             this.loadExistingSession();
+        }
+        
+        // Fetch athlete body metrics for smart target weight auto-fill
+        if (this.athleteId) {
+            this.athleteService.getById(this.athleteId).subscribe({
+                next: (athlete) => {
+                    if (athlete && athlete.weight) {
+                        this.athleteWeight = athlete.weight;
+                    }
+                },
+                error: (err) => console.error('Could not fetch athlete weight:', err)
+            });
         }
     }
 
@@ -147,6 +162,27 @@ export class WorkoutBuilderModalComponent implements OnInit {
     addToWorkout(exercise: Exercise): void {
         const alreadyAdded = this.exercises.some(e => e.id === exercise.id);
         if (alreadyAdded) return;
+
+        // Auto-calculate smart target weight based on body weight if available
+        let targetWeight = 0;
+        if (this.athleteWeight && this.athleteWeight > 0) {
+            const exerciseName = exercise.name.toLowerCase();
+            // Basic estimation logic based on body weight percentages for beginners/intermediates
+            if (exerciseName.includes('squat')) {
+                targetWeight = Math.round(this.athleteWeight * 0.7); // 70% BW
+            } else if (exerciseName.includes('bench press') || exerciseName.includes('chest press')) {
+                targetWeight = Math.round(this.athleteWeight * 0.6); // 60% BW
+            } else if (exerciseName.includes('deadlift')) {
+                targetWeight = Math.round(this.athleteWeight * 0.8); // 80% BW
+            } else if (exerciseName.includes('overhead press') || exerciseName.includes('military press')) {
+                targetWeight = Math.round(this.athleteWeight * 0.4); // 40% BW
+            } else if (exerciseName.includes('curl') || exerciseName.includes('extension')) {
+                targetWeight = Math.round(this.athleteWeight * 0.15); // 15% BW
+            } else if (exerciseName.includes('row') || exerciseName.includes('pull-down')) {
+                targetWeight = Math.round(this.athleteWeight * 0.5); // 50% BW
+            }
+        }
+
         this.exercises.push({
             id: exercise.id,
             name: exercise.name,
@@ -157,7 +193,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
             sets: 3,
             reps: 12,
             rest: 60,
-            targetWeights: [0, 0, 0],
+            targetWeights: [targetWeight, targetWeight, targetWeight],
             notes: ''
         });
     }
@@ -215,7 +251,8 @@ export class WorkoutBuilderModalComponent implements OnInit {
                 error: (err) => {
                     console.error('Error saving workout:', err);
                     this.isSaving = false;
-                    alert('Failed to save workout.');
+                    const errorMsg = err.error?.message || 'Failed to save workout.';
+                    alert(errorMsg);
                 }
             });
         } else {

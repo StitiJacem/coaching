@@ -64,6 +64,10 @@ export class NutritionistService {
         return this.http.get<NutritionConnection[]>(`${this.apiUrl}/my-requests`);
     }
 
+    getAthleteConnections(): Observable<NutritionConnection[]> {
+        return this.http.get<NutritionConnection[]>(`${this.apiUrl}/athlete/my-connections`);
+    }
+
     // Nutritionist -> Respond to requests
     respondToRequest(connectionId: string, status: 'accepted' | 'rejected'): Observable<NutritionConnection> {
         return this.http.patch<NutritionConnection>(`${this.apiUrl}/connection/${connectionId}`, { status });

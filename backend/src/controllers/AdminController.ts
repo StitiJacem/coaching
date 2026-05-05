@@ -104,10 +104,16 @@ export class AdminController {
             await AppDataSource.query(`DELETE FROM messages WHERE "senderId" = $1`, [userId]);
             await AppDataSource.query(`DELETE FROM conversations WHERE "participant1Id" = $1 OR "participant2Id" = $1`, [userId]);
 
-            // 3. Handle Role-Specific Profiles
+            // 3. Handle User-level relationships (e.g., sessions where user is coach)
+            await AppDataSource.query(`DELETE FROM sessions WHERE "coachId" = $1`, [userId]);
+
+            // 4. Handle Role-Specific Profiles
             if (user.role === 'athlete') {
                 const athlete = await AppDataSource.getRepository("Athlete").findOne({ where: { userId } });
                 if (athlete) {
+                    // Must delete sessions where athlete is a participant
+                    await AppDataSource.query(`DELETE FROM sessions WHERE "athleteId" = $1`, [athlete.id]);
+                    
                     await AppDataSource.query(`DELETE FROM exercise_logs WHERE "athleteId" = $1`, [athlete.id]);
                     await AppDataSource.query(`DELETE FROM workout_logs WHERE "athleteId" = $1`, [athlete.id]);
                     await AppDataSource.query(`DELETE FROM programs WHERE "athleteId" = $1`, [athlete.id]);

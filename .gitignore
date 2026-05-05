@@ -36,6 +36,11 @@ logs/
 # Backend specific
 /backend/node_modules/
 
+# Google Cloud service account credentials — NEVER commit these
+/backend/gosport-ai-credentials.json
+*-credentials.json
+*.serviceaccount.json
+
 # Mobile/Flutter builds
 **/build/
 **/.dart_tool/

@@ -55,6 +55,13 @@ services:
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-753006300463-55uqsul6tgac9elg4o5etarvh2fv1tcv.apps.googleusercontent.com}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-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}
+      # Google Cloud Vision credentials (mounted below)
+      GOOGLE_APPLICATION_CREDENTIALS: /app/gosport-ai-credentials.json
+      # Edamam Nutrition API
+      EDAMAM_APP_ID: ${EDAMAM_APP_ID}
+      EDAMAM_APP_KEY: ${EDAMAM_APP_KEY}
+      # Gemini fallback
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     ports:
       - "3000:3000"
     depends_on:
@@ -64,6 +71,8 @@ services:
       - coaching-network
     volumes:
       - uploads_data:/app/public/uploads
+      # Mount the Google Cloud Vision service account credentials (read-only)
+      - ./backend/gosport-ai-credentials.json:/app/gosport-ai-credentials.json:ro
     restart: unless-stopped
 
   # Frontend 

@@ -266,35 +266,16 @@ export class TrainingCalendarComponent implements OnInit {
         if (!this.previewProgram || !this.isPreviewMode) return;
 
         const start = new Date(this.acceptStartDate);
-
-
         this.currentDate = new Date(start);
         this.generateCalendar();
 
         this.sessions = [];
 
-
-        if (this.acceptSelectedDays.length === 0) {
-            this.previewProgram.days.forEach(day => {
-                const date = addDays(start, day.day_number - 1);
-                this.sessions.push(this.mapDayToSession(day, date));
-            });
-            return;
-        }
-
-
-        let currentDate = new Date(start);
         this.previewProgram.days.forEach(day => {
-
-            while (true) {
-                const dayOfWeek = (getDay(currentDate) + 6) % 7;
-                if (this.acceptSelectedDays.includes(dayOfWeek)) {
-                    this.sessions.push(this.mapDayToSession(day, currentDate));
-                    currentDate = addDays(currentDate, 1);
-                    break;
-                }
-                currentDate = addDays(currentDate, 1);
-            }
+            // Simply use the day offset from the program configuration, respecting the exact structure the coach designed.
+            const offset = (day.day_number || 1) - 1;
+            const date = addDays(start, offset);
+            this.sessions.push(this.mapDayToSession(day, date));
         });
     }
 
@@ -435,39 +416,35 @@ export class TrainingCalendarComponent implements OnInit {
                     const weeksCount = this.blueprintRepeatWeeks || 1;
 
                     for (let w = 0; w < weeksCount; w++) {
-                        let currentDate = addDays(new Date(anchorDate), w * 7);
+                        const weekAnchorDate = addDays(new Date(anchorDate), w * 7);
                         
                         fullTemplate.days.forEach(day => {
-                            while (true) {
-                                const dayOfWeek = (getDay(currentDate) + 6) % 7;
-                                if (preferredDays.includes(dayOfWeek)) {
-                                    const sessionPayload = {
-                                        athleteId: this.athleteId,
-                                        coachId: coach.id,
-                                        programId: fullTemplate.id,
-                                        date: format(currentDate, 'yyyy-MM-dd'),
-                                        title: day.title,
-                                        time: '12:00',
-                                        type: fullTemplate.type || 'Strength',
-                                        workoutData: {
-                                            exercises: day.exercises.map(e => ({
-                                                exercise_id: e.exercise_id,
-                                                name: e.exercise_name,
-                                                gifUrl: e.exercise_gif,
-                                                videoId: (e as any).videoId,
-                                                videoTitle: (e as any).videoTitle,
-                                                sets: e.sets,
-                                                reps: e.reps,
-                                                order: e.order
-                                            }))
-                                        }
-                                    };
-                                    newSessions.push(this.sessionService.create(sessionPayload));
-                                    currentDate = addDays(currentDate, 1);
-                                    break;
+                            // Use exact day offset from the blueprint configuration
+                            const offset = (day.day_number || 1) - 1;
+                            const sessionDate = addDays(weekAnchorDate, offset);
+
+                            const sessionPayload = {
+                                athleteId: this.athleteId,
+                                coachId: coach.id,
+                                programId: fullTemplate.id,
+                                date: format(sessionDate, 'yyyy-MM-dd'),
+                                title: day.title,
+                                time: '12:00',
+                                type: fullTemplate.type || 'Strength',
+                                workoutData: {
+                                    exercises: day.exercises.map(e => ({
+                                        exercise_id: e.exercise_id,
+                                        name: e.exercise_name,
+                                        gifUrl: e.exercise_gif,
+                                        videoId: (e as any).videoId,
+                                        videoTitle: (e as any).videoTitle,
+                                        sets: e.sets,
+                                        reps: e.reps,
+                                        order: e.order
+                                    }))
                                 }
-                                currentDate = addDays(currentDate, 1);
-                            }
+                            };
+                            newSessions.push(this.sessionService.create(sessionPayload));
                         });
                     }
 

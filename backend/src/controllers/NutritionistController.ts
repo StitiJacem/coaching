@@ -112,6 +112,25 @@ export class NutritionistController {
         }
     }
 
+    // Get athlete's connections
+    async getAthleteConnections(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user.id;
+            const athlete = await this.athleteRepo.findOne({ where: { userId } });
+            if (!athlete) return res.status(404).json({ message: "Athlete profile not found" });
+
+            const connections = await this.connectionRepo.find({
+                where: { athleteId: athlete.id },
+                relations: ["nutritionistProfile", "nutritionistProfile.user"]
+            });
+
+            res.json(connections);
+        } catch (error) {
+            console.error("Error fetching athlete connections", error);
+            res.status(500).json({ message: "Server error" });
+        }
+    }
+
     // Get pending requests for the nutritionist
     async getMyRequests(req: Request, res: Response) {
         try {

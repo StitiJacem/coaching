@@ -3,6 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
+import { environment } from '../../environments/environment';
+
 export interface Session {
   id?: number;
   athleteId: number;
@@ -23,7 +25,7 @@ export interface Session {
   providedIn: 'root'
 })
 export class SessionService {
-  private apiUrl = 'http://localhost:3000/api/sessions';
+  private apiUrl = `${environment.apiUrl}/api/sessions`;
 
   constructor(
     private http: HttpClient,

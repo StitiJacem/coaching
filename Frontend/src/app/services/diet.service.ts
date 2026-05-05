@@ -51,7 +51,7 @@ export interface DietaryProfile {
   providedIn: 'root'
 })
 export class DietService {
-  private apiUrl = `${environment.apiUrl}/nutrition`;
+  private apiUrl = `${environment.apiUrl}/api/nutrition`;
 
   constructor(private http: HttpClient) {}
 
@@ -86,7 +86,7 @@ export class DietService {
   // --- AI & LOGGING ---
 
   analyzeFood(image: string): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/ai/analyze-food`, { image });
+    return this.http.post<any>(`${environment.apiUrl}/api/ai/analyze-food`, { image });
   }
 
   logMeal(athleteId: number, logData: any): Observable<any> {

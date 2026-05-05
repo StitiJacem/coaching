@@ -21,6 +21,7 @@ import nutritionRoutes from './routes/nutrition';
 import aiRoutes from './routes/ai';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
+import sessionRoutes from './routes/sessions';
 
 const app = express();
 
@@ -49,5 +50,6 @@ app.use('/api/nutrition', nutritionRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 export default app;

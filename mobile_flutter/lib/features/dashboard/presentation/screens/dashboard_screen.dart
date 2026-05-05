@@ -294,7 +294,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           // Connect with specialist CTA
                           AnimateIn(
                             delay: 600,
-                            child: _ConnectSpecialistBanner(),
+                            child: Column(
+                              children: [
+                                _NutritionistBanner(),
+                                const SizedBox(height: 12),
+                                _ConnectSpecialistBanner(),
+                              ],
+                            ),
                           ),
                           const SizedBox(height: 24),
 
@@ -1114,7 +1120,7 @@ class _ConnectSpecialistBanner extends StatelessWidget {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'Padel, Pilates, Musculation & more',
+                        'Fitness, Gym & more',
                         style: TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
@@ -1143,6 +1149,71 @@ class _ConnectSpecialistBanner extends StatelessWidget {
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _NutritionistBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => context.push('/nutrition'),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF2E7D32), Color(0xFF1B5E20)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.green.withValues(alpha: 0.2),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'TRACK YOUR\nNUTRITION',
+                    style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        height: 1.15),
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'AI Scan & Nutritionist Plans',
+                    style: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(Icons.restaurant_rounded,
+                  color: Color(0xFF2E7D32), size: 22),
             ),
           ],
         ),

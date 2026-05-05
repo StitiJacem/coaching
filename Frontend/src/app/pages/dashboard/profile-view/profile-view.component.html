@@ -18,25 +18,28 @@
     <ng-container *ngIf="!loading && !error && viewType === 'athlete' && overview">
       
       <!-- HEADER / IDENTITY -->
-      <header class="flex flex-col md:flex-row items-center gap-10 bg-gosport-surface/40 backdrop-blur-xl p-12 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
+      <section class="flex flex-col md:flex-row items-center gap-10 bg-gosport-surface/40 backdrop-blur-xl p-12 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
         <div class="absolute inset-0 bg-gradient-to-br from-gosport-orange/5 to-transparent"></div>
         <div class="absolute top-0 right-0 w-64 h-64 bg-gosport-orange/5 blur-[100px] -mr-32 -mt-32 rounded-full"></div>
         
-        <div class="relative shrink-0 flex flex-col items-center gap-6">
-          <div class="w-40 h-40 rounded-[3rem] overflow-hidden border-4 border-white/5 shadow-2xl group cursor-pointer relative"
-               (click)="isOwnProfile && athleteFileInput.click()">
-            <div *ngIf="isOwnProfile" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
-              <lucide-icon name="camera" class="w-8 h-8 text-white"></lucide-icon>
+        <div class="shrink-0 flex flex-col items-center gap-6">
+          <div class="relative">
+            <div class="w-40 h-40 rounded-[3rem] overflow-hidden border-4 border-white/5 shadow-2xl group cursor-pointer relative"
+                 (click)="isOwnProfile && athleteFileInput.click()">
+              <div *ngIf="isOwnProfile" class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-20">
+                <lucide-icon name="camera" class="w-8 h-8 text-white"></lucide-icon>
+              </div>
+              <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
+                <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <img [src]="(overview.athlete?.profilePicture?.startsWith('/') ? 'http://localhost:3000' + overview.athlete.profilePicture : overview.athlete?.profilePicture) || 'https://ui-avatars.com/api/?name=' + (overview.athlete?.name || 'U') + '&background=f97316&color=fff'"
+                   class="w-full h-full object-cover"
+                   (error)="$any($event.target).src='https://ui-avatars.com/api/?name=' + (overview.athlete?.name || 'U') + '&background=f97316&color=fff&size=160'">
+              <input #athleteFileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
             </div>
-            <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
-              <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
+            <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gosport-orange rounded-2xl flex items-center justify-center text-white border-4 border-gosport-surface shadow-lg z-10">
+              <lucide-icon name="award" class="w-5 h-5"></lucide-icon>
             </div>
-            <img [src]="(overview.athlete?.profilePicture?.startsWith('/') ? 'http://localhost:3000' + overview.athlete.profilePicture : overview.athlete?.profilePicture) || 'https://ui-avatars.com/api/?name=' + overview.athlete?.name + '&background=random'" 
-                 class="w-full h-full object-cover">
-            <input #athleteFileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
-          </div>
-          <div class="absolute -bottom-2 -right-2 w-10 h-10 bg-gosport-orange rounded-2xl flex items-center justify-center text-white border-4 border-gosport-surface shadow-lg">
-            <lucide-icon name="award" class="w-5 h-5"></lucide-icon>
           </div>
         </div>
 
@@ -142,12 +145,12 @@
         </div>
 
         <div class="flex gap-4 relative z-10">
-          <button *ngIf="!editingAthleteProfile"
+          <button *ngIf="!editingAthleteProfile && viewerIsCoach"
                   class="px-10 py-5 bg-white text-black font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-gosport-orange hover:text-white transition-all transform active:scale-95 shadow-xl">
             Nouveau Programme
           </button>
         </div>
-      </header>
+      </section>
 
       <!-- STATS STRIP -->
       <div class="stats-strip mt-8">
@@ -471,7 +474,7 @@
 
     <!-- DATA DASHBOARD (Specialist View - Coach or Nutritionist) -->
     <ng-container *ngIf="!loading && !error && (viewType === 'coach' || viewType === 'nutritionist') && profile">
-       <header class="flex flex-col md:flex-row items-center gap-10 bg-gosport-surface/40 backdrop-blur-xl p-12 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
+       <section class="flex flex-col md:flex-row items-center gap-10 bg-gosport-surface/40 backdrop-blur-xl p-12 rounded-[2.5rem] border border-gosport-border shadow-2xl relative overflow-hidden">
           <div class="absolute inset-0 bg-gradient-to-r from-gosport-orange/20 to-transparent"></div>
           
           <div class="shrink-0 relative">
@@ -483,8 +486,9 @@
               <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
                 <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <img [src]="profile?.user?.photo_url ? (profile.user.photo_url.startsWith('/') ? 'http://localhost:3000' + profile.user.photo_url : profile.user.photo_url) : (profile?.user?.avatar || 'https://ui-avatars.com/api/?name=' + profile?.user?.first_name + '+' + profile?.user?.last_name + '&background=random')" 
-                   class="w-full h-full object-cover">
+              <img [src]="profile?.user?.photo_url ? (profile.user.photo_url.startsWith('/') ? 'http://localhost:3000' + profile.user.photo_url : profile.user.photo_url) : ('https://ui-avatars.com/api/?name=' + (profile?.user?.first_name || 'U') + '+' + (profile?.user?.last_name || '') + '&background=f97316&color=fff')"
+                   class="w-full h-full object-cover"
+                   (error)="$any($event.target).src='https://ui-avatars.com/api/?name=' + (profile?.user?.first_name || 'U') + '&background=f97316&color=fff&size=160'">
               <input #fileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
             </div>
             <div class="absolute top-2 right-2 px-3 py-1 bg-gosport-orange text-white text-[10px] font-black uppercase rounded-full shadow-lg">PRO</div>
@@ -564,7 +568,7 @@
                <button class="px-10 py-5 bg-gosport-surface border border-white/10 text-white font-black uppercase text-xs tracking-[0.2em] rounded-2xl hover:bg-white/5 transition-all">Programmes</button>
              </ng-container>
           </div>
-       </header>
+       </section>
 
        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-10">
           <div class="lg:col-span-2 tile-card">

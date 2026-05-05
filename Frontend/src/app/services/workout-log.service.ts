@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface WorkoutLog {
     id?: number;
@@ -16,6 +17,7 @@ export interface WorkoutLog {
     overallRating?: number;
     program?: any;
     programDay?: any;
+    session?: any;
     sessionWorkoutData?: any;
     exerciseLogs?: any[];
 }
@@ -61,8 +63,8 @@ export interface TodayWorkout {
     providedIn: 'root'
 })
 export class WorkoutLogService {
-    private apiUrl = 'http://localhost:3000/api/workout-logs';
-    private programsUrl = 'http://localhost:3000/api/programs';
+    private apiUrl = `${environment.apiUrl}/workout-logs`;
+    private programsUrl = `${environment.apiUrl}/programs`;
 
     constructor(
         private http: HttpClient,
@@ -97,7 +99,7 @@ export class WorkoutLogService {
         });
     }
 
-    startWorkout(data: { athleteId: number; programId?: number; programDayId?: number; scheduledDate?: string }): Observable<WorkoutLog> {
+    startWorkout(data: { athleteId: number; programId?: number; programDayId?: number; sessionId?: number; scheduledDate?: string }): Observable<WorkoutLog> {
         return this.http.post<WorkoutLog>(this.apiUrl, data, { headers: this.getHeaders() });
     }
 

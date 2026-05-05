@@ -1,0 +1,226 @@
+\documentclass[11pt,a4paper]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{microtype}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage[hidelinks]{hyperref}
+
+\hypersetup{
+  pdftitle={GOSPORT Coaching Platform Technical Analysis Report},
+  pdfauthor={GOSPORT Technical Team}
+}
+
+\lstdefinelanguage{TypeScript}{
+  keywords={const, let, var, function, return, async, await, class, extends, implements, interface, type, import, export, from, default, if, else, for, while, switch, case, break, new, this, true, false, null, undefined},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]',
+  morestring=[b]"
+}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!70!black}\bfseries,
+  commentstyle=\color{gray!60}\itshape,
+  stringstyle=\color{green!50!black},
+  breaklines=true,
+  breakatwhitespace=true,
+  frame=single,
+  framerule=0.4pt,
+  columns=fullflexible,
+  showstringspaces=false,
+  tabsize=2
+}
+
+\newcommand{\figplaceholder}[2]{%
+  \begin{figure}[htbp]
+    \centering
+    \IfFileExists{#2}{%
+      \includegraphics[width=0.8\textwidth]{#2}%
+    }{%
+      \fbox{\begin{minipage}{0.8\textwidth}\centering\vspace{2.2cm}%
+        \textit{Figure placeholder}\\[0.5em]%
+        \texttt{#2}%
+        \vspace{2.2cm}\end{minipage}}%
+    }%
+    \caption{#1}%
+  \end{figure}%
+}
+
+\title{%
+  {\Large Technical Analysis Report}\\[1.5em]
+  {\LARGE\bfseries GOSPORT Coaching Platform}%
+}
+\author{Technical Documentation}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\vfill
+\begin{center}
+\parbox{0.85\textwidth}{%
+\small
+\textit{Abstract.} GOSPORT is a comprehensive, multi-platform coaching ecosystem designed to bridge the gap between athletes, professional coaches, and nutritionists. It provides a centralized hub for personalized workout programming, dietary management, performance tracking, and real-time communication, addressing fragmented fitness data and disconnected coaching experiences.}
+\end{center}
+\vfill
+\clearpage
+
+\pagenumbering{roman}
+\tableofcontents
+\clearpage
+
+\pagenumbering{arabic}
+
+\chapter{Introduction}
+
+GOSPORT is a multi-platform coaching ecosystem that connects athletes, coaches, and nutritionists within a single operational context. The platform consolidates workout programming, nutrition planning, performance metrics, and communication so that stakeholders no longer rely on disjointed tools or informal channels.
+
+\section{Problem Statement}
+Traditional coaching workflows often scatter data across messaging apps, spreadsheets, and generic fitness trackers. This fragmentation reduces visibility for coaches, complicates adherence tracking for athletes, and weakens continuity between training and nutrition.
+
+\section{Objectives}
+The GOSPORT platform aims to:
+\begin{itemize}[leftmargin=*]
+  \item provide role-aware experiences for athletes, coaches, nutritionists, and administrators;
+  \item support real-time collaboration and feedback through synchronized clients;
+  \item enforce secure, policy-driven access to sensitive health and performance data;
+  \item maintain a scalable architecture suitable for continued feature growth.
+\end{itemize}
+
+\section{Report Structure}
+This document summarizes system architecture, technology choices, implementation practices, deployed infrastructure, observed outcomes, challenges encountered, and planned extensions.
+
+\chapter{System Architecture}
+
+The system follows a containerized, service-oriented layout. A TypeScript-based REST API (Express.js) serves an Angular web client and a Flutter mobile application, with a relational PostgreSQL database as the system of record.
+
+\section{Layered Design}
+The backend applies a Controller--Service--Repository structure: controllers expose HTTP resources, services encapsulate business rules, and repositories mediate persistence. TypeORM maps entities to the database schema, while Socket.io enables real-time synchronization between connected clients.
+
+\figplaceholder{High-level system architecture (logical view)}{placeholder.png}
+
+\section{Cross-Cutting Concerns}
+Authentication and authorization are enforced at the API boundary using JSON Web Tokens (JWT) and role-based access control (RBAC). Real-time channels complement REST endpoints for messaging and notification-style updates.
+
+\chapter{Technology Stack}
+
+Table~\ref{tab:tech} lists the principal technologies employed across the stack.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Core technology stack}
+  \label{tab:tech}
+  \begin{tabular}{@{}ll@{}}
+    \toprule
+    \textbf{Layer} & \textbf{Technology} \\
+    \midrule
+    Languages & TypeScript \\
+    Web client & Angular~19, TailwindCSS, RxJS \\
+    Mobile client & Flutter, Riverpod \\
+    API & Express.js \\
+    Persistence & PostgreSQL, TypeORM \\
+    Real-time & Socket.io \\
+    Security & JWT, OAuth2 (Google) \\
+    Operations & Docker, Docker Compose \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Rationale}
+\begin{itemize}[leftmargin=*]
+  \item \textbf{TypeScript end-to-end} improves consistency between API and web codebases and supports strong typing for domain models.
+  \item \textbf{Angular and Flutter} deliver responsive web and native-style mobile experiences while sharing conceptual UX patterns.
+  \item \textbf{PostgreSQL with TypeORM} supports relational integrity for complex coaching and nutrition relationships.
+  \item \textbf{Socket.io} provides a pragmatic path to bidirectional communication without bespoke WebSocket plumbing on every feature.
+\end{itemize}
+
+\chapter{Implementation}
+
+The project follows established software engineering practices: repository abstractions isolate persistence details, and shared infrastructure services (for example, the real-time gateway) use controlled instantiation patterns such as singletons where appropriate.
+
+\section{Backend}
+The REST API is implemented in Express with TypeScript. Security features include JWT authentication and RBAC across four roles: Athlete, Coach, Nutritionist, and Admin. Notable modules include OAuth2 integration, Socket.io-backed chat, outbound email via Nodemailer, and an AI-assisted food analysis endpoint. Controllers remain thin; services own orchestration and validation.
+
+\section{Frontend Web}
+The Angular~19 application uses TailwindCSS for layout and theming. The information architecture is dashboard-centric, with dedicated surfaces for athletes (progress and workout playback), coaches (client and program management), and nutritionists (meal planning). RxJS supports reactive data flows; iconography and charts enhance interpretability of training and nutrition data.
+
+\section{Database}
+The PostgreSQL schema comprises approximately twenty-nine entities. It models many-to-many associations between programs and exercises, hierarchical diet structures (day, meal, log), and role-specific profile extensions (for example, coach certifications and nutritionist profiles). Cascading foreign keys preserve referential integrity during account lifecycle events such as deletion.
+
+\section{Illustrative Code Snippet}
+The listing below sketches a typical TypeORM entity relationship declaration; it is illustrative rather than extracted from production sources.
+
+\begin{lstlisting}[language=TypeScript, caption={Illustrative TypeORM entity association (conceptual)}]
+@Entity()
+export class Program {
+  @PrimaryGeneratedColumn("uuid")
+  id!: string;
+
+  @ManyToMany(() => Exercise, (ex) => ex.programs, { cascade: true })
+  @JoinTable()
+  exercises!: Exercise[];
+}
+\end{lstlisting}
+
+\section{Mobile Client}
+The Flutter application adopts Riverpod for state management. Advanced flows include OTP-based email verification suited to physical devices, aligned with the platform's emphasis on trustworthy onboarding.
+
+\chapter{Features}
+
+The platform delivers the following capabilities:
+\begin{enumerate}[leftmargin=*]
+  \item Role-specific dashboards for Athletes, Coaches, Nutritionists, and Admins.
+  \item Real-time messaging and notifications via Socket.io.
+  \item AI-driven food and nutrition analysis to accelerate logging and review.
+  \item An interactive workout player with progress logging.
+  \item Dynamic nutrition and meal planning with dietary profile analysis.
+  \item Athlete performance tracking, including body metrics, VO\textsubscript{2} max estimates, and goal management.
+  \item Cross-platform availability through the web (Angular) and mobile (Flutter).
+  \item Administrative tooling for auditing, statistics, and platform management.
+\end{enumerate}
+
+\chapter{Deployment}
+
+Deployment is fully containerized with Docker Compose. Isolated containers run PostgreSQL, pgAdmin (for database administration), the Node.js API, and the Angular frontend. Bridge networking isolates services while allowing controlled inter-container communication. Named volumes persist database state across restarts. Environment-specific configuration supports development and production profiles without code changes.
+
+\figplaceholder{Docker Compose deployment topology (conceptual)}{placeholder-deploy.png}
+
+\chapter{Results}
+
+GOSPORT presents as a production-ready platform oriented toward professional coaching workflows. By centralizing programming, nutrition, and communication, it reduces operational overhead for practitioners and improves athlete engagement through timely feedback loops. Coaches gain scalable instruments to supervise larger client cohorts without sacrificing traceability of prescribed work.
+
+\chapter{Challenges}
+
+Key engineering challenges included:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Cross-platform state alignment:} keeping web and mobile clients coherent when real-time events and offline scenarios interleave required disciplined event modeling and clear source-of-truth rules.
+  \item \textbf{Secure verification on devices:} email verification flows that behave reliably on physical hardware demanded careful handling of deep links, OTP expiry, and user messaging.
+  \item \textbf{Data lifecycle complexity:} deep object graphs tied to user identities necessitated cascading schema design to avoid orphaned records or inconsistent partial deletes.
+  \item \textbf{UX consistency:} maintaining a shared visual and interaction language between Angular and Flutter reduced cognitive load for users who switch surfaces.
+\end{itemize}
+
+\chapter{Future Work}
+
+Planned enhancements include:
+\begin{itemize}[leftmargin=*]
+  \item deeper integration with consumer health ecosystems (Apple Health, Google Fit, Garmin);
+  \item advanced AI-generated workout and meal recommendations informed by longitudinal performance data;
+  \item an integrated payment gateway for coach subscriptions and athlete training fees.
+\end{itemize}
+
+\chapter{Conclusion}
+
+GOSPORT demonstrates a coherent technical response to fragmentation in digital coaching. Its layered backend, modern web and mobile clients, and relational data model jointly support secure, role-aware collaboration. Containerized deployment and disciplined modularization position the system for incremental expansion, including wearable integrations and richer analytics in subsequent releases.
+
+\end{document}

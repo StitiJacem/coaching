@@ -1,82 +1,30 @@
-:host {
-    display: block;
-    height: 100%;
-}
+/* Messaging Page */
+:host { display: block; }
 
-.animate-in {
-    animation: slideIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes slideIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-@keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-15px); }
-}
-
-.animate-fade-in { animation: fadeIn 0.5s ease forwards; opacity: 0; }
-.animate-fade-in-up { animation: fadeInUp 0.5s ease forwards; opacity: 0; }
-.animate-float { animation: float 6s ease-in-out infinite; }
-
-.glass-sidebar {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    background: linear-gradient(135deg, rgba(26, 26, 32, 0.6) 0%, rgba(20, 20, 25, 0.4) 100%);
-}
-
-.glass-chat {
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-    background: linear-gradient(165deg, rgba(30, 30, 38, 0.3) 0%, rgba(20, 20, 25, 0.1) 100%);
-}
-
-.active-conv {
-    background: linear-gradient(90deg, rgba(255, 102, 0, 0.15) 0%, transparent 100%);
-    border-left: 3px solid #FF6600 !important;
-    border-color: rgba(255, 102, 0, 0.2) !important;
-}
-
-.bubble-mine {
-    background: linear-gradient(135deg, #FF6600 0%, #FF4500 100%);
-    color: white;
-    border-radius: 1.25rem;
-    border-bottom-right-radius: 0.25rem;
-    box-shadow: 0 10px 20px -5px rgba(255, 102, 0, 0.3);
-}
-
-.bubble-other {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    color: #e2e8f0;
-    border-radius: 1.25rem;
-    border-bottom-left-radius: 0.25rem;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
+/* Custom scrollbar */
+#chat-container::-webkit-scrollbar,
+.overflow-y-auto::-webkit-scrollbar {
     width: 4px;
 }
-
-.custom-scrollbar::-webkit-scrollbar-track {
+#chat-container::-webkit-scrollbar-track,
+.overflow-y-auto::-webkit-scrollbar-track {
     background: transparent;
 }
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(255, 102, 0, 0.1);
-    border-radius: 20px;
+#chat-container::-webkit-scrollbar-thumb,
+.overflow-y-auto::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+}
+#chat-container::-webkit-scrollbar-thumb:hover,
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: rgba(249, 115, 22, 0.3);
 }
 
-.custom-scrollbar:hover::-webkit-scrollbar-thumb {
-    background: rgba(255, 102, 0, 0.3);
+/* Smooth bubble entrance */
+@keyframes bubbleIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.flex.w-full {
+    animation: bubbleIn 0.2s ease-out;
 }

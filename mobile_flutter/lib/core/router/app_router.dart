@@ -25,6 +25,8 @@ import '../../features/connections/presentation/screens/athletes_screen.dart';
 import '../../features/connections/presentation/screens/coaches_screen.dart';
 import '../../features/connections/presentation/screens/discovery_screen.dart';
 import '../../features/analytics/presentation/screens/analytics_screen.dart';
+import '../../features/nutrition/presentation/screens/nutrition_screen.dart';
+import '../../features/nutrition/presentation/screens/meal_scan_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -88,6 +90,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/dashboard',     builder: (_, _) => const DashboardScreen()),
           GoRoute(path: '/programs',      builder: (_, _) => const ProgramsScreen()),
           GoRoute(path: '/schedule',      builder: (_, _) => const CalendarScreen()),
+          GoRoute(path: '/nutrition',     builder: (_, _) => const NutritionScreen()),
           GoRoute(path: '/goals',         builder: (_, _) => const GoalsScreen()),
           GoRoute(path: '/analytics',     builder: (_, _) => const AnalyticsScreen()),
           GoRoute(path: '/athletes',      builder: (_, _) => const AthletesScreen()),
@@ -99,6 +102,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
 
       // ── Full-screen (no bottom nav) ────────────────────────────────────────
+      GoRoute(path: '/nutrition/scan', builder: (_, _) => const MealScanScreen()),
       GoRoute(path: '/sessions',       builder: (_, _) => const SessionsScreen()),
       GoRoute(path: '/workout-history', builder: (_, _) => const WorkoutHistoryScreen()),
       GoRoute(

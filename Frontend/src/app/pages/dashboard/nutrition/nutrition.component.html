@@ -1,26 +1,44 @@
 <app-dashboard-layout>
-    <div class="nutrition-page">
+    <div class="nutrition-page overflow-x-hidden">
 
         <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-        <header class="nutr-header">
-            <div>
-                <p class="nutr-label">
-                    {{ roleService.currentRole === 'nutritionist' ? 'Gestion Clients' : 'Mon Protocole' }}
-                </p>
+        <header class="nutr-header anim-in">
+            <div class="nutr-title-group">
+                <span class="nutr-label">
+                    {{ roleService.currentRole === 'nutritionist' ? 'Performance Hub' : 'Mon Protocole' }}
+                </span>
                 <h1 class="nutr-title">Nutrition</h1>
             </div>
 
+            <div *ngIf="successMessage" class="success-toast anim-in">
+                <lucide-icon name="check-circle" class="w-5 h-5"></lucide-icon>
+                {{ successMessage }}
+            </div>
+
             <div class="nutr-header-actions">
-                <!-- Athlete: log button + tab switcher -->
+                <!-- Athlete Actions -->
                 <ng-container *ngIf="roleService.currentRole === 'athlete'">
                     <div class="tab-switcher">
                         <button (click)="activeTab = 'today'" [class.active]="activeTab === 'today'">Aujourd'hui</button>
                         <button (click)="activeTab = 'plan'" [class.active]="activeTab === 'plan'">Mon Plan</button>
+                        <button (click)="activeTab = 'history'; loadHistory()" [class.active]="activeTab === 'history'">Historique</button>
                     </div>
-                    <button class="btn-primary" (click)="showLogModal = true" *ngIf="activePlan">
-                        <lucide-icon name="plus" class="btn-icon"></lucide-icon>
+                    <button class="btn-primary" (click)="showLogModal = true">
+                        <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
                         Logger un repas
                     </button>
+                    <button class="btn-ai" (click)="showAiScanner = true">
+                        <lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon>
+                        Scanner IA
+                    </button>
+                </ng-container>
+
+                <!-- Nutritionist Actions -->
+                <ng-container *ngIf="roleService.currentRole === 'nutritionist'">
+                    <div class="tab-switcher">
+                        <button (click)="activeTab = 'clients'" [class.active]="activeTab === 'clients'">Roster</button>
+                        <button (click)="activeTab = 'insights'" [class.active]="activeTab === 'insights'">Insights</button>
+                    </div>
                 </ng-container>
             </div>
         </header>
@@ -28,249 +46,166 @@
         <!-- ══ LOADING ═════════════════════════════════════════════════════════ -->
         <div *ngIf="isLoading" class="loader-wrap">
             <div class="loader-ring"></div>
-            <p>Chargement des données nutrition...</p>
+            <p class="mt-6 text-slate-500 font-bold uppercase tracking-widest text-[10px]">Synchronisation du Matrice...</p>
         </div>
 
         <!-- ══════════════════════════════════════════════════════════════════════
              ATHLETE VIEW
         ══════════════════════════════════════════════════════════════════════ -->
         <div *ngIf="!isLoading && roleService.currentRole === 'athlete'">
-
-            <!-- ── NO PLAN EMPTY STATE ──────────────────────────────────────── -->
-            <div *ngIf="!activePlan" class="empty-state">
-                <div class="empty-icon">🥗</div>
-                <h2>Aucun plan nutritionnel actif</h2>
-                <p>Connectez-vous à un nutritionniste pour recevoir un programme personnalisé, ou demandez à votre coach de vous en créer un.</p>
-                <div class="empty-cta">
-                    <button class="btn-outline" routerLink="/dashboard/discovery">
-                        Trouver un nutritionniste
-                    </button>
-                </div>
-            </div>
-
-            <!-- ── TAB: TODAY ───────────────────────────────────────────────── -->
-            <div *ngIf="activePlan && activeTab === 'today'" class="anim-in">
-
-                <!-- Macro Ring Charts -->
-                <section class="macro-rings-section">
+            <!-- Today View -->
+            <div *ngIf="isTabActive('today')">
+                <section class="macro-rings-section anim-in stagger-1">
                     <div class="macro-rings-grid">
-
-                        <!-- Calories -->
-                        <div class="macro-ring-card">
+                        <div class="macro-ring-card" *ngFor="let macro of [
+                            {key: 'calories', label: 'Energy', unit: 'kcal', cls: 'ring-calories'},
+                            {key: 'protein',  label: 'Protein', unit: 'g', cls: 'ring-protein'},
+                            {key: 'carbs',    label: 'Carbs',  unit: 'g', cls: 'ring-carbs'},
+                            {key: 'fats',     label: 'Fats',   unit: 'g', cls: 'ring-fats'}
+                        ]">
                             <div class="ring-wrap">
                                 <svg viewBox="0 0 100 100" class="ring-svg">
                                     <circle cx="50" cy="50" r="40" class="ring-bg"/>
-                                    <circle cx="50" cy="50" r="40" class="ring-track ring-calories"
+                                    <circle cx="50" cy="50" r="40" [class]="'ring-track ' + macro.cls"
                                         [style.stroke-dasharray]="'251.2'"
-                                        [style.stroke-dashoffset]="getRingOffset(compliance?.actual?.calories || 0, compliance?.target?.calories || 0)"/>
+                                        [style.stroke-dashoffset]="getRingOffset(getMacroValue('actual', macro.key), getMacroValue('target', macro.key))"/>
                                 </svg>
                                 <div class="ring-center">
-                                    <span class="ring-pct">{{ getPercent(compliance?.actual?.calories || 0, compliance?.target?.calories || 0) }}%</span>
+                                    <span class="ring-pct">{{ getPercent(getMacroValue('actual', macro.key), getMacroValue('target', macro.key)) }}%</span>
+                                    <span class="ring-pct-label">Consommé</span>
                                 </div>
                             </div>
-                            <p class="ring-label">Calories</p>
+                            <p class="ring-label">{{ macro.label === 'Energy' ? 'Calories' : (macro.label === 'Protein' ? 'Protéines' : (macro.label === 'Carbs' ? 'Glucides' : 'Lipides')) }}</p>
                             <p class="ring-vals">
-                                <span class="ring-actual">{{ compliance?.actual?.calories || 0 }}</span>
-                                <span class="ring-sep">/</span>
-                                <span class="ring-target">{{ compliance?.target?.calories || 0 }} kcal</span>
-                            </p>
-                        </div>
-
-                        <!-- Protein -->
-                        <div class="macro-ring-card">
-                            <div class="ring-wrap">
-                                <svg viewBox="0 0 100 100" class="ring-svg">
-                                    <circle cx="50" cy="50" r="40" class="ring-bg"/>
-                                    <circle cx="50" cy="50" r="40" class="ring-track ring-protein"
-                                        [style.stroke-dasharray]="'251.2'"
-                                        [style.stroke-dashoffset]="getRingOffset(compliance?.actual?.protein || 0, compliance?.target?.protein || 0)"/>
-                                </svg>
-                                <div class="ring-center">
-                                    <span class="ring-pct">{{ getPercent(compliance?.actual?.protein || 0, compliance?.target?.protein || 0) }}%</span>
-                                </div>
-                            </div>
-                            <p class="ring-label">Protéines</p>
-                            <p class="ring-vals">
-                                <span class="ring-actual">{{ compliance?.actual?.protein || 0 }}g</span>
-                                <span class="ring-sep">/</span>
-                                <span class="ring-target">{{ compliance?.target?.protein || 0 }}g</span>
-                            </p>
-                        </div>
-
-                        <!-- Carbs -->
-                        <div class="macro-ring-card">
-                            <div class="ring-wrap">
-                                <svg viewBox="0 0 100 100" class="ring-svg">
-                                    <circle cx="50" cy="50" r="40" class="ring-bg"/>
-                                    <circle cx="50" cy="50" r="40" class="ring-track ring-carbs"
-                                        [style.stroke-dasharray]="'251.2'"
-                                        [style.stroke-dashoffset]="getRingOffset(compliance?.actual?.carbs || 0, compliance?.target?.carbs || 0)"/>
-                                </svg>
-                                <div class="ring-center">
-                                    <span class="ring-pct">{{ getPercent(compliance?.actual?.carbs || 0, compliance?.target?.carbs || 0) }}%</span>
-                                </div>
-                            </div>
-                            <p class="ring-label">Glucides</p>
-                            <p class="ring-vals">
-                                <span class="ring-actual">{{ compliance?.actual?.carbs || 0 }}g</span>
-                                <span class="ring-sep">/</span>
-                                <span class="ring-target">{{ compliance?.target?.carbs || 0 }}g</span>
-                            </p>
-                        </div>
-
-                        <!-- Fats -->
-                        <div class="macro-ring-card">
-                            <div class="ring-wrap">
-                                <svg viewBox="0 0 100 100" class="ring-svg">
-                                    <circle cx="50" cy="50" r="40" class="ring-bg"/>
-                                    <circle cx="50" cy="50" r="40" class="ring-track ring-fats"
-                                        [style.stroke-dasharray]="'251.2'"
-                                        [style.stroke-dashoffset]="getRingOffset(compliance?.actual?.fats || 0, compliance?.target?.fats || 0)"/>
-                                </svg>
-                                <div class="ring-center">
-                                    <span class="ring-pct">{{ getPercent(compliance?.actual?.fats || 0, compliance?.target?.fats || 0) }}%</span>
-                                </div>
-                            </div>
-                            <p class="ring-label">Lipides</p>
-                            <p class="ring-vals">
-                                <span class="ring-actual">{{ compliance?.actual?.fats || 0 }}g</span>
-                                <span class="ring-sep">/</span>
-                                <span class="ring-target">{{ compliance?.target?.fats || 0 }}g</span>
+                                <span class="ring-actual">{{ getMacroValue('actual', macro.key) }}</span>
+                                <span class="ring-target">/ {{ getMacroValue('target', macro.key) }}{{ macro.unit }}</span>
                             </p>
                         </div>
                     </div>
                 </section>
 
-                <!-- Two columns: menu du jour + journal -->
-                <div class="athlete-columns">
-
-                    <!-- Menu du Jour -->
+                <div class="athlete-columns anim-in stagger-2">
                     <div class="nutr-card">
                         <div class="nutr-card-header">
-                            <h3 class="nutr-card-title">📋 Menu du Jour</h3>
-                            <span class="nutr-badge" *ngIf="todayDay">
-                                Jour {{ todayDay.day_number }}{{ todayDay.title ? ' — ' + todayDay.title : '' }}
-                            </span>
+                            <h3 class="nutr-card-title"><lucide-icon name="list-checks"></lucide-icon> Menu du Jour</h3>
+                            <span class="nutr-badge" *ngIf="todayDay">Jour {{ todayDay.day_number }}</span>
                         </div>
-
-                        <!-- Rest Day -->
-                        <div *ngIf="todayDay?.isRestDay" class="rest-day-badge">
-                            <span>😴</span>
-                            <p>Jour de repos — Nutrition légère recommandée</p>
-                        </div>
-
-                        <!-- Meals List -->
+                        <div *ngIf="todayDay?.isRestDay" class="rest-day-badge"><span>😴</span><p>Jour de Récupération — Focus sur l'hydratation.</p></div>
                         <div *ngIf="todayDay && !todayDay.isRestDay && todayDay.meals?.length" class="meals-list">
                             <div *ngFor="let meal of todayDay.meals" class="meal-item">
                                 <div class="meal-time-badge" [ngClass]="'meal-' + meal.mealType">
-                                    <span>{{ meal.mealType | titlecase }}</span>
+                                    <span class="meal-type-label">{{ meal.mealType }}</span>
                                     <span class="meal-time">{{ meal.timeOfDay }}</span>
                                 </div>
                                 <div class="meal-body">
                                     <p class="meal-instructions">{{ meal.instructions }}</p>
                                     <div class="meal-macros">
-                                        <span class="m-cal">🔥 {{ meal.calories }} kcal</span>
-                                        <span class="m-p">P: {{ meal.protein }}g</span>
-                                        <span class="m-c">G: {{ meal.carbs }}g</span>
-                                        <span class="m-f">L: {{ meal.fats }}g</span>
+                                        <span class="m-tag m-cal">{{ meal.calories }}kcal</span>
+                                        <span class="m-tag m-p">P: {{ meal.protein }}g</span>
+                                        <span class="m-tag m-c">G: {{ meal.carbs }}g</span>
+                                        <span class="m-tag m-f">L: {{ meal.fats }}g</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div *ngIf="!todayDay || !todayDay.meals?.length" class="empty-mini">
-                            Aucun repas planifié pour aujourd'hui.
-                        </div>
-
-                        <div *ngIf="!activePlan.startDate" class="info-banner">
-                            ℹ️ Ce plan n'a pas de date de début définie. Le Jour 1 est affiché par défaut.
-                        </div>
+                        <div *ngIf="!todayDay || !todayDay.meals?.length" class="empty-mini py-20 opacity-30 text-center">No protocol assigned.</div>
                     </div>
 
-                    <!-- Journal du Jour -->
                     <div class="nutr-card">
                         <div class="nutr-card-header">
-                            <h3 class="nutr-card-title">📝 Journal du Jour</h3>
-                            <button class="btn-sm-primary" (click)="showLogModal = true">+ Ajouter</button>
+                            <h3 class="nutr-card-title"><lucide-icon name="history"></lucide-icon> Journal du Jour</h3>
+                            <button class="btn-primary py-2 px-4" (click)="showLogModal = true">Ajouter</button>
                         </div>
-
-                        <div *ngIf="todayLogs.length === 0" class="empty-mini">
-                            Aucun repas enregistré aujourd'hui.
-                        </div>
-
                         <div class="log-list">
                             <div *ngFor="let log of todayLogs" class="log-item">
-                                <div class="log-item-left">
-                                    <div class="log-type-dot" [ngClass]="'dot-' + (log.mealType || 'snack')"></div>
-                                    <div>
-                                        <p class="log-name">{{ log.foodName }}</p>
-                                        <p class="log-time">{{ log.loggedAt | date:'HH:mm' }}</p>
-                                    </div>
+                                <div class="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+                                    <img *ngIf="log.imagePath" [src]="'http://localhost:3000' + log.imagePath" class="w-full h-full object-cover">
+                                    <lucide-icon *ngIf="!log.imagePath" name="image" class="w-full h-full p-4 opacity-20"></lucide-icon>
                                 </div>
-                                <div class="log-item-right">
-                                    <span class="log-cal">{{ log.calories }} kcal</span>
-                                    <button class="log-delete" (click)="deleteLog(log.id!)">✕</button>
+                                <div class="flex-1">
+                                    <p class="font-black text-white uppercase text-sm italic">{{ log.foodName }}</p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ log.loggedAt | date:'HH:mm' }} • {{ log.mealType }}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="font-black text-white italic">{{ log.calories }} kcal</p>
+                                    <button (click)="deleteLog(log.id!)" class="text-red-500/30 hover:text-red-500 transition-colors"><lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon></button>
                                 </div>
                             </div>
                         </div>
+                        <div *ngIf="todayLogs.length === 0" class="empty-mini py-20 opacity-30 text-center">No meals logged yet.</div>
+                        <div *ngIf="todayLogs.length > 0" class="mt-8 pt-6 border-t border-white/5 flex justify-between items-center bg-white/5 p-5 rounded-3xl">
+                            <span class="text-[10px] font-black uppercase text-slate-400">Net Intake</span>
+                            <span class="text-xl font-black text-white italic">{{ computeTotals(todayLogs).calories }} kcal</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-                        <!-- Daily Totals -->
-                        <div *ngIf="todayLogs.length > 0" class="log-totals">
-                            <div class="totals-row">
-                                <span class="totals-label">Total du jour</span>
-                                <div class="totals-macros">
-                                    <span>🔥 {{ computeTotals(todayLogs).calories }} kcal</span>
-                                    <span>P: {{ computeTotals(todayLogs).protein }}g</span>
-                                    <span>G: {{ computeTotals(todayLogs).carbs }}g</span>
-                                    <span>L: {{ computeTotals(todayLogs).fats }}g</span>
-                                </div>
+            <!-- Protocol View -->
+            <div *ngIf="isTabActive('plan')" class="anim-in">
+                <div *ngIf="!activePlan" class="py-40 text-center bg-white/5 border-2 border-dashed border-white/10 rounded-[3rem]">
+                    <h2 class="text-3xl font-black text-white uppercase italic mb-4">No Protocol</h2>
+                    <p class="text-slate-400 mb-10 px-6">Connect with a specialist to receive your scientific nutrition protocol.</p>
+                    <button class="btn-primary mx-auto" routerLink="/dashboard/discovery">Find A Specialist</button>
+                </div>
+                <div *ngIf="activePlan">
+                    <div class="nutr-card mb-8">
+                        <h2 class="text-4xl font-black text-white uppercase italic tracking-tighter">{{ activePlan.name }}</h2>
+                        <p class="text-slate-400 mt-4 leading-relaxed max-w-3xl">{{ activePlan.description }}</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div *ngFor="let day of activePlan.days" class="nutr-card p-6" [class.border-gosport-orange]="todayDay?.id === day.id">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Day {{ day.day_number }}</span>
+                            <h4 class="text-lg font-black text-white uppercase italic my-4 truncate">{{ day.title || 'Standard' }}</h4>
+                            <div class="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
+                                <span class="text-[10px] font-black uppercase text-slate-500">Intake</span>
+                                <span class="text-xl font-black text-white italic">{{ getDayTotalCalories(day) }} kcal</span>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ── TAB: MON PLAN ─────────────────────────────────────────────── -->
-            <div *ngIf="activePlan && activeTab === 'plan'" class="anim-in">
-                <div class="plan-meta-card nutr-card">
-                    <div class="plan-meta-header">
-                        <div>
-                            <h2 class="plan-meta-name">{{ activePlan.name }}</h2>
-                            <p class="plan-meta-sub" *ngIf="activePlan.nutritionistProfile">
-                                Par {{ activePlan.nutritionistProfile.user.first_name }}
-                                {{ activePlan.nutritionistProfile.user.last_name }}
-                            </p>
-                        </div>
-                        <div class="plan-meta-badges">
-                            <span class="nutr-badge">{{ activePlan.goal | titlecase }}</span>
-                            <span class="nutr-badge-outline" *ngIf="activePlan.startDate">
-                                Début: {{ activePlan.startDate | date:'mediumDate' }}
-                            </span>
-                        </div>
+            <!-- History View -->
+            <div *ngIf="isTabActive('history')" class="anim-in">
+                <div class="nutr-card">
+                    <div class="flex justify-between items-center mb-10">
+                        <h3 class="text-2xl font-black text-white uppercase italic tracking-tighter">Performance Logs</h3>
+                        <input type="date" [ngModel]="selectedHistoryDate" (ngModelChange)="onHistoryDateChange($event)" 
+                               class="bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-white font-bold text-sm">
                     </div>
-                    <p class="plan-description" *ngIf="activePlan.description">{{ activePlan.description }}</p>
-                </div>
-
-                <!-- Days Grid -->
-                <div class="plan-days-grid">
-                    <div *ngFor="let day of activePlan.days" class="plan-day-card" [class.rest-day]="day.isRestDay" [class.today-day]="todayDay?.id === day.id">
-                        <div class="plan-day-header">
-                            <span class="day-number">Jour {{ day.day_number }}</span>
-                            <span *ngIf="day.title" class="day-title">{{ day.title }}</span>
-                            <span *ngIf="todayDay?.id === day.id" class="today-chip">Aujourd'hui</span>
-                            <span *ngIf="day.isRestDay" class="rest-chip">Repos</span>
-                        </div>
-
-                        <div *ngIf="!day.isRestDay" class="day-meals">
-                            <div *ngFor="let meal of day.meals" class="day-meal-row">
-                                <span class="dm-type" [ngClass]="'meal-' + meal.mealType">{{ meal.mealType | titlecase }}</span>
-                                <span class="dm-time">{{ meal.timeOfDay }}</span>
-                                <span class="dm-cal">{{ meal.calories }} kcal</span>
+                    <div *ngIf="historyLogs.length === 0" class="py-32 text-center opacity-20">No entries for this cycle.</div>
+                    <div *ngIf="historyLogs.length > 0">
+                        <!-- History Macro Dashboard -->
+                        <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-12" *ngIf="historyCompliance">
+                            <div class="bg-white/5 rounded-3xl p-6 border border-white/5" *ngFor="let macro of [
+                                {key: 'calories', label: 'Calories', unit: 'kcal', cls: 'ring-calories'},
+                                {key: 'protein',  label: 'Protéines', unit: 'g', cls: 'ring-protein'},
+                                {key: 'carbs',    label: 'Glucides',  unit: 'g', cls: 'ring-carbs'},
+                                {key: 'fats',     label: 'Lipides',   unit: 'g', cls: 'ring-fats'}
+                            ]">
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">{{ macro.label }}</span>
+                                    <span class="text-xs font-black text-white">{{ getHistoryVal('percent', macro.key) }}%</span>
+                                </div>
+                                <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-full transition-all duration-1000" [ngClass]="macro.cls" [style.width.%]="getHistoryVal('percent', macro.key)"></div>
+                                </div>
+                                <p class="mt-4 font-black text-lg text-white italic">{{ getHistoryVal('actual', macro.key) }}<span class="text-[10px] text-slate-500 ml-1">/ {{ getHistoryVal('target', macro.key) }}{{ macro.unit }}</span></p>
                             </div>
                         </div>
 
-                        <div class="day-total">
-                            <span>{{ getDayTotalCalories(day) }} kcal total</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div *ngFor="let log of historyLogs" class="log-item">
+                                <div class="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-white/5">
+                                    <img *ngIf="log.imagePath" [src]="'http://localhost:3000' + log.imagePath" class="w-full h-full object-cover">
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-black text-white uppercase text-sm italic">{{ log.foodName }}</p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ log.loggedAt | date:'HH:mm' }} • {{ log.mealType }}</p>
+                                </div>
+                                <div class="text-right"><p class="font-black text-white italic text-lg">{{ log.calories }} kcal</p></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -280,213 +215,147 @@
         <!-- ══════════════════════════════════════════════════════════════════════
              NUTRITIONIST VIEW
         ══════════════════════════════════════════════════════════════════════ -->
-        <div *ngIf="!isLoading && roleService.currentRole === 'nutritionist'" class="nutr-grid">
-
-            <!-- Client List -->
-            <aside class="client-sidebar">
-                <div class="nutr-card h-full">
-                    <div class="nutr-card-header">
-                        <h3 class="nutr-card-title">Mes Athlètes</h3>
-                        <span class="client-count">{{ clients.length }}</span>
+        <div *ngIf="!isLoading && roleService.currentRole === 'nutritionist'" class="grid grid-cols-[350px_1fr] gap-8 anim-in">
+            <!-- Sidebar: Roster -->
+            <aside class="space-y-6">
+                <div class="nutr-card !p-8 h-[calc(100vh-250px)] overflow-y-auto">
+                    <div class="flex items-center justify-between mb-10">
+                        <h3 class="text-xl font-black text-white uppercase italic">Active Roster</h3>
+                        <span class="px-3 py-1 bg-white/10 rounded-full text-[10px] font-black text-white">{{ clients.length }}</span>
                     </div>
-
-                    <div *ngIf="clients.length === 0" class="empty-state-mini">
-                        <p>🏃 Aucun client connecté.</p>
-                        <p class="empty-hint">Envoyez des invitations à vos athlètes pour commencer.</p>
-                    </div>
-
-                    <div class="client-list">
-                        <button *ngFor="let client of clients"
-                            (click)="selectClient(client)"
-                            [class.selected]="selectedClient?.connectionId === client.connectionId"
-                            class="client-item">
-                            <div class="client-avatar">
-                                <span>{{ getInitial(client) }}</span>
+                    <div class="space-y-3">
+                        <button *ngFor="let client of clients" (click)="selectClient(client)"
+                            [class]="{ 'bg-white/10': selectedClient?.connectionId === client.connectionId, 'border-white/20': selectedClient?.connectionId === client.connectionId }"
+                            class="w-full flex items-center gap-4 p-5 rounded-3xl border border-transparent hover:bg-white/5 transition-all text-left">
+                            <div class="w-12 h-12 rounded-full bg-gosport-orange/20 flex items-center justify-center text-gosport-orange font-black text-lg">
+                                {{ getInitial(client) }}
                             </div>
-                            <div class="client-info">
-                                <p class="client-name">{{ getClientName(client) }}</p>
-                                <p class="client-sport">{{ client.athlete?.sport || 'Sport non renseigné' }}</p>
+                            <div class="flex-1">
+                                <p class="font-black text-white uppercase italic text-sm">{{ getClientName(client) }}</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ client.athlete?.sport || 'General' }}</p>
                             </div>
-                            <div class="client-plan-indicator" [class.has-plan]="client.activePlan">
-                                <span *ngIf="client.activePlan" title="Plan actif">✓</span>
-                                <span *ngIf="!client.activePlan" title="Sans plan">—</span>
-                            </div>
+                            <lucide-icon *ngIf="client.activePlan" name="check" class="text-green-500 w-4 h-4"></lucide-icon>
                         </button>
                     </div>
                 </div>
             </aside>
 
-            <!-- Client Details Panel -->
-            <main class="client-panel">
-
-                <!-- Empty State: no client selected -->
-                <div *ngIf="!selectedClient" class="empty-state-panel">
-                    <div class="empty-icon">📊</div>
-                    <h3>Sélectionnez un athlète</h3>
-                    <p>Choisissez un athlète dans la liste pour visualiser sa conformité nutritionnelle et gérer son plan.</p>
+            <!-- Main Panel -->
+            <main class="space-y-6">
+                <div *ngIf="!selectedClient" class="h-full flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-[3rem] opacity-30">
+                    <lucide-icon name="users" class="w-20 h-20 mb-8"></lucide-icon>
+                    <p class="font-black uppercase tracking-[0.3em] text-sm">Select an athlete to monitor</p>
                 </div>
 
-                <!-- Client Detail -->
                 <div *ngIf="selectedClient" class="anim-in">
-
-                    <!-- Client header -->
-                    <div class="client-panel-header nutr-card">
-                        <div class="client-panel-identity">
-                            <div class="client-avatar-lg">{{ getInitial(selectedClient) }}</div>
+                    <div class="nutr-card flex items-center justify-between mb-8">
+                        <div class="flex items-center gap-6">
+                            <div class="w-20 h-20 rounded-3xl bg-gosport-orange/20 flex items-center justify-center text-gosport-orange font-black text-3xl italic shadow-2xl">
+                                {{ getInitial(selectedClient) }}
+                            </div>
                             <div>
-                                <h2 class="client-panel-name">{{ getClientName(selectedClient) }}</h2>
-                                <p class="client-panel-sub">{{ selectedClient.athlete?.sport || 'Sport non renseigné' }}</p>
+                                <h2 class="text-3xl font-black text-white uppercase italic leading-none">{{ getClientName(selectedClient) }}</h2>
+                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">{{ selectedClient.athlete?.sport }} • Connection Active</p>
                             </div>
                         </div>
-                        <div class="client-panel-actions">
-                            <button class="btn-primary" (click)="goToDietBuilder(selectedClient)">
-                                {{ selectedClient.activePlan ? '✏️ Modifier le Plan' : '+ Créer un Plan' }}
-                            </button>
-                        </div>
+                        <button class="btn-primary py-4 px-8" (click)="goToDietBuilder(selectedClient)">
+                            {{ selectedClient.activePlan ? 'Engineer Protocol' : 'Launch Protocol' }}
+                        </button>
                     </div>
 
-                    <!-- Plan status -->
-                    <div class="nutr-card" *ngIf="!selectedClient.activePlan">
-                        <div class="no-plan-alert">
-                            <span>⚠️</span>
-                            <div>
-                                <p class="no-plan-title">Aucun plan nutritionnel actif</p>
-                                <p class="no-plan-hint">Créez un plan pour cet athlète pour commencer le suivi.</p>
+                    <!-- Client Metrics -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8" *ngIf="clientCompliance">
+                        <div class="macro-ring-card !p-8" *ngFor="let macro of [
+                            {key: 'calories', label: 'Energy', unit: 'kcal', cls: 'ring-calories'},
+                            {key: 'protein',  label: 'Protein', unit: 'g', cls: 'ring-protein'},
+                            {key: 'carbs',    label: 'Carbs',  unit: 'g', cls: 'ring-carbs'},
+                            {key: 'fats',     label: 'Fats',   unit: 'g', cls: 'ring-fats'}
+                        ]">
+                            <div class="ring-wrap !w-24 !h-24 mb-4">
+                                <svg viewBox="0 0 100 100" class="ring-svg">
+                                    <circle cx="50" cy="50" r="40" class="ring-bg"/>
+                                    <circle cx="50" cy="50" r="40" [class]="'ring-track ' + macro.cls"
+                                        [style.stroke-dasharray]="'251.2'"
+                                        [style.stroke-dashoffset]="getRingOffset(getComplianceValue('actual', macro.key), getComplianceValue('target', macro.key))"/>
+                                </svg>
+                                <div class="ring-center"><span class="text-lg font-black text-white italic">{{ getComplianceValue('percent', macro.key) }}%</span></div>
                             </div>
-                            <button class="btn-primary" (click)="goToDietBuilder(selectedClient)">Créer</button>
+                            <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">{{ macro.label }}</p>
                         </div>
                     </div>
 
-                    <!-- Loading client compliance -->
-                    <div *ngIf="isLoadingClient" class="loader-mini">
-                        <div class="loader-ring-sm"></div>
-                    </div>
-
-                    <!-- Compliance Panel -->
-                    <div *ngIf="!isLoadingClient && clientCompliance" class="nutr-card">
-                        <div class="nutr-card-header">
-                            <h3 class="nutr-card-title">📈 Conformité du Jour</h3>
-                            <span class="nutr-badge-outline">{{ '' | date:'longDate' }}</span>
-                        </div>
-
-                        <div *ngIf="!clientCompliance.hasPlan" class="empty-mini">
-                            Aucun plan actif — suivi non disponible.
-                        </div>
-
-                        <div *ngIf="clientCompliance.hasPlan" class="compliance-rings">
-                            <div class="macro-ring-card" *ngFor="let macro of [
-                                {key: 'calories', label: 'Calories', unit: 'kcal', cls: 'ring-calories'},
-                                {key: 'protein',  label: 'Protéines', unit: 'g', cls: 'ring-protein'},
-                                {key: 'carbs',    label: 'Glucides',  unit: 'g', cls: 'ring-carbs'},
-                                {key: 'fats',     label: 'Lipides',   unit: 'g', cls: 'ring-fats'}
-                            ]">
-                                <div class="ring-wrap">
-                                    <svg viewBox="0 0 100 100" class="ring-svg">
-                                        <circle cx="50" cy="50" r="40" class="ring-bg"/>
-                                        <circle cx="50" cy="50" r="40" [class]="'ring-track ' + macro.cls"
-                                            [style.stroke-dasharray]="'251.2'"
-                                            [style.stroke-dashoffset]="getRingOffset(getComplianceVal('actual', macro.key), getComplianceVal('target', macro.key))"/>
-                                    </svg>
-                                    <div class="ring-center">
-                                        <span class="ring-pct">{{ getComplianceVal('percent', macro.key) }}%</span>
-                                    </div>
+                    <!-- Client Logs -->
+                    <div class="nutr-card">
+                        <h3 class="text-xl font-black text-white uppercase italic mb-8">Synchronized Intake Log</h3>
+                        <div class="space-y-3">
+                            <div *ngFor="let log of clientCompliance?.logs" class="log-item bg-white/5 border-transparent">
+                                <div class="flex-1">
+                                    <p class="font-black text-white uppercase text-sm italic">{{ log.foodName }}</p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ log.loggedAt | date:'HH:mm' }} • {{ log.mealType }}</p>
                                 </div>
-                                <p class="ring-label">{{ macro.label }}</p>
-                                <p class="ring-vals">
-                                    <span class="ring-actual">{{ getComplianceVal('actual', macro.key) }}{{ macro.unit }}</span>
-                                    <span class="ring-sep">/</span>
-                                    <span class="ring-target">{{ getComplianceVal('target', macro.key) }}{{ macro.unit }}</span>
-                                </p>
+                                <p class="font-black text-white italic text-lg">{{ log.calories }} kcal</p>
                             </div>
+                            <div *ngIf="!clientCompliance?.logs?.length" class="py-20 text-center opacity-20 italic">No logs detected for selected cycle.</div>
                         </div>
                     </div>
-
-                    <!-- Today's Logs for client -->
-                    <div *ngIf="!isLoadingClient && clientCompliance?.logs?.length" class="nutr-card">
-                        <div class="nutr-card-header">
-                            <h3 class="nutr-card-title">Repas enregistrés aujourd'hui</h3>
-                        </div>
-                        <div class="log-list">
-                            <div *ngFor="let log of clientCompliance?.logs" class="log-item">
-                                <div class="log-item-left">
-                                    <div class="log-type-dot" [ngClass]="'dot-' + (log.mealType || 'snack')"></div>
-                                    <div>
-                                        <p class="log-name">{{ log.foodName }}</p>
-                                        <p class="log-time">{{ log.loggedAt | date:'HH:mm' }}</p>
-                                    </div>
-                                </div>
-                                <div class="log-item-right">
-                                    <span class="log-cal">{{ log.calories }} kcal</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                 </div>
             </main>
         </div>
 
     </div>
 
-    <!-- ══ LOG MEAL MODAL ══════════════════════════════════════════════════════ -->
-    <div *ngIf="showLogModal" class="modal-overlay" (click)="showLogModal = false">
-        <div class="modal-box" (click)="$event.stopPropagation()">
-            <div class="modal-header">
-                <h2 class="modal-title">Logger un Repas</h2>
-                <button class="modal-close" (click)="showLogModal = false">✕</button>
+    <!-- Modals (AI & Log) remain the same structure but inherit new styling -->
+    <div *ngIf="showAiScanner" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-3xl anim-in">
+        <div class="bg-gosport-surface border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full relative shadow-2xl">
+            <button class="absolute top-8 right-8 text-slate-500 hover:text-white" (click)="showAiScanner = false; resetAiScanner()">✕</button>
+            <h2 class="text-3xl font-black text-white uppercase italic mb-8 flex items-center gap-4"><lucide-icon name="sparkles" class="text-gosport-orange"></lucide-icon> Neural Analysis</h2>
+            <div class="space-y-8">
+                <div class="relative group cursor-pointer aspect-video bg-white/5 border-2 border-dashed border-white/10 rounded-[2.5rem] flex items-center justify-center overflow-hidden" (click)="triggerFileSelect()">
+                    <input type="file" id="ai-file-input" (change)="onFileSelected($event)" accept="image/*" hidden>
+                    <img *ngIf="imagePreview" [src]="imagePreview" class="w-full h-full object-cover">
+                    <div *ngIf="!imagePreview" class="text-center"><lucide-icon name="camera" size="48" class="text-slate-700 mb-4 mx-auto group-hover:text-gosport-orange transition-colors"></lucide-icon><p class="text-white font-black uppercase text-xs">Initialize Visual Input</p></div>
+                </div>
+                <div *ngIf="isAnalyzing" class="text-center py-10"><div class="loader-ring mx-auto mb-6"></div><p class="text-white font-black uppercase italic tracking-widest">Processing Bio-Data...</p></div>
+                <div *ngIf="aiResult" class="bg-white/5 rounded-[2rem] p-8 anim-in">
+                    <h3 class="text-2xl font-black text-white uppercase italic mb-8">{{ aiResult.detectedFoods.join(', ') }}</h3>
+                    <div class="grid grid-cols-4 gap-4 text-center">
+                        <div *ngFor="let macro of [{v: aiResult.nutrition.calories, l: 'kcal'}, {v: aiResult.nutrition.protein+'g', l: 'Protein'}, {v: aiResult.nutrition.carbs+'g', l: 'Carbs'}, {v: aiResult.nutrition.fat+'g', l: 'Fats'}]">
+                            <p class="text-xl font-black text-white italic">{{ macro.v }}</p><p class="text-[8px] font-black uppercase text-slate-500">{{ macro.l }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button class="flex-1 py-5 rounded-2xl bg-white/5 text-slate-400 font-black uppercase text-xs tracking-widest" (click)="showAiScanner = false; resetAiScanner()">Discard</button>
+                    <button *ngIf="imagePreview && !aiResult" class="flex-1 py-5 rounded-2xl bg-white text-black font-black uppercase text-xs tracking-widest" (click)="analyzeImage()" [disabled]="isAnalyzing">Execute</button>
+                    <button *ngIf="aiResult" class="flex-1 py-5 rounded-2xl bg-gosport-orange text-white font-black uppercase text-xs tracking-widest" (click)="confirmAiResult()">Confirm Intake</button>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <form (ngSubmit)="submitMeal()" class="log-form">
-                <div class="form-group">
-                    <label class="form-label">Nom du plat *</label>
-                    <input type="text" [(ngModel)]="mealForm.foodName" name="foodName"
-                        class="form-input" placeholder="Ex: Poulet riz brocolis" required>
+    <!-- Manual Log Modal -->
+    <div *ngIf="showLogModal" class="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-3xl anim-in">
+        <div class="bg-gosport-surface border border-white/10 rounded-[3rem] p-10 max-w-xl w-full relative shadow-2xl">
+            <button class="absolute top-8 right-8 text-slate-500 hover:text-white" (click)="showLogModal = false">✕</button>
+            <h2 class="text-3xl font-black text-white uppercase italic mb-10">Manual Bio-Log</h2>
+            <form (ngSubmit)="submitMeal()" class="space-y-6">
+                <input type="text" [(ngModel)]="mealForm.foodName" name="foodName" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold" placeholder="Designation" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="number" [(ngModel)]="mealForm.calories" name="calories" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold" placeholder="Energy (kcal)">
+                    <select [(ngModel)]="mealForm.mealType" name="mealType" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold">
+                        <option value="breakfast">Breakfast</option><option value="lunch">Lunch</option><option value="dinner">Dinner</option><option value="snack">Snack</option>
+                    </select>
                 </div>
-
-                <div class="form-row-2">
-                    <div class="form-group">
-                        <label class="form-label">Calories (kcal)</label>
-                        <input type="number" [(ngModel)]="mealForm.calories" name="calories"
-                            class="form-input" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Type de repas</label>
-                        <select [(ngModel)]="mealForm.mealType" name="mealType" class="form-input">
-                            <option value="breakfast">Petit-déjeuner</option>
-                            <option value="lunch">Déjeuner</option>
-                            <option value="dinner">Dîner</option>
-                            <option value="snack">Collation</option>
-                        </select>
-                    </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <input type="number" [(ngModel)]="mealForm.protein" name="protein" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold" placeholder="P (g)">
+                    <input type="number" [(ngModel)]="mealForm.carbs" name="carbs" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold" placeholder="G (g)">
+                    <input type="number" [(ngModel)]="mealForm.fats" name="fats" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold" placeholder="L (g)">
                 </div>
-
-                <div class="form-row-3">
-                    <div class="form-group">
-                        <label class="form-label">Protéines (g)</label>
-                        <input type="number" [(ngModel)]="mealForm.protein" name="protein"
-                            class="form-input" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Glucides (g)</label>
-                        <input type="number" [(ngModel)]="mealForm.carbs" name="carbs"
-                            class="form-input" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Lipides (g)</label>
-                        <input type="number" [(ngModel)]="mealForm.fats" name="fats"
-                            class="form-input" min="0">
-                    </div>
-                </div>
-
-                <div class="form-actions">
-                    <button type="button" class="btn-outline" (click)="showLogModal = false">Annuler</button>
-                    <button type="submit" class="btn-primary" [disabled]="isSubmittingLog || !mealForm.foodName.trim()">
-                        <span *ngIf="!isSubmittingLog">Enregistrer</span>
-                        <span *ngIf="isSubmittingLog">...</span>
-                    </button>
+                <div class="flex gap-4 pt-6">
+                    <button type="button" class="flex-1 py-5 rounded-2xl bg-white/5 text-slate-400 font-black uppercase text-xs" (click)="showLogModal = false">Discard</button>
+                    <button type="submit" class="flex-1 py-5 rounded-2xl bg-white text-black font-black uppercase text-xs" [disabled]="isSubmittingLog || !mealForm.foodName.trim()">{{ isSubmittingLog ? 'Registering...' : 'Register Intake' }}</button>
                 </div>
             </form>
         </div>
     </div>
-
 </app-dashboard-layout>

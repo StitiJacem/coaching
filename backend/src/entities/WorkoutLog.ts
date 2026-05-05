@@ -2,6 +2,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { Athlete } from "./Athlete";
 import { Program } from "./Program";
 import { ProgramDay } from "./ProgramDay";
+import { Session } from "./Session";
 
 @Entity("workout_logs")
 export class WorkoutLog {
@@ -25,9 +26,16 @@ export class WorkoutLog {
     @Column({ nullable: true })
     programDayId?: number;
 
-    @ManyToOne(() => ProgramDay)
+    @ManyToOne(() => ProgramDay, { onDelete: "SET NULL", nullable: true })
     @JoinColumn({ name: "programDayId" })
     programDay?: ProgramDay;
+
+    @Column({ nullable: true })
+    sessionId?: number;
+
+    @ManyToOne(() => Session, { onDelete: "SET NULL", nullable: true })
+    @JoinColumn({ name: "sessionId" })
+    session?: Session;
 
     @Column({ type: "date" })
     scheduledDate!: Date;

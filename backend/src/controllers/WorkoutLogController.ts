@@ -98,7 +98,7 @@ export class WorkoutLogController {
             const repo = AppDataSource.getRepository(WorkoutLog);
             const log = await repo.findOne({
                 where: { id: parseInt(req.params.id as string) },
-                relations: ["program", "programDay", "programDay.exercises"],
+                relations: ["program", "programDay", "programDay.exercises", "session"],
             });
 
             if (!log) return res.status(404).json({ message: "Workout log not found" });
@@ -121,7 +121,7 @@ export class WorkoutLogController {
     static create = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
-            const { athleteId, programId, programDayId, scheduledDate } = req.body;
+            const { athleteId, programId, programDayId, sessionId, scheduledDate } = req.body;
 
             if (!athleteId) return res.status(400).json({ message: "athleteId is required" });
             if (!(await canAccessAthlete(user, athleteId))) {
@@ -146,14 +146,15 @@ export class WorkoutLogController {
             const log = new WorkoutLog();
             log.athleteId = athleteId;
             log.programId = programId;
-            log.programDayId = programDayId;
+            log.programDayId = programDayId || null;
+            log.sessionId = sessionId || null;
             log.scheduledDate = new Date(today);
             log.status = "in_progress";
 
             const saved = await repo.save(log);
             const withRelations = await repo.findOne({
                 where: { id: saved.id },
-                relations: ["program", "programDay", "programDay.exercises"],
+                relations: ["program", "programDay", "programDay.exercises", "session"],
             });
             res.status(201).json(withRelations);
         } catch (error) {

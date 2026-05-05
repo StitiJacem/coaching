@@ -110,7 +110,7 @@ class AppShell extends ConsumerWidget {
           _NavItem(Icons.dashboard_rounded, 'Home', '/dashboard'),
           _NavItem(Icons.calendar_month_rounded, 'Schedule', '/schedule'),
           _NavItem(Icons.fitness_center_rounded, 'Programs', '/programs'),
-          _NavItem(Icons.flag_rounded, 'Goals', '/goals'),
+          _NavItem(Icons.restaurant_rounded, 'Nutrition', '/nutrition'),
           _NavItem(Icons.person_rounded, 'Profile', '/profile'),
         ];
     }

@@ -305,7 +305,7 @@ export class DietController {
             }
             res.json(profile);
         } catch (error) {
-            console.error("Get profile error", error);
+            console.error("Get dietary profile error:", error);
             res.status(500).json({ message: "Server error" });
         }
     }
@@ -327,6 +327,7 @@ export class DietController {
 
             res.json(profile);
         } catch (error) {
+            console.error("Update dietary profile error:", error);
             res.status(500).json({ message: "Server error" });
         }
     }

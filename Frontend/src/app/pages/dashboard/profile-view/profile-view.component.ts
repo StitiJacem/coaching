@@ -14,6 +14,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../services/auth.service';
 import { SocialAuthService } from '../../../services/social-auth.service';
 import { UserService } from '../../../services/user.service';
+import { RoleService } from '../../../services/role.service';
 
 @Component({
   selector: 'app-profile-view',
@@ -83,7 +84,8 @@ export class ProfileViewComponent implements OnInit {
     private authService: AuthService,
     private nutritionistService: NutritionistService,
     private socialAuthService: SocialAuthService,
-    private userService: UserService
+    private userService: UserService,
+    private roleService: RoleService
   ) { }
 
   ngOnInit(): void {
@@ -112,6 +114,17 @@ export class ProfileViewComponent implements OnInit {
           // Ownership check for athlete
           const currentUser = this.authService.getUser();
           this.isOwnProfile = currentUser && (Number(currentUser.id) === Number(this.overview.athlete?.userId));
+
+          // Sync: keep localStorage avatar consistent with athlete's stored profilePicture
+          if (this.isOwnProfile && currentUser && this.overview.athlete?.profilePicture) {
+            const pic = this.overview.athlete.profilePicture;
+            const absolute = pic.startsWith('http') ? pic : `http://localhost:3000${pic}`;
+            if (currentUser.photo_url !== pic) {
+              currentUser.photo_url = pic;
+              currentUser.avatar = absolute;
+              localStorage.setItem('user', JSON.stringify(currentUser));
+            }
+          }
           
           this.loading = false;
         },
@@ -136,6 +149,14 @@ export class ProfileViewComponent implements OnInit {
         // Ownership check
         const currentUser = this.authService.getUser();
         this.isOwnProfile = currentUser && (Number(currentUser.id) === Number(this.profile.userId));
+
+        // Store coach/nutritionist entity ID so sidebar links to correct profile
+        if (this.isOwnProfile && currentUser && this.profile.id) {
+          if (currentUser.entityId !== this.profile.id) {
+            currentUser.entityId = this.profile.id;
+            localStorage.setItem('user', JSON.stringify(currentUser));
+          }
+        }
 
         if (typeof this.profile.offerTypes === 'string') {
           try {
@@ -193,6 +214,10 @@ export class ProfileViewComponent implements OnInit {
 
   cancelAthleteEditProfile(): void {
     this.editingAthleteProfile = false;
+  }
+
+  get viewerIsCoach(): boolean {
+    return this.roleService.currentRole === 'coach';
   }
 
   saveAthleteProfile(): void {
@@ -331,6 +356,8 @@ export class ProfileViewComponent implements OnInit {
             user.avatar = absoluteUrl;
             localStorage.setItem('user', JSON.stringify(user));
           }
+          // Refresh role service so sidebar/header avatar re-renders
+          this.roleService.refreshRole();
           this.uploadingPhoto = false;
         },
         error: () => {

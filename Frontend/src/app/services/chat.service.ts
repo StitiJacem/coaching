@@ -70,6 +70,18 @@ export class ChatService {
       this.conversationsSubject.next(conversations);
     });
 
+    this.socket.on('new_message', (message: any) => {
+      console.log('[Socket] Received new message:', message);
+      const currentMessages = this.messagesSubject.getValue();
+      // Only append if it belongs to the currently active conversation
+      if (currentMessages.length === 0 || currentMessages[0].conversationId === message.conversationId) {
+        // Prevent duplicates
+        if (!currentMessages.find(m => m.id === message.id)) {
+          this.messagesSubject.next([...currentMessages, message]);
+        }
+      }
+    });
+
     this.socket.on('refresh_conversations', () => {
       this.refreshConversations();
     });

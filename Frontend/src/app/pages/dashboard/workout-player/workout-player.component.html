@@ -84,7 +84,53 @@
         </div>
 
 
-        <div *ngIf="!isLoading && !showCompletionScreen" class="space-y-6">
+        <div *ngIf="!isLoading && showOverviewMap && !showCompletionScreen" class="space-y-8 animate-fade-in">
+            <header class="text-center space-y-2">
+                <p class="text-galio-orange font-bold uppercase tracking-widest text-sm">Session Overview</p>
+                <h1 class="text-4xl md:text-5xl font-display font-black text-white uppercase tracking-tight">
+                    {{ workoutLog?.programDay?.title || workoutLog?.session?.title || 'Today\'s Workout' }}
+                </h1>
+                <p class="text-slate-400">Review your exercises and select where to start.</p>
+            </header>
+
+            <div class="flex justify-center">
+                <button (click)="startAtExercise(0)" class="px-10 py-4 bg-galio-orange text-white font-bold uppercase tracking-wider rounded-2xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20">
+                    Start From Beginning
+                </button>
+            </div>
+
+            <div class="max-w-3xl mx-auto bg-galio-surface border border-galio-border rounded-3xl p-6 shadow-xl">
+                <div class="space-y-4 relative">
+                    <!-- Vertical Timeline Line -->
+                    <div class="absolute left-6 top-6 bottom-6 w-0.5 bg-slate-800 rounded-full hidden md:block"></div>
+                    
+                    <div *ngFor="let ex of exercises; let i = index" class="relative flex flex-col md:flex-row gap-4 md:gap-8 items-start md:items-center p-4 rounded-2xl bg-slate-900/50 border border-transparent hover:border-slate-700 transition-colors group">
+                        
+                        <!-- Timeline Node -->
+                        <div class="hidden md:flex relative z-10 w-12 h-12 rounded-full bg-slate-800 border-4 border-galio-surface items-center justify-center text-slate-400 font-bold font-display group-hover:bg-galio-orange group-hover:text-white transition-colors">
+                            {{ i + 1 }}
+                        </div>
+
+                        <!-- Exercise Details -->
+                        <div class="flex-1">
+                            <h3 class="text-xl font-bold text-white uppercase">{{ ex.exercise_name }}</h3>
+                            <div class="flex items-center gap-4 mt-1 text-sm text-slate-400 font-medium uppercase tracking-wider">
+                                <span><i class="fa-solid fa-layer-group text-slate-600 mr-1"></i> {{ ex.sets }} Sets</span>
+                                <span><i class="fa-solid fa-repeat text-slate-600 mr-1"></i> {{ ex.reps }} Reps</span>
+                                <span *ngIf="ex.rest_seconds"><i class="fa-regular fa-clock text-slate-600 mr-1"></i> {{ ex.rest_seconds }}s Rest</span>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <button (click)="startAtExercise(i)" class="w-full md:w-auto px-6 py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold uppercase tracking-wider rounded-xl transition-all border border-slate-700 hover:border-slate-600 focus:ring-2 focus:ring-galio-orange/50">
+                            Start Here
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div *ngIf="!isLoading && !showOverviewMap && !showCompletionScreen" class="space-y-6">
 
             <header class="flex items-center justify-between">
                 <div>
@@ -115,10 +161,39 @@
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
 
                     <div class="bg-slate-900 flex items-center justify-center p-8 min-h-[280px]">
-                        <img *ngIf="currentExercise.exercise_gif" [src]="currentExercise.exercise_gif"
-                            [alt]="currentExercise.exercise_name" class="max-h-64 w-auto object-contain rounded-2xl">
-                        <div *ngIf="!currentExercise.exercise_gif"
-                            class="w-40 h-40 bg-slate-800 rounded-2xl flex items-center justify-center text-6xl">💪
+                        <!-- YouTube Video (Specific or Search Fallback) -->
+                        <iframe *ngIf="getYouTubeEmbedUrl(currentExercise)" 
+                            [src]="getYouTubeEmbedUrl(currentExercise)" 
+                            class="w-full max-w-md aspect-video rounded-2xl shadow-lg border border-slate-800" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+
+                        <!-- Native Video -->
+                        <video *ngIf="!getYouTubeEmbedUrl(currentExercise) && isVideo(currentExercise.exercise_gif)" 
+                            [src]="currentExercise.exercise_gif" autoplay loop muted playsinline 
+                            class="max-h-64 w-auto object-contain rounded-2xl shadow-lg border border-slate-800">
+                        </video>
+
+                        <!-- Standard Image / GIF -->
+                        <img *ngIf="!getYouTubeEmbedUrl(currentExercise) && !isVideo(currentExercise.exercise_gif) && currentExercise.exercise_gif" 
+                            [src]="currentExercise.exercise_gif" [alt]="currentExercise.exercise_name" 
+                            class="max-h-64 w-auto object-contain rounded-2xl shadow-lg border border-slate-800">
+
+                        <!-- Fallback (When no valid media is provided) -->
+                        <div *ngIf="!getYouTubeEmbedUrl(currentExercise) && !isVideo(currentExercise.exercise_gif) && !currentExercise.exercise_gif"
+                            class="w-full h-full flex flex-col items-center justify-center p-6 text-center space-y-4 bg-slate-800 rounded-2xl shadow-lg border border-slate-700">
+                            <div class="text-6xl">💪</div>
+                            <div>
+                                <p class="text-slate-400 text-sm mb-3">No video provided by coach.</p>
+                                <a [href]="'https://www.youtube.com/results?search_query=' + currentExercise.exercise_name + '+exercise+tutorial'" 
+                                   target="_blank" 
+                                   class="inline-flex items-center gap-2 px-4 py-2 bg-red-600/20 text-red-400 hover:bg-red-600 hover:text-white border border-red-600/50 rounded-xl font-bold transition-colors text-sm">
+                                    <i class="fa-brands fa-youtube text-lg"></i>
+                                    Find Tutorial
+                                </a>
+                            </div>
                         </div>
                     </div>
 
@@ -158,9 +233,13 @@
                         </div>
 
                         <div class="flex gap-3 pt-4">
+                            <button (click)="returnToMap()"
+                                class="px-4 py-3 bg-slate-800/50 text-slate-400 font-bold uppercase tracking-wider rounded-xl hover:bg-slate-800 hover:text-white transition-all border border-transparent hover:border-slate-700">
+                                <i class="fa-solid fa-map mr-2"></i> Map
+                            </button>
                             <button *ngIf="currentExerciseIndex > 0 || currentSetIndex > 0" (click)="prevExercise()"
-                                class="px-6 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all">
-                                ← Back
+                                class="px-4 py-3 bg-slate-800 text-white font-bold rounded-xl hover:bg-slate-700 transition-all border border-slate-700">
+                                ←
                             </button>
                             <button *ngIf="!allSetsDoneForExercise" (click)="markSetDone()"
                                 class="flex-1 py-3 font-bold uppercase tracking-wider rounded-xl bg-galio-orange hover:bg-orange-600 text-white transition-all">

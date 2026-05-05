@@ -16,6 +16,7 @@ router.put("/nutritionists/:userId/profile", authenticateToken, nutritionistCont
 // ── Connection Requests ───────────────────────────────────────────────────────
 router.post("/connection", authenticateToken, nutritionistController.sendConnectionRequest.bind(nutritionistController));
 router.get("/my-requests", authenticateToken, nutritionistController.getMyRequests.bind(nutritionistController));
+router.get("/athlete/my-connections", authenticateToken, nutritionistController.getAthleteConnections.bind(nutritionistController));
 router.patch("/connection/:connectionId", authenticateToken, nutritionistController.respondToRequest.bind(nutritionistController));
 
 // ── Nutritionist Client Management ───────────────────────────────────────────

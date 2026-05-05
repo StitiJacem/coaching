@@ -29,7 +29,7 @@ import { CardComponent } from './components/ui/card/card.component';
 import { BadgeComponent } from './components/ui/badge/badge.component';
 import { ButtonComponent } from './components/ui/button/button.component';
 import { AvatarComponent } from './components/ui/avatar/avatar.component';
-import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight } from 'lucide-angular';
+import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight, Scan, RefreshCw, Info } from 'lucide-angular';
 import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
@@ -103,7 +103,10 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
       ShieldCheck,
       Check,
       CheckCheck,
-      ChevronRight
+      ChevronRight,
+      Scan,
+      RefreshCw,
+      Info
     }),
     StatsCardComponent,
     CardComponent,

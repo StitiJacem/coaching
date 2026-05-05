@@ -34,9 +34,12 @@ export class ProgramController {
                 return res.json({ program: null, day: null, workoutLog: null, message: "No athlete profile found" });
             }
 
-            // 1. Find an active program
+            // 1. Find an active program - be more lenient to ensure we find it
             const activeProgram = await programRepo.findOne({
-                where: { athleteId: athlete.id, status: "active", isConfigured: true },
+                where: [
+                    { athleteId: athlete.id, status: "active", isConfigured: true },
+                    { athleteId: athlete.id, status: "active" } // Fallback if isConfigured is somehow false
+                ],
                 relations: ["coach"],
                 order: { created_at: "DESC" },
             });
@@ -83,11 +86,26 @@ export class ProgramController {
                 return;
             }
 
-            // 6. Map session to "day" for frontend compatibility
+            // 6. Find the next upcoming session
+            const nextSession = await sessionRepo.createQueryBuilder("session")
+                .where("session.athleteId = :athleteId", { athleteId: athlete.id })
+                .andWhere("CAST(session.date AS DATE) > :today", { today: todayStr })
+                .orderBy("session.date", "ASC")
+                .getOne();
+
+            let daysUntilNext = 0;
+            if (nextSession) {
+                const nextDate = new Date(nextSession.date!);
+                const diffTime = nextDate.getTime() - today.getTime();
+                daysUntilNext = Math.max(1, Math.ceil(diffTime / (1000 * 60 * 60 * 24)));
+            }
+
+            // 7. Map session to "day" for frontend compatibility
             let dayData = null;
             if (session) {
                 dayData = {
-                    id: session.id, // Using session ID here!
+                    id: session.id, 
+                    sessionId: session.id,
                     title: session.title,
                     exercises: session.workoutData?.exercises || []
                 };
@@ -106,6 +124,8 @@ export class ProgramController {
                 isRestDay: !session,
                 workoutLog: existingLog || null,
                 athleteId: athlete.id,
+                nextDay: nextSession ? { id: nextSession.id, title: nextSession.title } : null,
+                daysUntilNext: daysUntilNext
             });
         } catch (error) {
             console.error("Error fetching today's workout:", error);
@@ -632,59 +652,41 @@ export class ProgramController {
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const athlete = await athleteRepo.findOne({ where: { id: program.athleteId } });
 
-            let preferredDays = scheduleConfig?.trainingDays;
-            if (preferredDays && Array.isArray(preferredDays) && preferredDays.length > 0) {
-                // Update athlete's preferred days if they changed them here
-                if (athlete) {
-                    athlete.preferredTrainingDays = preferredDays;
-                    await athleteRepo.save(athlete);
-                }
-            } else {
-                preferredDays = athlete?.preferredTrainingDays && athlete.preferredTrainingDays.length > 0
-                    ? athlete.preferredTrainingDays
-                    : [0, 1, 2, 3, 4, 5, 6]; // Default to all days if none set
-            }
+            // Removed complex preferred days shifting logic. The athlete must follow the schedule the coach designed.
 
-            let currentSessionDate = new Date(program.startDate);
-            // Ensure we start on or after today if startDate was in the past? 
-            // Usually, startDate is today or future.
+            const baseStartDate = new Date(program.startDate);
 
             for (const day of program.days || []) {
-                // Find next available training day
-                let attempts = 0;
-                while (attempts < 30) { // Safety break
-                    const dayOfWeek = (currentSessionDate.getDay() + 6) % 7; // ISO day (Mon=0, Sun=6)
-                    if (preferredDays.includes(dayOfWeek)) {
-                        const session = new Session();
-                        session.athleteId = program.athleteId;
-                        session.programId = program.id;
-                        session.coachId = program.coachId;
-                        session.date = new Date(currentSessionDate);
-                        session.time = "12:00"; // Default time
-                        session.type = program.type || "Strength";
-                        session.title = day.title;
-                        session.status = "upcoming";
-                        session.workoutData = {
-                            exercises: day.exercises.map(e => ({
-                                id: e.id,
-                                exercise_id: e.exercise_id,
-                                name: e.exercise_name,
-                                gifUrl: e.exercise_gif,
-                                sets: e.sets,
-                                reps: e.reps,
-                                rest_seconds: e.rest_seconds,
-                                order: e.order
-                            }))
-                        };
-                        await sessionRepo.save(session);
-                        
-                        // Move to next day for the next program day
-                        currentSessionDate.setDate(currentSessionDate.getDate() + 1);
-                        break;
-                    }
-                    currentSessionDate.setDate(currentSessionDate.getDate() + 1);
-                    attempts++;
-                }
+                // We use day.day_number to determine the exact calendar date for this session.
+                // If day_number is 1, it's the start date. If day_number is 2, it's start date + 1 day.
+                const sessionDate = new Date(baseStartDate);
+                // day_number is usually 1-indexed, so we subtract 1 for the offset
+                const dayOffset = (day.day_number || 1) - 1;
+                sessionDate.setDate(sessionDate.getDate() + dayOffset);
+
+                const session = new Session();
+                session.athleteId = program.athleteId;
+                session.programId = program.id;
+                session.programDayId = day.id;
+                session.coachId = program.coachId;
+                session.date = sessionDate;
+                session.time = "12:00"; 
+                session.type = program.type || "Strength";
+                session.title = day.title;
+                session.status = "upcoming";
+                session.workoutData = {
+                    exercises: (day.exercises || []).map(e => ({
+                        id: e.id,
+                        exercise_id: e.exercise_id,
+                        name: e.exercise_name,
+                        gifUrl: e.exercise_gif,
+                        sets: e.sets,
+                        reps: e.reps,
+                        rest_seconds: e.rest_seconds,
+                        order: e.order
+                    }))
+                };
+                await sessionRepo.save(session);
             }
 
 

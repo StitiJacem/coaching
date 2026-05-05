@@ -354,7 +354,7 @@ export class CoachingRequestController {
                         .delete()
                         .from(Session)
                         .where(
-                            `"athleteId" = :athleteId AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                            `"athleteId" = :athleteId AND "status" = 'upcoming' AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
                             {
                                 athleteId: targetAthleteId,
                                 coachId: coachUserIdForUnlink,
@@ -441,7 +441,7 @@ export class CoachingRequestController {
                 .delete()
                 .from(Session)
                 .where(
-                    `"athleteId" = :athleteId AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
+                    `"athleteId" = :athleteId AND "status" = 'upcoming' AND ("coachId" = :coachId OR "programId" IN (SELECT id FROM programs WHERE "coachId" = :coachId OR "coachProfileId" = :coachProfileId))`,
                     {
                         athleteId,
                         coachId: userId,

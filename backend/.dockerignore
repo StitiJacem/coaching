@@ -7,3 +7,13 @@ README.md
 .DS_Store
 .vscode
 *.log
+
+# Google Cloud service account — mounted at runtime via docker-compose volume, never bake into image
+gosport-ai-credentials.json
+*-credentials.json
+
+# Dev/debug scripts — not needed in production image
+debug-programs.ts
+inspect-db.ts
+test-*.ts
+tsc_errors.txt

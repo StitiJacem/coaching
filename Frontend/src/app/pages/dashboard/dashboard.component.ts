@@ -121,6 +121,12 @@ export class DashboardComponent implements OnInit {
                     if (athletes.length > 0) {
                         const athlete = athletes[0];
                         this.athleteId = athlete.id!;
+                        // Store athlete entity ID so the sidebar can navigate to correct profile URL
+                        const savedUser = this.authService.getUser();
+                        if (savedUser && savedUser.entityId !== athlete.id) {
+                            savedUser.entityId = athlete.id;
+                            localStorage.setItem('user', JSON.stringify(savedUser));
+                        }
                         this.loadAthleteData(this.athleteId);
                         this.loadRecentPRs();
                         this.loadCoachData();
@@ -226,7 +232,8 @@ export class DashboardComponent implements OnInit {
         const data = {
             athleteId: this.todayWorkout.athleteId,
             programId: this.todayWorkout.program?.id,
-            programDayId: this.todayWorkout.day?.id,
+            programDayId: (this.todayWorkout.day as any)?.sessionId ? null : this.todayWorkout.day?.id,
+            sessionId: (this.todayWorkout.day as any)?.sessionId || null,
             scheduledDate: new Date().toISOString().split('T')[0]
         };
 
@@ -273,9 +280,9 @@ export class DashboardComponent implements OnInit {
     }
 
     get todayWorkoutName(): string {
-        if (this.todayWorkout?.isRestDay) return 'Rest Day';
         if (this.todayWorkout?.day) return this.todayWorkout.day.title;
-        return 'No Workout Assigned';
+        if (this.hasActiveProgram) return 'Rest Day';
+        return 'No Program Assigned';
     }
 
     get isRestDay(): boolean {
