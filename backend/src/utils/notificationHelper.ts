@@ -3,6 +3,7 @@ import { Program } from "../entities/Program";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { Notification } from "../entities/Notification";
 import { ActivityEvent } from "../entities/ActivityEvent";
+import { SocketService } from "../services/SocketService";
 
 export async function notifyUser(
     userId: number,
@@ -13,7 +14,16 @@ export async function notifyUser(
 ): Promise<void> {
     try {
         const repo = AppDataSource.getRepository(Notification);
-        await repo.save(repo.create({ userId, type, title, body, payload }));
+        const notification = await repo.save(repo.create({ userId, type, title, body, payload }));
+
+        // Emit via socket for real-time in-app notifications
+        try {
+            const io = SocketService.getIO();
+            io.to(`user_${userId}`).emit("notification", notification);
+        } catch (socketErr) {
+            // Socket might not be initialized or user not connected
+            console.log(`[Socket] Could not emit notification to user ${userId}`);
+        }
     } catch (err) {
         console.error("Failed to create notification:", err);
     }

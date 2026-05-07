@@ -690,10 +690,20 @@ export class ProgramController {
             }
 
 
-            if (program.coach?.email && program.athlete?.user) {
+            if (program.coachId && program.athlete?.user) {
                 const athleteName = `${program.athlete.user.first_name || ''} ${program.athlete.user.last_name || ''}`.trim() || program.athlete.user.email;
+                
+                // Real-time notification for coach
+                notifyUser(
+                    program.coachId,
+                    "program_accepted",
+                    "Program Accepted",
+                    `${athleteName} has accepted the program "${program.name}".`,
+                    { programId: program.id, athleteId: program.athleteId }
+                ).catch(err => console.error("Notify coach error:", err));
+
                 EmailService.sendProgramAcceptanceNotification(
-                    program.coach.email,
+                    program.coach.email!,
                     athleteName,
                     program.name
                 ).catch(err => console.error("Failed to send coach notification:", err));

@@ -479,46 +479,52 @@ class _AssignTileSheetState extends ConsumerState<_AssignTileSheet> {
               'Athlete will be notified and must accept.',
               style: TextStyle(color: AppColors.warning, fontSize: 12)),
           const SizedBox(height: 16),
-          ...widget.programs.map((p) {
-            final id = p['id'] as int;
-            final selected = _selected == id;
-            return GestureDetector(
-              onTap: () => setState(() => _selected = id),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 150),
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: selected
-                      ? AppColors.primary.withValues(alpha: 0.12)
-                      : AppColors.surfaceVariant,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                      color: selected
-                          ? AppColors.primary
-                          : Colors.transparent),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.layers_rounded, size: 18,
-                        color: AppColors.primary),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(p['name'] ?? 'Program',
-                          style: TextStyle(
-                              color: selected
-                                  ? AppColors.primary
-                                  : AppColors.textPrimary,
-                              fontWeight: FontWeight.w600)),
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: widget.programs.map((p) {
+                  final id = p['id'] as int;
+                  final selected = _selected == id;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selected = id),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: selected
+                            ? AppColors.primary.withValues(alpha: 0.12)
+                            : AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                            color: selected
+                                ? AppColors.primary
+                                : Colors.transparent),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.layers_rounded, size: 18,
+                              color: AppColors.primary),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(p['name'] ?? 'Program',
+                                style: TextStyle(
+                                    color: selected
+                                        ? AppColors.primary
+                                        : AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600)),
+                          ),
+                          if (selected)
+                            const Icon(Icons.check_circle_rounded,
+                                color: AppColors.primary, size: 18),
+                        ],
+                      ),
                     ),
-                    if (selected)
-                      const Icon(Icons.check_circle_rounded,
-                          color: AppColors.primary, size: 18),
-                  ],
-                ),
+                  );
+                }).toList(),
               ),
-            );
-          }),
+            ),
+          ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
@@ -546,7 +552,7 @@ class _AssignTileSheetState extends ConsumerState<_AssignTileSheet> {
     try {
       await ref
           .read(programsRepositoryProvider)
-          .assignToAthlete(_selected!, widget.athleteId);
+          .assignToAthletes(_selected!, [widget.athleteId]);
       if (mounted) {
         Navigator.pop(context);
         widget.onDone();

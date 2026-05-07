@@ -451,7 +451,7 @@ class _AssignBottomSheet extends ConsumerStatefulWidget {
 }
 
 class _AssignBottomSheetState extends ConsumerState<_AssignBottomSheet> {
-  int? _selectedAthleteId;
+  final Set<int> _selectedAthleteIds = {};
   bool _assigning = false;
 
   @override
@@ -525,66 +525,77 @@ class _AssignBottomSheetState extends ConsumerState<_AssignBottomSheet> {
               ),
             )
           else
-            Column(
-              children: widget.athletes.map((a) {
-                final id = a['id'] as int;
-                final firstName = a['user']?['first_name'] ?? '';
-                final lastName = a['user']?['last_name'] ?? '';
-                final name = '$firstName $lastName'.trim();
-                final initial =
-                    name.isNotEmpty ? name[0].toUpperCase() : 'A';
-                final selected = _selectedAthleteId == id;
-                return GestureDetector(
-                  onTap: () =>
-                      setState(() => _selectedAthleteId = id),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    margin: const EdgeInsets.only(bottom: 8),
-                    padding: const EdgeInsets.all(14),
-                    decoration: BoxDecoration(
-                      color: selected
-                          ? AppColors.primary.withValues(alpha: 0.12)
-                          : AppColors.surfaceVariant,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
+          Flexible(
+            child: SingleChildScrollView(
+              child: Column(
+                children: widget.athletes.map((a) {
+                  final id = a['id'] as int;
+                  final firstName = a['user']?['first_name'] ?? '';
+                  final lastName = a['user']?['last_name'] ?? '';
+                  final name = '$firstName $lastName'.trim();
+                  final initial =
+                      name.isNotEmpty ? name[0].toUpperCase() : 'A';
+                  final selected = _selectedAthleteIds.contains(id);
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        if (selected) {
+                          _selectedAthleteIds.remove(id);
+                        } else {
+                          _selectedAthleteIds.add(id);
+                        }
+                      });
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 150),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.primary
-                            : Colors.transparent,
+                            ? AppColors.primary.withValues(alpha: 0.12)
+                            : AppColors.surfaceVariant,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: selected
+                              ? AppColors.primary
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 18,
+                            backgroundColor: AppColors.primary
+                                .withValues(alpha: 0.15),
+                            child: Text(initial,
+                                style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w700)),
+                          ),
+                          const SizedBox(width: 12),
+                          Text(name.isNotEmpty ? name : 'Unknown athlete',
+                              style: TextStyle(
+                                  color: selected
+                                      ? AppColors.primary
+                                      : AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600)),
+                          const Spacer(),
+                          if (selected)
+                            const Icon(Icons.check_circle_rounded,
+                                color: AppColors.primary, size: 20),
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 18,
-                          backgroundColor: AppColors.primary
-                              .withValues(alpha: 0.15),
-                          child: Text(initial,
-                              style: const TextStyle(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w700)),
-                        ),
-                        const SizedBox(width: 12),
-                        Text(name.isNotEmpty ? name : 'Unknown athlete',
-                            style: TextStyle(
-                                color: selected
-                                    ? AppColors.primary
-                                    : AppColors.textPrimary,
-                                fontWeight: FontWeight.w600)),
-                        const Spacer(),
-                        if (selected)
-                          const Icon(Icons.check_circle_rounded,
-                              color: AppColors.primary, size: 20),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
+                  );
+                }).toList(),
+              ),
             ),
+          ),
           const SizedBox(height: 20),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (_selectedAthleteId == null || _assigning)
+              onPressed: (_selectedAthleteIds.isEmpty || _assigning)
                   ? null
                   : _confirm,
               style: ElevatedButton.styleFrom(
@@ -611,13 +622,13 @@ class _AssignBottomSheetState extends ConsumerState<_AssignBottomSheet> {
     setState(() => _assigning = true);
     try {
       await ref.read(programsRepositoryProvider)
-          .assignToAthlete(widget.program['id'] as int, _selectedAthleteId!);
+          .assignToAthletes(widget.program['id'] as int, _selectedAthleteIds.toList());
       if (mounted) {
         Navigator.pop(context);
         widget.onAssigned();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Program assigned! Athlete will receive a notification.'),
+            content: Text('Program assigned to selected athletes! They will receive a notification.'),
             backgroundColor: AppColors.success,
           ),
         );
@@ -724,7 +735,11 @@ class _PendingProgramCard extends ConsumerWidget {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => context.push('/programs/${program['id']}'),
+                  onPressed: () async {
+                    final accepted =
+                        await context.push<bool>('/programs/${program['id']}');
+                    if (accepted == true) onAction();
+                  },
                   style: ElevatedButton.styleFrom(
                     minimumSize: const Size(0, 42),
                     backgroundColor: AppColors.warning,
@@ -734,8 +749,8 @@ class _PendingProgramCard extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(12)),
                   ),
                   child: const Text('Review & Accept',
-                      style: TextStyle(
-                          fontWeight: FontWeight.w800, fontSize: 12)),
+                      style:
+                          TextStyle(fontWeight: FontWeight.w800, fontSize: 12)),
                 ),
               ),
             ],

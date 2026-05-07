@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/api/api_client.dart';
 import '../../../core/constants/app_constants.dart';
@@ -155,4 +156,46 @@ class AuthRepository {
   }
 
   bool get hasStoredToken => true; // validated async via getStoredUser
+
+  /// Google Sign-In — matches web logic → POST /api/auth/google
+  Future<({String token, UserModel user})> loginWithGoogle() async {
+    try {
+      final googleSignIn = GoogleSignIn(
+        clientId: AppConstants.googleClientId,
+      );
+
+      final GoogleSignInAccount? account = await googleSignIn.signIn();
+      if (account == null) {
+        throw Exception('Google Sign-In canceled by user');
+      }
+
+      final GoogleSignInAuthentication auth = await account.authentication;
+      final idToken = auth.idToken;
+
+      if (idToken == null) {
+        throw Exception('Failed to obtain Google ID Token');
+      }
+
+      final response = await _api.post('/auth/google', data: {
+        'id_token': idToken,
+      });
+
+      final data = response.data as Map<String, dynamic>;
+      final token = data['token'] as String;
+      final user = UserModel.fromJson(data['user'] as Map<String, dynamic>);
+
+      // Persist
+      await _storage.write(key: AppConstants.tokenKey, value: token);
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(AppConstants.userKey, jsonEncode(user.toJson()));
+
+      return (token: token, user: user);
+    } catch (e) {
+      if (e is ApiException) rethrow;
+      throw ApiException(
+        message: e.toString(),
+        statusCode: 400,
+      );
+    }
+  }
 }

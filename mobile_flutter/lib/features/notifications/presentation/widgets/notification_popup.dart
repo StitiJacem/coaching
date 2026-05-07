@@ -179,6 +179,11 @@ class _NotificationTile extends StatelessWidget {
         icon = Icons.emoji_events_rounded; color = AppColors.warning; break;
       case 'workout_missed':
         icon = Icons.warning_amber_rounded; color = AppColors.error; break;
+      case 'program_accepted':
+        icon = Icons.check_circle_rounded; color = AppColors.success; break;
+      case 'program_declined':
+      case 'program_quit':
+        icon = Icons.cancel_rounded; color = AppColors.error; break;
       default:
         icon = Icons.notifications_rounded; color = AppColors.textMuted;
     }
@@ -211,13 +216,25 @@ class _NotificationTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  notif.message,
+                  notif.title,
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: notif.read ? FontWeight.w500 : FontWeight.w700,
                     color: AppColors.textPrimary,
                   ),
                 ),
+                if (notif.body != null && notif.body!.isNotEmpty) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    notif.body!,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: AppColors.textSecondary,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   _timeAgo(notif.createdAt),

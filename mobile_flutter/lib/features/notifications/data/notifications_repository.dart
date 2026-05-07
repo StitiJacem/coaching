@@ -12,14 +12,16 @@ final notificationsRepositoryProvider =
 class NotificationModel {
   final int id;
   final String type;
-  final String message;
+  final String title;
+  final String? body;
   final bool read;
   final DateTime createdAt;
 
   NotificationModel({
     required this.id,
     required this.type,
-    required this.message,
+    required this.title,
+    this.body,
     required this.read,
     required this.createdAt,
   });
@@ -28,7 +30,8 @@ class NotificationModel {
       NotificationModel(
         id: json['id'] as int,
         type: json['type'] as String? ?? '',
-        message: json['message'] as String? ?? '',
+        title: json['title'] as String? ?? json['message'] as String? ?? '',
+        body: json['body'] as String?,
         read: json['read'] as bool? ?? false,
         createdAt: DateTime.tryParse(json['created_at'] as String? ?? '') ??
             DateTime.now(),

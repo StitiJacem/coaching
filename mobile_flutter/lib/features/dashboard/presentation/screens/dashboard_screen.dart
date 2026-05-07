@@ -60,7 +60,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       final isCoach = user.role == AppConstants.roleCoach;
 
       final results = await Future.wait([
-        repo.getStats(role: user.role),
+        isAthlete
+            ? repo.getAthleteStats(user.id)
+            : repo.getStats(role: user.role),
         notifRepo.getUnreadCount(),
         repo.getRecentPRs(role: user.role),
         if (isAthlete) repo.getTodayWorkout(userId: user.id),
@@ -75,7 +77,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         if (isCoach) repo.getRecentAthletes(),
       ]);
 
-      _stats = results[0] as Map<String, dynamic>;
+      final statsData = results[0];
+      if (isCoach && statsData is List) {
+        // Normalize list of card stats to a Map for the UI
+        final Map<String, dynamic> normalized = {};
+        for (var item in statsData) {
+          final label = item['label']?.toString().toLowerCase() ?? '';
+          final valStr = item['value']?.toString() ?? '0';
+          final numeric =
+              int.tryParse(valStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+
+          if (label.contains('athlete')) normalized['totalAthletes'] = numeric;
+          if (label.contains('program')) normalized['totalPrograms'] = numeric;
+          if (label.contains('session')) normalized['todaySessions'] = numeric;
+          if (label.contains('adherence')) normalized['adherencePercent'] = numeric;
+        }
+        _stats = normalized;
+      } else if (statsData is Map<String, dynamic>) {
+        _stats = statsData;
+      } else {
+        _stats = {};
+      }
+
       _unreadCount = results[1] as int;
       _recentPRs = results[2] as List<dynamic>;
 
@@ -189,6 +212,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                         ),
                     ],
                   ),
+                  IconButton(
+                    icon: const Icon(Icons.logout_rounded, color: AppColors.error, size: 22),
+                    onPressed: () {
+                      ref.read(authProvider.notifier).logout();
+                    },
+                  ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => context.push('/profile'),
                     child: Container(
@@ -251,6 +281,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           child: isCoach
                               ? _CoachStatsGrid(stats: _stats)
                               : _AthleteStatsGrid(stats: _stats),
+                        ),
+                        const SizedBox(height: 24),
+
+                        // ─── Quick Actions ──────────────────────────────
+                        AnimateIn(
+                          delay: 350,
+                          child: _QuickActions(isCoach: isCoach),
                         ),
                         const SizedBox(height: 28),
 
@@ -400,6 +437,26 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                           ),
                         ),
                         const SizedBox(height: 32),
+
+                        // ─── Logout Footer ──────────────────────────────
+                        AnimateIn(
+                          delay: 700,
+                          child: Container(
+                            width: double.infinity,
+                            margin: const EdgeInsets.only(bottom: 40),
+                            child: OutlinedButton.icon(
+                              onPressed: () => ref.read(authProvider.notifier).logout(),
+                              icon: const Icon(Icons.logout_rounded, size: 18),
+                              label: const Text('LOG OUT OF SESSION'),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                foregroundColor: AppColors.error,
+                                side: BorderSide(color: AppColors.error.withValues(alpha: 0.3)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              ),
+                            ),
+                          ),
+                        ),
                       ]),
                     ),
                   ),
@@ -422,6 +479,138 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 // ─────────────────────────────────────────────────────────────────────────────
 // Supporting Widgets
 // ─────────────────────────────────────────────────────────────────────────────
+
+class _QuickActions extends StatelessWidget {
+  final bool isCoach;
+  const _QuickActions({required this.isCoach});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("QUICK ACTIONS",
+            style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.5)),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 90,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: isCoach 
+              ? [
+                  _QuickActionItem(
+                    label: 'Discovery',
+                    icon: Icons.search_rounded,
+                    color: AppColors.primary,
+                    onTap: () => context.push('/discovery'),
+                  ),
+                  _QuickActionItem(
+                    label: 'New Program',
+                    icon: Icons.add_box_rounded,
+                    color: AppColors.success,
+                    onTap: () => context.push('/programs/create'),
+                  ),
+                  _QuickActionItem(
+                    label: 'Analytics',
+                    icon: Icons.bar_chart_rounded,
+                    color: AppColors.info,
+                    onTap: () => context.push('/analytics'),
+                  ),
+                  _QuickActionItem(
+                    label: 'Messaging',
+                    icon: Icons.message_rounded,
+                    color: AppColors.accent,
+                    onTap: () => context.push('/notifications'),
+                  ),
+                ]
+              : [
+                  _QuickActionItem(
+                    label: 'Workout',
+                    icon: Icons.play_arrow_rounded,
+                    color: AppColors.primary,
+                    onTap: () => context.push('/sessions'),
+                  ),
+                  _QuickActionItem(
+                    label: 'Calendar',
+                    icon: Icons.calendar_month_rounded,
+                    color: AppColors.success,
+                    onTap: () => context.push('/schedule'),
+                  ),
+                  _QuickActionItem(
+                    label: 'Nutrition',
+                    icon: Icons.restaurant_rounded,
+                    color: AppColors.roleNutritionist,
+                    onTap: () => context.push('/nutrition'),
+                  ),
+                  _QuickActionItem(
+                    label: 'History',
+                    icon: Icons.history_rounded,
+                    color: AppColors.info,
+                    onTap: () => context.push('/workout-history'),
+                  ),
+                ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _QuickActionItem extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _QuickActionItem({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 85,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.cardBorder),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 20),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class _RoleBadge extends StatelessWidget {
   final String role;

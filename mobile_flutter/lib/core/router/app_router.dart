@@ -27,6 +27,8 @@ import '../../features/connections/presentation/screens/discovery_screen.dart';
 import '../../features/analytics/presentation/screens/analytics_screen.dart';
 import '../../features/nutrition/presentation/screens/nutrition_screen.dart';
 import '../../features/nutrition/presentation/screens/meal_scan_screen.dart';
+import '../../features/programs/presentation/screens/program_builder_screen.dart';
+import '../../features/programs/presentation/screens/program_detail_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -125,19 +127,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/programs/create',
-        builder: (_, _) => const _ProgramBuilderPlaceholder(),
+        builder: (_, _) => const ProgramBuilderScreen(),
       ),
       GoRoute(
         path: '/programs/:id',
-        builder: (context, state) => _ProgramDetailPlaceholder(
+        builder: (context, state) => ProgramDetailScreen(
           programId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),
       ),
       GoRoute(
         path: '/programs/:id/edit',
-        builder: (context, state) => _ProgramDetailPlaceholder(
+        builder: (context, state) => ProgramBuilderScreen(
           programId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
-          editMode: true,
         ),
       ),
     ],
@@ -185,20 +186,4 @@ class _ProgramDetailPlaceholder extends StatelessWidget {
       );
 }
 
-class _ProgramBuilderPlaceholder extends StatelessWidget {
-  const _ProgramBuilderPlaceholder();
 
-  @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          backgroundColor: AppColors.background,
-          surfaceTintColor: Colors.transparent,
-          title: const Text('Create Program'),
-        ),
-        body: const Center(
-          child: Text('Program builder — coming in next sprint',
-              style: TextStyle(color: AppColors.textMuted)),
-        ),
-      );
-}

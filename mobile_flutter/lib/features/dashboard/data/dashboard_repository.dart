@@ -13,10 +13,20 @@ class DashboardRepository {
   DashboardRepository(this._api);
 
   /// GET /api/dashboard/stats?role=coach|athlete
-  Future<Map<String, dynamic>> getStats({required String role}) async {
+  Future<dynamic> getStats({required String role}) async {
     try {
       final resp = await _api.get('/dashboard/stats',
           queryParameters: {'role': role});
+      return resp.data;
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  /// GET /api/workout-logs/athlete/:id/stats
+  Future<Map<String, dynamic>> getAthleteStats(int athleteId) async {
+    try {
+      final resp = await _api.get('/workout-logs/athlete/$athleteId/stats');
       return (resp.data as Map<String, dynamic>?) ?? {};
     } catch (e) {
       throw ApiException.fromDioError(e);
@@ -26,7 +36,7 @@ class DashboardRepository {
   /// GET /api/dashboard/today-sessions (coach)
   Future<List<dynamic>> getTodaySessions() async {
     try {
-      final resp = await _api.get('/dashboard/today-sessions');
+      final resp = await _api.get('/dashboard/sessions/today');
       return (resp.data as List?) ?? [];
     } catch (e) {
       throw ApiException.fromDioError(e);
@@ -47,7 +57,7 @@ class DashboardRepository {
   /// GET /api/dashboard/recent-athletes (coach)
   Future<List<dynamic>> getRecentAthletes() async {
     try {
-      final resp = await _api.get('/dashboard/recent-athletes');
+      final resp = await _api.get('/dashboard/athletes/recent');
       return (resp.data as List?) ?? [];
     } catch (e) {
       throw ApiException.fromDioError(e);

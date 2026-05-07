@@ -45,4 +45,7 @@ class AppConstants {
   static const String reqPending = 'pending';
   static const String reqAccepted = 'accepted';
   static const String reqRejected = 'rejected';
+
+  // ── Social Auth ───────────────────────────────────────────────────────────
+  static const String googleClientId = '753006300463-55uqsul6tgac9elg4o5etarvh2fv1tcv.apps.googleusercontent.com';
 }

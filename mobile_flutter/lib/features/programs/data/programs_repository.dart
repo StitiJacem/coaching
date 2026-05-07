@@ -44,9 +44,13 @@ class ProgramsRepository {
     }
   }
 
-  Future<void> assignToAthlete(int programId, int athleteId) async {
+  Future<void> assignToAthletes(int programId, List<int> athleteIds) async {
     try {
-      await _api.post('/programs/$programId/assign', data: {'athleteId': athleteId});
+      // For now, we call the API multiple times since the backend expects one at a time.
+      // If we update the backend later to accept a list, we can optimize this.
+      await Future.wait(
+        athleteIds.map((id) => _api.post('/programs/$programId/assign', data: {'athleteId': id}))
+      );
     } catch (e) {
       throw ApiException.fromDioError(e);
     }
@@ -63,6 +67,14 @@ class ProgramsRepository {
   Future<void> quitProgram(int programId) async {
     try {
       await _api.post('/programs/$programId/quit');
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<void> acceptProgram(int id) async {
+    try {
+      await _api.patch('/programs/$id/accept');
     } catch (e) {
       throw ApiException.fromDioError(e);
     }
