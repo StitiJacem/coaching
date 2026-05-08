@@ -77,28 +77,57 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       _openBuilder(DateTime.parse(s['date'].toString()), s);
     } else {
       if (s['status'] != AppConstants.sessionCompleted) {
-        setState(() => _loading = true);
-        try {
-          final repo = ref.read(coaching_mobile.workoutLogRepositoryProvider);
-          final log = await repo.create({
-            'athleteId': user.id,
-            'programId': s['programId'],
-            'programDayId': s['programDayId'],
-            'sessionId': s['id'],
-            'scheduledDate': s['date'],
-          });
-          if (mounted) {
-            context.push('/workouts/${log['id']}/play');
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error starting session: $e')),
-            );
-          }
-        } finally {
-          if (mounted) setState(() => _loading = false);
-        }
+        showModalBottomSheet(
+          context: context,
+          backgroundColor: AppColors.surface,
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+          builder: (ctx) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(s['title'] ?? 'Workout Session', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 8),
+                  Text(DateFormat('EEEE, MMM d').format(DateTime.parse(s['date'].toString())), style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 24),
+                  const Text('Ready to crush this session?', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: () async {
+                      Navigator.pop(ctx);
+                      setState(() => _loading = true);
+                      try {
+                        final repo = ref.read(coaching_mobile.workoutLogRepositoryProvider);
+                        final log = await repo.create({
+                          'athleteId': user.id,
+                          'programId': s['programId'],
+                          'programDayId': s['programDayId'],
+                          'sessionId': s['id'],
+                          'scheduledDate': s['date'],
+                        });
+                        if (mounted) {
+                          context.push('/workouts/${log['id']}/play');
+                        }
+                      } catch (e) {
+                        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                      } finally {
+                        if (mounted) setState(() => _loading = false);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('START WORKOUT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: Colors.white)),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
       }
     }
   }
@@ -176,6 +205,20 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error assigning program: $e', style: const TextStyle(color: AppColors.error))));
       }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _quickAssign(dynamic s) async {
+    setState(() => _loading = true);
+    try {
+      final repo = ref.read(sessionsRepositoryProvider);
+      await repo.update(s['id'], {'status': 'upcoming'});
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Session assigned to athlete!')));
+      _load();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -344,23 +387,45 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       ),
                     ],
                   ),
+                  
+                  // View Mode Toggle (Sleek Segmented Control)
                   Container(
-                    decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(8)),
+                    width: 140,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.cardBorder),
+                    ),
                     child: Row(
-                      children: ['1 Week', '2 Week'].map((mode) => GestureDetector(
-                        onTap: () {
-                          setState(() => _viewMode = mode);
-                          _load();
-                        },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: _viewMode == mode ? AppColors.primary : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
+                      children: ['1W', '2W'].map((mode) {
+                        final fullMode = mode == '1W' ? '1 Week' : '2 Weeks';
+                        final selected = _viewMode == fullMode;
+                        return Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              setState(() => _viewMode = fullMode);
+                              _load();
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              decoration: BoxDecoration(
+                                color: selected ? AppColors.primary : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                mode,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: selected ? Colors.white : AppColors.textSecondary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                            ),
                           ),
-                          child: Text(mode.toUpperCase(), style: TextStyle(color: _viewMode == mode ? Colors.white : AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                        ),
-                      )).toList(),
+                        );
+                      }).toList(),
                     ),
                   ),
                 ],
@@ -372,12 +437,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
               child: _loading 
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : GridView.builder(
-                    padding: const EdgeInsets.only(top: 16, bottom: 40, left: 16, right: 16),
+                    padding: const EdgeInsets.only(top: 8, bottom: 40, left: 16, right: 16),
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: _viewMode == '1 Week' ? 1 : 2,
                       crossAxisSpacing: 12,
                       mainAxisSpacing: 12,
-                      childAspectRatio: _viewMode == '1 Week' ? 2.5 : 0.75, // Adjust aspect ratio based on view
+                      childAspectRatio: _viewMode == '1 Week' ? 2.5 : 0.82,
                     ),
                     itemCount: _viewMode == '1 Week' ? 7 : 14,
                     itemBuilder: (context, index) {
@@ -491,13 +556,17 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                           return GestureDetector(
                                             onTap: () => _onSessionTap(s),
                                             child: Container(
-                                              padding: const EdgeInsets.all(10),
+                                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                                               decoration: BoxDecoration(
-                                                color: isCompleted ? AppColors.success.withOpacity(0.1) : (isDraft ? AppColors.cardBorder.withOpacity(0.5) : AppColors.background),
+                                                color: isDraft ? AppColors.surfaceVariant.withValues(alpha: 0.3) : (isCompleted ? AppColors.success.withValues(alpha: 0.1) : AppColors.background),
                                                 border: Border.all(
-                                                  color: isCompleted ? AppColors.success.withOpacity(0.5) : (isDraft ? Colors.grey.withOpacity(0.3) : AppColors.cardBorder),
+                                                  color: isCompleted ? AppColors.success.withValues(alpha: 0.5) : (isDraft ? AppColors.primary.withValues(alpha: 0.3) : AppColors.cardBorder),
+                                                  width: isDraft ? 1.5 : 1,
                                                 ),
-                                                borderRadius: BorderRadius.circular(12),
+                                                borderRadius: BorderRadius.circular(14),
+                                                boxShadow: [
+                                                  if (!isDraft) BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4, offset: const Offset(0, 2))
+                                                ],
                                               ),
                                               child: Column(
                                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -525,6 +594,14 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                                           ),
                                                         ),
                                                       ),
+                                                      if (isDraft && isCoach)
+                                                        IconButton(
+                                                          icon: const Icon(Icons.send_rounded, color: AppColors.primary, size: 18),
+                                                          onPressed: () => _quickAssign(s),
+                                                          tooltip: 'Assign to Athlete',
+                                                          padding: EdgeInsets.zero,
+                                                          constraints: const BoxConstraints(),
+                                                        ),
                                                     ],
                                                   ),
                                                   const SizedBox(height: 4),

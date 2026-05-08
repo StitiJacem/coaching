@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { UserRepository } from '../repositories/UserRepository';
 import { User } from '../entities/User';
@@ -17,7 +17,7 @@ export class AuthService {
     }
 
     async register(userData: any): Promise<User> {
-        const email = userData.email?.toLowerCase();
+        const email = String(userData.email || '').trim();
         const existingUser = await this.userRepository.findByEmail(email);
         if (existingUser) {
             throw new Error('User already exists');
@@ -72,24 +72,38 @@ export class AuthService {
     }
 
     async login(email: string, password: string): Promise<{ user: any, token: string }> {
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = String(email || '').trim();
+
+        console.log(`[AuthService] Attempting login for: ${normalizedEmail}`);
+
         const user = await this.userRepository.findByEmail(normalizedEmail);
+        
         if (!user) {
+            console.warn(`[AuthService] Login failed: User not found (${normalizedEmail})`);
             throw new Error('Invalid credentials');
         }
 
+        console.log(`[AuthService] Found user in DB: ${user.email} (ID: ${user.id})`);
+
         if (!user.is_verified) {
+            console.warn(`[AuthService] Login failed: Email not verified (${normalizedEmail})`);
             throw new Error('Please verify your email before logging in');
         }
 
         if (!user.password) {
-            throw new Error('Invalid credentials. Please use social login.');
+            console.warn(`[AuthService] Login failed: Social-only account (${normalizedEmail})`);
+            throw new Error('This account uses Social Login. Please sign in with Google.');
         }
 
+        console.log(`[AuthService] Comparing password for ${normalizedEmail}...`);
         const isMatch = await bcrypt.compare(password, user.password);
+        
         if (!isMatch) {
+            console.warn(`[AuthService] Login failed: Password mismatch for ${normalizedEmail}`);
             throw new Error('Invalid credentials');
         }
+
+        console.log(`[AuthService] Login SUCCESS for ${normalizedEmail}`);
 
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
@@ -119,7 +133,7 @@ export class AuthService {
     }
 
     async verifyEmail(email: string, code: string): Promise<boolean> {
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = String(email || '').trim();
         const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
             throw new Error('User not found');
@@ -142,7 +156,7 @@ export class AuthService {
     }
 
     async resendCode(email: string): Promise<void> {
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = String(email || '').trim();
         const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
             throw new Error('User not found');
@@ -159,16 +173,15 @@ export class AuthService {
     }
 
     async forgotPassword(email: string): Promise<void> {
-        const normalizedEmail = email.toLowerCase();
+        const normalizedEmail = String(email || '').trim();
         const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
             throw new Error('User not found');
         }
 
-        // Generate reset code (reusing verification code field)
         const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
         user.verification_code = resetCode;
-        user.code_expires_at = new Date(Date.now() + 3600000); // 1 hour expiry
+        user.code_expires_at = new Date(Date.now() + 3600000); 
 
         await this.userRepository.create(user);
 
@@ -180,7 +193,7 @@ export class AuthService {
         try {
             const { email, code, password, newPassword } = data;
             const finalPassword = password || newPassword;
-            const normalizedEmail = String(email || '').toLowerCase();
+            const normalizedEmail = String(email || '').trim();
             
             const user = await this.userRepository.findByEmail(normalizedEmail);
 
@@ -200,11 +213,9 @@ export class AuthService {
                 throw new Error('Password is required');
             }
 
-            // Update password
             const hashedPassword = await bcrypt.hash(finalPassword, 10);
             user.password = hashedPassword;
             
-            // Clear reset code
             user.verification_code = null;
             user.code_expires_at = null;
 

@@ -132,11 +132,17 @@ export class WorkoutLogController {
 
 
             const today = scheduledDate || new Date().toISOString().split("T")[0];
-            const existing = await repo.findOne({
-                where: { athleteId, scheduledDate: new Date(today) }
-            });
+            
+            let whereClause: any = { athleteId, scheduledDate: new Date(today) };
+            if (sessionId) {
+                whereClause.sessionId = sessionId;
+            } else if (programDayId) {
+                whereClause.programDayId = programDayId;
+            }
 
-            if (existing && existing.status === "in_progress") {
+            const existing = await repo.findOne({ where: whereClause });
+
+            if (existing && existing.status === "in_progress" && (existing.sessionId || existing.programDayId)) {
                 return res.json(existing);
             }
             if (existing && existing.status === "completed") {
