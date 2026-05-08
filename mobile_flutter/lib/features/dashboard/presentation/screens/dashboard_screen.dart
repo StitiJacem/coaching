@@ -10,6 +10,7 @@ import '../../data/dashboard_repository.dart';
 import '../../../notifications/data/notifications_repository.dart';
 import '../../../notifications/presentation/widgets/notification_popup.dart';
 import '../../../../shared/widgets/animate_in.dart';
+import 'package:coaching_mobile/features/workout/data/workout_log_repository.dart' as coaching_mobile;
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -136,6 +137,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       setState(() =>
           _pendingRequests.removeWhere((r) => r['id'].toString() == id));
     } catch (_) {}
+  }
+
+  Future<void> _startSession(Map<String, dynamic> workout) async {
+    final dayData = workout['day'];
+    final programId = workout['program']?['id'];
+    final sessionId = dayData?['sessionId'] ?? dayData?['id'];
+    if (dayData == null || programId == null) return;
+    
+    setState(() => _loading = true);
+    try {
+      final repo = ref.read(coaching_mobile.workoutLogRepositoryProvider);
+      final log = await repo.create({
+        'athleteId': workout['athleteId'],
+        'programId': programId,
+        'programDayId': dayData['sessionId'] != null ? null : dayData['id'],
+        'sessionId': sessionId,
+        'scheduledDate': DateTime.now().toIso8601String().split('T')[0],
+      });
+      if (mounted) {
+        context.push('/workouts/${log['id']}/play');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error starting session: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -293,6 +324,16 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
                         // ─── ATHLETE SECTION ─────────────────────────────
                         if (isAthlete) ...[
+                          // Massive START SESSION button
+                          AnimateIn(
+                            delay: 380,
+                            child: _StartSessionBanner(
+                              workout: _todayWorkout,
+                              onStart: _startSession,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
                           // Weekly schedule
                           AnimateIn(
                             delay: 400,
@@ -529,10 +570,10 @@ class _QuickActions extends StatelessWidget {
                 ]
               : [
                   _QuickActionItem(
-                    label: 'Workout',
-                    icon: Icons.play_arrow_rounded,
+                    label: 'Programs',
+                    icon: Icons.fitness_center_rounded,
                     color: AppColors.primary,
-                    onTap: () => context.push('/sessions'),
+                    onTap: () => context.push('/programs'),
                   ),
                   _QuickActionItem(
                     label: 'Calendar',
@@ -547,9 +588,15 @@ class _QuickActions extends StatelessWidget {
                     onTap: () => context.push('/nutrition'),
                   ),
                   _QuickActionItem(
+                    label: 'My Team',
+                    icon: Icons.verified_user_rounded,
+                    color: AppColors.info,
+                    onTap: () => context.push('/specialists'),
+                  ),
+                  _QuickActionItem(
                     label: 'History',
                     icon: Icons.history_rounded,
-                    color: AppColors.info,
+                    color: AppColors.textSecondary,
                     onTap: () => context.push('/workout-history'),
                   ),
                 ],
@@ -1267,7 +1314,7 @@ class _ConnectSpecialistBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/discovery'),
+      onTap: () => context.push('/specialists'),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -1300,7 +1347,7 @@ class _ConnectSpecialistBanner extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'CONNECT WITH\nA SPECIALIST',
+                        'MY CONNECTED\nSPECIALISTS',
                         style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
@@ -1309,7 +1356,7 @@ class _ConnectSpecialistBanner extends StatelessWidget {
                       ),
                       SizedBox(height: 6),
                       Text(
-                        'Fitness, Gym & more',
+                        'Coaches & Nutritionists',
                         style: TextStyle(
                             color: Colors.white70,
                             fontSize: 12,
@@ -1333,7 +1380,7 @@ class _ConnectSpecialistBanner extends StatelessWidget {
                             blurRadius: 8)
                       ],
                     ),
-                    child: const Icon(Icons.search_rounded,
+                    child: const Icon(Icons.people_rounded,
                         color: Color(0xFFE8621A), size: 22),
                   ),
                 ),
@@ -1779,4 +1826,81 @@ class _RingPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RingPainter old) => old.progress != progress;
+}
+
+class _StartSessionBanner extends StatelessWidget {
+  final Map<String, dynamic>? workout;
+  final void Function(Map<String, dynamic>)? onStart;
+  const _StartSessionBanner({this.workout, this.onStart});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasWorkout = workout != null && workout!['isRestDay'] == false && workout!['day'] != null;
+    final dayData = hasWorkout ? workout!['day'] : null;
+    final sessionId = dayData?['sessionId'] ?? dayData?['id'];
+    
+    return GestureDetector(
+      onTap: () {
+        if (hasWorkout && sessionId != null) {
+          if (onStart != null) {
+            onStart!(workout!);
+          } else {
+            context.push('/workouts/$sessionId/play');
+          }
+        } else {
+          context.push('/schedule');
+        }
+      },
+      child: Container(
+        width: double.infinity,
+        margin: const EdgeInsets.symmetric(vertical: 8),
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: hasWorkout ? const [Color(0xFFE8621A), Color(0xFFFF8B45)] : const [AppColors.surfaceVariant, AppColors.card],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: hasWorkout ? [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.4),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+              spreadRadius: 2,
+            ),
+          ] : null,
+          border: hasWorkout ? null : Border.all(color: AppColors.cardBorder),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              hasWorkout ? Icons.play_circle_fill_rounded : Icons.calendar_month_rounded, 
+              color: hasWorkout ? Colors.white : AppColors.primary, 
+              size: 48
+            ),
+            const SizedBox(height: 12),
+            Text(
+              hasWorkout ? 'START SESSION' : 'NO SESSION TODAY',
+              style: TextStyle(
+                color: hasWorkout ? Colors.white : AppColors.textPrimary,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                letterSpacing: hasWorkout ? 2.0 : 1.0,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              hasWorkout ? (dayData?['title'] ?? 'Today\'s Workout') : 'Tap to browse calendar',
+              style: TextStyle(
+                color: hasWorkout ? Colors.white70 : AppColors.textMuted,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

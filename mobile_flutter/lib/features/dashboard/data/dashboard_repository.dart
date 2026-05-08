@@ -43,10 +43,10 @@ class DashboardRepository {
     }
   }
 
-  /// GET /api/programs/today/:userId   (athlete today's workout)
+  /// GET /api/programs/athlete/:userId/today   (athlete today's workout)
   Future<Map<String, dynamic>?> getTodayWorkout({required int userId}) async {
     try {
-      final resp = await _api.get('/programs/today/$userId');
+      final resp = await _api.get('/programs/athlete/$userId/today');
       if (resp.data == null) return null;
       return resp.data as Map<String, dynamic>;
     } catch (_) {

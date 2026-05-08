@@ -517,7 +517,7 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            if (user.role === 'coach' && template.coachId !== user.id) {
+            if (user.role === 'coach' && template.coachId !== user.id && !template.is_template && template.athleteId !== null) {
                 return res.status(403).json({ message: "Access denied: You do not own this program" });
             }
 

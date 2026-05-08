@@ -23,7 +23,7 @@ interface AuthResponse {
     providedIn: 'root'
 })
 export class SocialAuthService {
-    private apiUrl = 'http://localhost:3000/api/auth';
+    private apiUrl = `${environment.apiUrl}/auth`;
     private currentUserSubject = new BehaviorSubject<any>(null);
     public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -128,7 +128,7 @@ export class SocialAuthService {
         formData.append('photo', file);
         const token = localStorage.getItem('auth_token');
         
-        return this.http.post<{ photoUrl: string }>(`http://localhost:3000/api/users/upload-photo`, formData, {
+        return this.http.post<{ photoUrl: string }>(`${environment.apiUrl}/users/upload-photo`, formData, {
             headers: { Authorization: `Bearer ${token}` }
         });
     }

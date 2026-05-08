@@ -206,19 +206,28 @@ export class CoachingRequestController {
 
 
                 const programRepo = AppDataSource.getRepository(Program);
+                const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
                 const programs = await programRepo.find({
                     where: { athleteId: athlete.id },
-                    relations: ["coachProfile", "coachProfile.user"]
+                    relations: ["coach", "coachProfile", "coachProfile.user"]
                 });
 
                 for (const prog of programs) {
-                    if (prog.coachProfile && !seenCoachIds.has(prog.coachProfile.id)) {
-                        seenCoachIds.add(prog.coachProfile.id);
+                    let profile: CoachProfile | null | undefined = prog.coachProfile;
+                    if (!profile && prog.coachId) {
+                        profile = await coachProfileRepo.findOne({
+                            where: { userId: prog.coachId },
+                            relations: ["user"]
+                        });
+                    }
+
+                    if (profile && !seenCoachIds.has(profile.id)) {
+                        seenCoachIds.add(profile.id);
                         requests.push({
                             id: `prog-${prog.id}`,
                             athleteId: athlete.id,
-                            coachProfileId: prog.coachProfile.id,
-                            coachProfile: prog.coachProfile,
+                            coachProfileId: profile.id,
+                            coachProfile: profile,
                             status: "accepted",
                             initiator: "coach",
                             created_at: prog.created_at || new Date(),

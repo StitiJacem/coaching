@@ -2,12 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:3000/api/auth';
+  private apiUrl = `${environment.apiUrl}/auth`;
 
   constructor(private http: HttpClient) { }
 
@@ -26,7 +27,7 @@ export class AuthService {
             if (user.photo_url && !user.avatar) {
               user.avatar = user.photo_url.startsWith('http')
                 ? user.photo_url
-                : `http://localhost:3000${user.photo_url}`;
+                : `${environment.apiUrl.replace('/api', '')}${user.photo_url}`;
             }
             localStorage.setItem('user', JSON.stringify(user));
           }

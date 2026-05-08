@@ -66,7 +66,7 @@ class ProgramsRepository {
 
   Future<void> quitProgram(int programId) async {
     try {
-      await _api.post('/programs/$programId/quit');
+      await _api.patch('/programs/$programId/quit');
     } catch (e) {
       throw ApiException.fromDioError(e);
     }

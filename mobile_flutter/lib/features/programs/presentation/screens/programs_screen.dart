@@ -247,7 +247,7 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
           final p = entry.value;
           return AnimateIn(
             delay: 350 + (i * 100),
-            child: _ActiveProgramCard(program: p),
+            child: _ActiveProgramCard(program: p, onAction: _load),
           );
         }),
         const SizedBox(height: 12),
@@ -763,7 +763,7 @@ class _PendingProgramCard extends ConsumerWidget {
   Future<void> _decline(BuildContext context, WidgetRef ref) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogCtx) => AlertDialog(
         backgroundColor: AppColors.surface,
         title: const Text('Decline Program?',
             style: TextStyle(color: AppColors.textPrimary)),
@@ -772,10 +772,10 @@ class _PendingProgramCard extends ConsumerWidget {
             style: const TextStyle(color: AppColors.textMuted)),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(context, false),
+              onPressed: () => Navigator.pop(dialogCtx, false),
               child: const Text('Cancel')),
           TextButton(
-              onPressed: () => Navigator.pop(context, true),
+              onPressed: () => Navigator.pop(dialogCtx, true),
               child: const Text('Decline',
                   style: TextStyle(color: AppColors.error))),
         ],
@@ -790,12 +790,13 @@ class _PendingProgramCard extends ConsumerWidget {
   }
 }
 
-class _ActiveProgramCard extends StatelessWidget {
+class _ActiveProgramCard extends ConsumerWidget {
   final Map<String, dynamic> program;
-  const _ActiveProgramCard({required this.program});
+  final VoidCallback onAction;
+  const _ActiveProgramCard({required this.program, required this.onAction});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(18),
@@ -849,26 +850,79 @@ class _ActiveProgramCard extends StatelessWidget {
               maxLines: 2,
               overflow: TextOverflow.ellipsis),
           const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => context.push('/programs/${program['id']}'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(0, 46),
-                backgroundColor: AppColors.surfaceVariant,
-                foregroundColor: AppColors.textPrimary,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => _quitProgram(context, ref),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(0, 46),
+                    side: BorderSide(color: AppColors.error.withValues(alpha: 0.5)),
+                    foregroundColor: AppColors.error,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Quit',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                ),
               ),
-              child: const Text('View Current Schedule',
-                  style:
-                      TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-            ),
+              const SizedBox(width: 10),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton(
+                  onPressed: () => context.push('/programs/${program['id']}'),
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 46),
+                    backgroundColor: AppColors.surfaceVariant,
+                    foregroundColor: AppColors.textPrimary,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('View Schedule',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _quitProgram(BuildContext context, WidgetRef ref) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        title: const Text('Quit Program?',
+            style: TextStyle(color: AppColors.textPrimary)),
+        content: Text(
+            'Are you sure you want to quit "${program['name']}"? You will lose access to its scheduled sessions.',
+            style: const TextStyle(color: AppColors.textMuted)),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, false),
+              child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(dialogCtx, true),
+              child: const Text('Quit Program',
+                  style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      try {
+        await ref.read(programsRepositoryProvider).quitProgram(program['id'] as int);
+        onAction();
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to quit program: $e'), backgroundColor: AppColors.error),
+          );
+        }
+      }
+    }
   }
 }
 

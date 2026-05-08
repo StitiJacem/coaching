@@ -9,6 +9,7 @@ router.use(authenticateToken);
 
 router.get("/", AthleteController.getAll);
 
+router.get("/me/specialists", AthleteController.getSpecialists);
 router.get("/:id", AthleteController.getById);
 router.get("/:id/overview", AthleteController.getOverview);
 router.get("/:id/stats", AthleteController.getStats);

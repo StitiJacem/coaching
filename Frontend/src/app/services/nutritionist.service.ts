@@ -34,7 +34,7 @@ export interface NutritionConnection {
     providedIn: 'root'
 })
 export class NutritionistService {
-    private apiUrl = `${environment.apiUrl}/api/nutrition`;
+    private apiUrl = `${environment.apiUrl}/nutrition`;
 
     constructor(private http: HttpClient) {}
 

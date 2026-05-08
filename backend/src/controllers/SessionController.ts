@@ -60,16 +60,22 @@ export class SessionController {
         try {
             const { athleteId, programId, date } = req.query;
             const sessionRepository = AppDataSource.getRepository(Session);
+            const user = (req as any).user;
 
-            let whereClause: any = {};
-            if (athleteId) whereClause.athleteId = Number(athleteId);
-            if (programId) whereClause.programId = Number(programId);
-            if (date) whereClause.date = new Date(date as string);
+            const qb = sessionRepository.createQueryBuilder("session");
+            
+            if (athleteId) qb.andWhere("session.athleteId = :athleteId", { athleteId: Number(athleteId) });
+            if (programId) qb.andWhere("session.programId = :programId", { programId: Number(programId) });
+            if (date) qb.andWhere("CAST(session.date AS DATE) = :date", { date: new Date(date as string).toISOString().split('T')[0] });
 
-            const sessions = await sessionRepository.find({
-                where: whereClause,
-                order: { date: "ASC", time: "ASC" }
-            });
+            // If the user is an athlete, don't show drafts. Coaches see everything.
+            if (user?.role === 'athlete') {
+                qb.andWhere("session.status != 'draft'");
+            }
+
+            qb.orderBy("session.date", "ASC").addOrderBy("session.time", "ASC");
+
+            const sessions = await qb.getMany();
 
             res.json(sessions);
         } catch (error) {

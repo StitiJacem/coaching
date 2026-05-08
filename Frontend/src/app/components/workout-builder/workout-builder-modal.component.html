@@ -61,17 +61,10 @@
                     <div class="grid grid-cols-2 gap-2">
                         <div *ngFor="let ex of library" (click)="addToWorkout(ex)"
                             class="relative group cursor-pointer rounded-xl overflow-hidden bg-black/40 border border-transparent hover:border-gosport-orange transition-all aspect-square">
-                            <img [src]="ex.videoId ? 'https://img.youtube.com/vi/' + ex.videoId + '/mqdefault.jpg' : ex.gifUrl"
+                            <img [src]="ex.gifUrl"
                                 [alt]="ex.name"
                                 class="w-full h-full object-cover group-hover:scale-105 transition-all duration-300">
 
-                            <div *ngIf="ex.videoId"
-                                class="absolute top-1 left-1 bg-black/70 text-[7px] text-red-400 font-black px-1 rounded flex items-center gap-0.5">
-                                <svg class="w-2 h-2" fill="currentColor" viewBox="0 0 24 24">
-                                    <path d="M8 5v14l11-7z" />
-                                </svg>
-                                VIDEO
-                            </div>
 
                             <div
                                 class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent flex flex-col justify-end p-2">
@@ -116,7 +109,7 @@
 
                             <div
                                 class="w-16 h-16 rounded-xl overflow-hidden border border-slate-800 flex-shrink-0 bg-black/40">
-                                <img [src]="item.videoId ? 'https://img.youtube.com/vi/' + item.videoId + '/default.jpg' : item.gifUrl"
+                                <img [src]="item.gifUrl"
                                     [alt]="item.name" class="w-full h-full object-cover">
                             </div>
 
@@ -129,14 +122,6 @@
                                             }}</p>
                                     </div>
                                     <div class="flex items-center gap-2 flex-shrink-0">
-                                        <button *ngIf="item.videoId" (click)="toggleVideo(item)"
-                                            [ngClass]="playingVideoId === item.videoId ? 'bg-red-600 text-white' : 'bg-white/5 text-red-400'"
-                                            class="flex items-center gap-1 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border border-red-600/20">
-                                            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                                                <path d="M8 5v14l11-7z" />
-                                            </svg>
-                                            {{ playingVideoId === item.videoId ? 'Stop' : 'Demo' }}
-                                        </button>
                                         <button (click)="removeExercise(i)"
                                             class="p-1.5 text-slate-600 hover:text-red-500 transition-colors">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,14 +165,7 @@
                         </div>
 
 
-                        <div *ngIf="playingVideoId === item.videoId && safeVideoUrl"
-                            class="border-t border-gosport-border bg-black">
-                            <div class="relative" style="padding-top: 40%">
-                                <iframe [src]="safeVideoUrl" class="absolute inset-0 w-full h-full" frameborder="0"
-                                    allowfullscreen allow="autoplay; encrypted-media"></iframe>
-                            </div>
-                            <p class="px-4 py-2 text-[9px] font-bold text-slate-500">{{ item.videoTitle }}</p>
-                        </div>
+
                     </div>
                 </div>
 

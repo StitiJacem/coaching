@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:coaching_mobile/core/constants/app_constants.dart';
 
 class Exercise extends Equatable {
   final String id;
@@ -9,8 +10,13 @@ class Exercise extends Equatable {
   final String target;
   final List<String> secondaryMuscles;
   final List<String> instructions;
-  final String? videoId;
-  final String? videoTitle;
+  final String category;
+  final String difficulty;
+  final String mechanic;
+  final String force;
+  final double met;
+  final double caloriesPerMinute;
+  final String description;
 
   const Exercise({
     required this.id,
@@ -21,8 +27,13 @@ class Exercise extends Equatable {
     required this.target,
     required this.secondaryMuscles,
     required this.instructions,
-    this.videoId,
-    this.videoTitle,
+    required this.category,
+    required this.difficulty,
+    required this.mechanic,
+    required this.force,
+    required this.met,
+    required this.caloriesPerMinute,
+    required this.description,
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
@@ -31,12 +42,17 @@ class Exercise extends Equatable {
       name: json['name'] ?? '',
       bodyPart: json['bodyPart'] ?? '',
       equipment: json['equipment'] ?? '',
-      gifUrl: json['gifUrl'] ?? '',
+      gifUrl: _resolveGifUrl(json['gifUrl'] ?? ''),
       target: json['target'] ?? '',
       secondaryMuscles: List<String>.from(json['secondaryMuscles'] ?? []),
       instructions: List<String>.from(json['instructions'] ?? []),
-      videoId: json['videoId'],
-      videoTitle: json['videoTitle'],
+      category: json['category'] ?? '',
+      difficulty: json['difficulty'] ?? '',
+      mechanic: json['mechanic'] ?? '',
+      force: json['force'] ?? '',
+      met: (json['met'] ?? 0.0).toDouble(),
+      caloriesPerMinute: (json['caloriesPerMinute'] ?? 0.0).toDouble(),
+      description: json['description'] ?? '',
     );
   }
 
@@ -50,11 +66,24 @@ class Exercise extends Equatable {
       'target': target,
       'secondaryMuscles': secondaryMuscles,
       'instructions': instructions,
-      'videoId': videoId,
-      'videoTitle': videoTitle,
+      'category': category,
+      'difficulty': difficulty,
+      'mechanic': mechanic,
+      'force': force,
+      'met': met,
+      'caloriesPerMinute': caloriesPerMinute,
+      'description': description,
     };
   }
 
   @override
   List<Object?> get props => [id, name, bodyPart];
+
+  static String _resolveGifUrl(String url) {
+    if (url.startsWith('/api')) {
+      final host = AppConstants.baseUrl.replaceAll('/api', '');
+      return '$host$url';
+    }
+    return url;
+  }
 }

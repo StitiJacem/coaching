@@ -21,6 +21,15 @@ class WorkoutLogRepository {
     }
   }
 
+  Future<Map<String, dynamic>> create(Map<String, dynamic> data) async {
+    try {
+      final resp = await _api.post('/workout-logs', data: data);
+      return resp.data as Map<String, dynamic>;
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
   Future<Map<String, dynamic>> startWorkout(int id) async {
     try {
       final resp = await _api.post('/workout-logs/$id/start');
@@ -52,6 +61,14 @@ class WorkoutLogRepository {
   Future<void> updateWorkout(int id, Map<String, dynamic> data) async {
     try {
       await _api.put('/workout-logs/$id', data: data);
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  Future<void> quitWorkout(int id) async {
+    try {
+      await _api.post('/workout-logs/$id/quit');
     } catch (e) {
       throw ApiException.fromDioError(e);
     }

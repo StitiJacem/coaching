@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface ProgramExercise {
   id?: number;
@@ -45,7 +46,7 @@ export interface Program {
   providedIn: 'root'
 })
 export class ProgramService {
-  private apiUrl = 'http://localhost:3000/api/programs';
+  private apiUrl = `${environment.apiUrl}/programs`;
 
   constructor(
     private http: HttpClient,

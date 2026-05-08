@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { environment } from '../../environments/environment';
 
 export interface Coach {
     id: string;
@@ -32,8 +33,8 @@ export interface CoachingRequest {
     providedIn: 'root'
 })
 export class CoachService {
-    private coachUrl = 'http://localhost:3000/api/coaches';
-    private requestUrl = 'http://localhost:3000/api/coaching-requests';
+    private coachUrl = `${environment.apiUrl}/coaches`;
+    private requestUrl = `${environment.apiUrl}/coaching-requests`;
 
     constructor(
         private http: HttpClient,

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:coaching_mobile/core/theme/app_theme.dart';
+import 'package:coaching_mobile/core/constants/app_constants.dart';
 import 'package:coaching_mobile/features/workout/data/workout_log_repository.dart';
 import 'package:coaching_mobile/shared/widgets/animate_in.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -238,8 +239,8 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
       final repo = ref.read(workoutLogRepositoryProvider);
       final ex = _exercises[_currentExIdx];
       await repo.emitEvent(widget.workoutLogId, 'quiz_answer', {
-        'programExerciseId': ex['id'],
-        'exercise_name': ex['exercise_name'],
+        'programExerciseId': ex['id'] ?? ex['exercise_id'],
+        'exercise_name': ex['name'] ?? ex['exercise_name'],
         'rpe': _quizDifficulty.round(),
         'form': _quizForm.round(),
         'pain': _quizPain,
@@ -270,9 +271,9 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
       final repo = ref.read(workoutLogRepositoryProvider);
       
       await repo.logExercise(widget.workoutLogId, {
-        'programExerciseId': ex['id'],
-        'exercise_name': ex['exercise_name'],
-        'exercise_id': ex['exercise_id'],
+        'programExerciseId': ex['id'] ?? ex['exercise_id'],
+        'exercise_name': ex['name'] ?? ex['exercise_name'],
+        'exercise_id': ex['id'] ?? ex['exercise_id'],
         'setsCompleted': logs.where((s) => s['done']).length,
         'repsPerSet': logs.map((s) => s['reps']).toList(),
         'weightKgPerSet': logs.map((s) => s['weightKg']).toList(),
@@ -299,6 +300,39 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
       }
     } catch (e) {
       setState(() => _isCompleting = false);
+    }
+  }
+
+  Future<void> _confirmQuit() async {
+    final bool? confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Quit Workout?', style: TextStyle(fontWeight: FontWeight.w900)),
+        content: const Text('Are you sure you want to abandon this session? Progress will be marked as missed.', style: TextStyle(color: AppColors.textMuted)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('CANCEL', style: TextStyle(color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            child: const Text('QUIT', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      try {
+        final repo = ref.read(workoutLogRepositoryProvider);
+        await repo.quitWorkout(widget.workoutLogId);
+      } catch (_) {}
+      if (mounted) {
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -337,6 +371,11 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
           final ex = _exercises[i];
           final bool isDone = _setLogs[i]?.every((s) => s['done']) ?? false;
           
+          final String rawGif = ex['gifUrl'] ?? ex['exercise_gif'] ?? '';
+          final String resolvedGifUrl = rawGif.startsWith('/api') 
+              ? '${AppConstants.baseUrl.replaceAll('/api', '')}$rawGif' 
+              : rawGif;
+
           return AnimateIn(
             delay: i * 50,
             child: Card(
@@ -348,13 +387,13 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: CachedNetworkImage(
-                    imageUrl: ex['exercise_gif'] ?? '',
+                    imageUrl: resolvedGifUrl,
                     width: 50, height: 50, fit: BoxFit.cover,
                     placeholder: (ctx, url) => Container(color: AppColors.surfaceVariant),
                     errorWidget: (ctx, url, err) => const Icon(Icons.fitness_center),
                   ),
                 ),
-                title: Text(ex['exercise_name'].toString().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
+                title: Text((ex['name'] ?? ex['exercise_name'] ?? '').toString().toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13)),
                 subtitle: Text('${ex['sets']} SETS × ${ex['reps']} REPS', style: const TextStyle(fontSize: 11, color: AppColors.textMuted)),
                 trailing: isDone 
                     ? const Icon(Icons.check_circle, color: AppColors.success)
@@ -379,6 +418,26 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
         leading: IconButton(icon: const Icon(Icons.grid_view_rounded), onPressed: () => setState(() => _showOverviewMap = true)),
         title: Text(_formattedTime, style: const TextStyle(fontFamily: 'Monospace', fontWeight: FontWeight.bold)),
         actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'quit') {
+                _confirmQuit();
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: 'quit',
+                child: Row(
+                  children: [
+                    Icon(Icons.exit_to_app, color: Colors.red, size: 20),
+                    SizedBox(width: 12),
+                    Text('Quit Workout', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
+          ),
           IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
         ],
       ),
@@ -403,11 +462,33 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                       ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(24),
-                        child: CachedNetworkImage(
-                          imageUrl: ex['exercise_gif'] ?? '',
-                          fit: BoxFit.cover,
-                          placeholder: (ctx, url) => const Center(child: CircularProgressIndicator()),
-                          errorWidget: (ctx, url, err) => const Icon(Icons.fitness_center, size: 60, color: AppColors.textMuted),
+                        child: Builder(
+                          builder: (context) {
+                            final rawUrl = (ex['gifUrl'] ?? ex['exercise_gif'] ?? '').toString();
+                            if (rawUrl.isEmpty) {
+                              return Container(
+                                color: AppColors.surfaceVariant,
+                                child: const Center(
+                                  child: Icon(Icons.fitness_center, size: 60, color: AppColors.textMuted),
+                                ),
+                              );
+                            }
+                            final resolvedUrl = rawUrl.startsWith('/api') 
+                                ? '${AppConstants.baseUrl.replaceAll('/api', '')}$rawUrl' 
+                                : rawUrl;
+                            
+                            return CachedNetworkImage(
+                              imageUrl: resolvedUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (ctx, url) => const Center(child: CircularProgressIndicator()),
+                              errorWidget: (ctx, url, err) => Container(
+                                color: AppColors.surfaceVariant,
+                                child: const Center(
+                                  child: Icon(Icons.broken_image, size: 60, color: AppColors.textMuted),
+                                ),
+                              ),
+                            );
+                          }
                         ),
                       ),
                     ),
@@ -417,7 +498,7 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
                   Text('EXERCISE ${_currentExIdx + 1} OF ${_exercises.length}', 
                       style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
                   const SizedBox(height: 4),
-                  Text(ex['exercise_name'].toString().toUpperCase(), 
+                  Text((ex['name'] ?? ex['exercise_name'] ?? '').toString().toUpperCase(), 
                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                   
                   const SizedBox(height: 32),
@@ -515,35 +596,73 @@ class _WorkoutPlayerScreenState extends ConsumerState<WorkoutPlayerScreen> {
 
   Widget _buildBottomNav() {
     final allDone = _setLogs[_currentExIdx]?.every((s) => s['done']) ?? false;
+    final hasNext = _currentExIdx < _exercises.length - 1;
+    final nextEx = hasNext ? _exercises[_currentExIdx + 1] : null;
 
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(color: AppColors.surface, border: Border(top: BorderSide(color: AppColors.cardBorder))),
-      child: Row(
-        children: [
-          if (_currentExIdx > 0)
-            IconButton(
-              onPressed: () => setState(() {
-                _currentExIdx--;
-                _currentSetIndex = 0;
-                _initSetLogs(_currentExIdx);
-              }),
-              icon: const Icon(Icons.arrow_back_ios_new_rounded),
+      decoration: const BoxDecoration(
+        color: AppColors.surface, 
+        border: Border(top: BorderSide(color: AppColors.cardBorder))
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (hasNext && nextEx != null)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                color: AppColors.surfaceVariant.withOpacity(0.5),
+                child: Row(
+                  children: [
+                    const Icon(Icons.arrow_forward_rounded, size: 14, color: AppColors.textMuted),
+                    const SizedBox(width: 8),
+                    const Text('NEXT:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: AppColors.textMuted)),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        (nextEx['name'] ?? nextEx['exercise_name'] ?? '').toString().toUpperCase(),
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Text('${nextEx['sets']}×${nextEx['reps']}', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textMuted)),
+                  ],
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  if (_currentExIdx > 0)
+                    IconButton(
+                      onPressed: () => setState(() {
+                        _currentExIdx--;
+                        _currentSetIndex = 0;
+                        _initSetLogs(_currentExIdx);
+                      }),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: allDone ? _nextExercise : null,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(180, 56),
+                      backgroundColor: hasNext ? AppColors.primary : AppColors.success,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Text(
+                      hasNext ? 'NEXT EXERCISE' : 'FINISH WORKOUT',
+                      style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          const Spacer(),
-          ElevatedButton(
-            onPressed: allDone ? _nextExercise : null,
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(180, 56),
-              backgroundColor: _currentExIdx < _exercises.length - 1 ? AppColors.primary : AppColors.success,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            ),
-            child: Text(
-              _currentExIdx < _exercises.length - 1 ? 'NEXT EXERCISE' : 'FINISH WORKOUT',
-              style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

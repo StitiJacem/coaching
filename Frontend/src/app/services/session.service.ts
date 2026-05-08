@@ -25,7 +25,7 @@ export interface Session {
   providedIn: 'root'
 })
 export class SessionService {
-  private apiUrl = `${environment.apiUrl}/api/sessions`;
+  private apiUrl = `${environment.apiUrl}/sessions`;
 
   constructor(
     private http: HttpClient,

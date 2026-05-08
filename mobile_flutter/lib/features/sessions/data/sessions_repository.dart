@@ -32,10 +32,10 @@ class SessionsRepository {
     }
   }
 
-  /// PATCH /api/sessions/:id
+  /// PUT /api/sessions/:id
   Future<Map<String, dynamic>> update(int id, Map<String, dynamic> data) async {
     try {
-      final resp = await _api.patch('/sessions/$id', data: data);
+      final resp = await _api.put('/sessions/$id', data: data);
       return resp.data as Map<String, dynamic>;
     } catch (e) {
       throw ApiException.fromDioError(e);

@@ -12,6 +12,7 @@ import { BodyMetric } from "../entities/BodyMetric";
 import { NutritionistProfile } from "../entities/NutritionistProfile";
 import { NutritionConnection } from "../entities/NutritionConnection";
 import { Notification } from "../entities/Notification";
+import { Program } from "../entities/Program";
 
 export class AthleteController {
 
@@ -582,6 +583,121 @@ export class AthleteController {
         } catch (error) {
             console.error("Error fetching athlete overview:", error);
             res.status(500).json({ message: "Error fetching athlete overview" });
+        }
+    };
+
+    static getSpecialists = async (req: Request, res: Response) => {
+        try {
+            const userId = (req as any).user.id;
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const athlete = await athleteRepo.findOne({ where: { userId } });
+
+            if (!athlete) {
+                return res.status(404).json({ message: "Athlete profile not found" });
+            }
+
+            // 1. Fetch connected coaches (accepted requests)
+            const requestRepo = AppDataSource.getRepository(CoachingRequest);
+            const coachingRequests = await requestRepo.find({
+                where: { athleteId: athlete.id, status: 'accepted' },
+                relations: ["coachProfile", "coachProfile.user", "coachProfile.specializations"]
+            });
+
+            // 2. Fetch connected nutritionists (accepted connections)
+            const nutritionConnRepo = AppDataSource.getRepository(NutritionConnection);
+            const nutritionConnections = await nutritionConnRepo.find({
+                where: { athleteId: athlete.id, status: 'accepted' },
+                relations: ["nutritionistProfile", "nutritionistProfile.user"]
+            });
+
+            // 3. Fetch coaches from active programs (some connections are program-based)
+            const programRepo = AppDataSource.getRepository(Program);
+            const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+            const programs = await programRepo.find({
+                where: { athleteId: athlete.id },
+                relations: ["coachProfile", "coachProfile.user", "coachProfile.specializations"]
+            });
+
+            // 4. Format unified list
+            const specialists: any[] = [];
+            const seenSpecialistIds = new Set<string>();
+
+            // Add Coaches from requests
+            for (const req of coachingRequests) {
+                if (req.coachProfile && req.coachProfile.user) {
+                    const profile = req.coachProfile;
+                    if (!seenSpecialistIds.has(profile.id)) {
+                        seenSpecialistIds.add(profile.id);
+                        specialists.push({
+                            id: profile.id,
+                            userId: profile.userId,
+                            type: 'coach',
+                            name: `${profile.user.first_name || ''} ${profile.user.last_name || ''}`.trim() || 'Coach',
+                            specialization: profile.specializations?.[0]?.specialization || 'Performance Coach',
+                            bio: profile.bio || 'Professional Coach',
+                            avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : `http://localhost:3000${profile.user.photo_url}`) : null,
+                            email: profile.user.email,
+                            rating: profile.rating || 4.5,
+                            experience: profile.experience_years || 0
+                        });
+                    }
+                }
+            }
+
+            // Add Coaches from programs (if not already added)
+            for (const prog of programs) {
+                let profile: CoachProfile | null | undefined = prog.coachProfile;
+                if (!profile && prog.coachId) {
+                    profile = await coachProfileRepo.findOne({
+                        where: { userId: prog.coachId },
+                        relations: ["user", "specializations"]
+                    });
+                }
+
+                if (profile && profile.user && !seenSpecialistIds.has(profile.id)) {
+                    seenSpecialistIds.add(profile.id);
+                    specialists.push({
+                        id: profile.id,
+                        userId: profile.userId,
+                        type: 'coach',
+                        name: `${profile.user.first_name || ''} ${profile.user.last_name || ''}`.trim() || 'Coach',
+                        specialization: profile.specializations?.[0]?.specialization || 'Performance Coach',
+                        bio: profile.bio || 'Professional Coach',
+                        avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : `http://localhost:3000${profile.user.photo_url}`) : null,
+                        email: profile.user.email,
+                        rating: profile.rating || 4.5,
+                        experience: profile.experience_years || 0
+                    });
+                }
+            }
+
+            // Add Nutritionists
+            for (const conn of nutritionConnections) {
+                if (conn.nutritionistProfile && conn.nutritionistProfile.user) {
+                    const profile = conn.nutritionistProfile;
+                    const combinedId = `nutri-${profile.id}`;
+                    if (!seenSpecialistIds.has(combinedId)) {
+                        seenSpecialistIds.add(combinedId);
+                        specialists.push({
+                            id: profile.id,
+                            userId: profile.userId,
+                            type: 'nutritionist',
+                            name: `${profile.user.first_name || ''} ${profile.user.last_name || ''}`.trim() || 'Nutritionist',
+                            specialization: 'Nutrition Specialist',
+                            bio: profile.bio || 'Professional Nutritionist',
+                            avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : `http://localhost:3000${profile.user.photo_url}`) : null,
+                            email: profile.user.email,
+                            rating: profile.rating || 4.5,
+                            experience: profile.experience_years || 0
+                        });
+                    }
+                }
+            }
+
+            res.json(specialists);
+        } catch (error) {
+            console.error("Error fetching connected specialists:", error);
+            res.status(500).json({ message: "Error fetching connected specialists" });
         }
     };
 }

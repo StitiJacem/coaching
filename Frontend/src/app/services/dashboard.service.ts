@@ -4,12 +4,13 @@ import { Observable, forkJoin, map } from 'rxjs';
 import { AuthService } from './auth.service';
 import { SessionService } from './session.service';
 import { AthleteService } from './athlete.service';
+import { environment } from '../../environments/environment';
 
 @Injectable({
     providedIn: 'root'
 })
 export class DashboardService {
-    private apiUrl = 'http://localhost:3000/api/dashboard';
+    private apiUrl = `${environment.apiUrl}/dashboard`;
 
     constructor(
         private http: HttpClient,

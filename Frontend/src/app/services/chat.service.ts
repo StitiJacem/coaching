@@ -100,19 +100,19 @@ export class ChatService {
   }
 
   getConversations(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/api/chat/conversations`);
+    return this.http.get<any[]>(`${environment.apiUrl}/chat/conversations`);
   }
 
   getContacts(): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/api/chat/contacts`);
+    return this.http.get<any[]>(`${environment.apiUrl}/chat/contacts`);
   }
 
   getMessages(conversationId: string): Observable<any[]> {
-    return this.http.get<any[]>(`${environment.apiUrl}/api/chat/conversations/${conversationId}/messages`);
+    return this.http.get<any[]>(`${environment.apiUrl}/chat/conversations/${conversationId}/messages`);
   }
 
   startConversation(receiverId: number, type: string): Observable<any> {
-    return this.http.post<any>(`${environment.apiUrl}/api/chat/conversations`, { receiverId, type });
+    return this.http.post<any>(`${environment.apiUrl}/chat/conversations`, { receiverId, type });
   }
 
   joinRoom(conversationId: string) {

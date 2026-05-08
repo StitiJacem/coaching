@@ -10,6 +10,7 @@ router.get("/athlete/:athleteId/stats", WorkoutLogController.getAthleteStats);
 router.get("/athlete/:athleteId", WorkoutLogController.getAthleteHistory);
 router.post("/", WorkoutLogController.create);
 router.post("/:id/start", WorkoutLogController.start);
+router.post("/:id/quit", WorkoutLogController.quit);
 router.post("/:id/event", WorkoutLogController.emitEvent);
 router.get("/:id", WorkoutLogController.getById);
 router.put("/:id", WorkoutLogController.update);

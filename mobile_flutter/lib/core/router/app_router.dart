@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +23,7 @@ import '../../features/profile/presentation/screens/profile_screen.dart';
 import '../../features/connections/presentation/screens/athletes_screen.dart';
 import '../../features/connections/presentation/screens/coaches_screen.dart';
 import '../../features/connections/presentation/screens/discovery_screen.dart';
+import '../../features/connections/presentation/screens/specialists_screen.dart';
 import '../../features/analytics/presentation/screens/analytics_screen.dart';
 import '../../features/nutrition/presentation/screens/nutrition_screen.dart';
 import '../../features/nutrition/presentation/screens/meal_scan_screen.dart';
@@ -98,6 +98,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/athletes',      builder: (_, _) => const AthletesScreen()),
           GoRoute(path: '/coaches',       builder: (_, _) => const CoachesScreen()),
           GoRoute(path: '/discovery',     builder: (_, _) => const DiscoveryScreen()),
+          GoRoute(path: '/specialists',   builder: (_, _) => const SpecialistsScreen()),
           GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
           GoRoute(path: '/profile',       builder: (_, _) => const ProfileScreen()),
         ],
@@ -108,7 +109,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/sessions',       builder: (_, _) => const SessionsScreen()),
       GoRoute(path: '/workout-history', builder: (_, _) => const WorkoutHistoryScreen()),
       GoRoute(
-        path: '/workout/:id',
+        path: '/workouts/:id/play',
         builder: (context, state) => WorkoutPlayerScreen(
           workoutLogId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),

@@ -1,5 +1,8 @@
 import { Request, Response } from "express";
 import { ExerciseService } from "../services/ExerciseService";
+import fs from 'fs';
+import path from 'path';
+import axios from 'axios';
 
 const exerciseService = new ExerciseService();
 
@@ -49,16 +52,50 @@ export class ExerciseController {
             res.status(500).json({ message: "Error fetching exercise" });
         }
     };
-
-
-    static getVideo = async (req: Request, res: Response) => {
+    
+    static getGif = async (req: Request, res: Response) => {
         try {
-            const name = req.query.name as string;
-            if (!name) return res.status(400).json({ message: "Exercise name required" });
-            const result = await exerciseService.getVideoForExercise(name);
-            res.json(result);
+            const id = req.params.id as string;
+            if (!id) return res.status(400).json({ message: "GIF ID is required" });
+
+            const path = require('path');
+            const axios = require('axios');
+            
+            const cacheDir = path.join(__dirname, '../../public/gifs');
+            const filePath = path.join(cacheDir, `${id}.gif`);
+
+            // Check if we already downloaded it
+            if (fs.existsSync(filePath)) {
+                res.setHeader('Content-Type', 'image/gif');
+                return res.sendFile(filePath);
+            }
+
+            // Otherwise, fetch from WorkoutX, save to disk, and stream to client
+            const workoutXKey = process.env.WORKOUTX_API_KEY || 'wx_628a805f4e4ff753270efd2f64a2d4a2e95930ed71af37543868bdad';
+            
+            const response = await axios({
+                url: `https://api.workoutxapp.com/v1/gifs/${id}.gif`,
+                method: 'GET',
+                responseType: 'stream',
+                headers: { 'X-WorkoutX-Key': workoutXKey }
+            });
+
+            // Ensure directory exists
+            if (!fs.existsSync(cacheDir)){
+                fs.mkdirSync(cacheDir, { recursive: true });
+            }
+
+            // Pipe to file
+            const writer = fs.createWriteStream(filePath);
+            response.data.pipe(writer);
+
+            // Also pipe to client
+            res.setHeader('Content-Type', 'image/gif');
+            response.data.pipe(res);
+
         } catch (error) {
-            res.status(500).json({ message: "Error fetching video" });
+            console.error("Error fetching GIF:", error);
+            res.status(500).json({ message: "Error fetching GIF" });
         }
     };
 }

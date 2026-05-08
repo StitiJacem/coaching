@@ -5,6 +5,7 @@ import { CoachSpecialization } from "../entities/CoachSpecialization";
 import { Athlete } from "../entities/Athlete";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { User } from "../entities/User";
+import { Program } from "../entities/Program";
 
 export class CoachController {
 
@@ -51,11 +52,23 @@ export class CoachController {
                 if (currentAthleteId && profile.id) {
                     const existingRequest = await requestRepo.findOne({
                         where: [
-                            { athleteId: currentAthleteId, coachProfileId: profile.id },
+                            { athleteId: currentAthleteId, coachProfileId: profile.id, status: 'pending' },
                             { athleteId: currentAthleteId, coachProfileId: profile.id, status: 'accepted' }
                         ]
                     });
+
                     if (existingRequest) continue;
+
+                    // Also check for connection via program
+                    const programRepo = AppDataSource.getRepository(Program);
+                    const hasProgram = await programRepo.findOne({
+                        where: [
+                            { athleteId: currentAthleteId, coachProfileId: profile.id },
+                            { athleteId: currentAthleteId, coachId: coachUser.id }
+                        ]
+                    });
+                    
+                    if (hasProgram) continue;
                 }
 
                 coachProfiles.push({

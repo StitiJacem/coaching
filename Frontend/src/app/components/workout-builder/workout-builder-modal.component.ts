@@ -53,23 +53,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
         { id: 'waist', label: 'Abs' }
     ];
 
-
-    playingVideoId: string | null = null;
     athleteWeight: number = 0;
-
-    get safeVideoUrl(): SafeResourceUrl | null {
-        if (!this.playingVideoId) return null;
-        const url = `https://www.youtube.com/embed/${this.playingVideoId}?autoplay=1&rel=0&modestbranding=1`;
-        return this.sanitizer.bypassSecurityTrustResourceUrl(url);
-    }
-
-    toggleVideo(exercise: any): void {
-        if (this.playingVideoId === exercise.videoId) {
-            this.playingVideoId = null;
-        } else {
-            this.playingVideoId = exercise.videoId || null;
-        }
-    }
 
     constructor(
         private exerciseService: ExerciseService,
@@ -188,8 +172,9 @@ export class WorkoutBuilderModalComponent implements OnInit {
             name: exercise.name,
             gifUrl: exercise.gifUrl,
             bodyPart: exercise.bodyPart,
-            videoId: exercise.videoId,
-            videoTitle: exercise.videoTitle,
+            category: exercise.category,
+            difficulty: exercise.difficulty,
+            instructions: exercise.instructions,
             sets: 3,
             reps: 12,
             rest: 60,
@@ -231,7 +216,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
             title: this.workoutTitle,
             notes: this.workoutNotes,
             duration: this.workoutDuration,
-            status: 'upcoming',
+            status: 'draft',
             workoutData: {
                 exercises: this.exercises
             }

@@ -109,4 +109,14 @@ class AthletesRepository {
       throw ApiException.fromDioError(e);
     }
   }
+
+  /// GET /api/athletes/me/specialists — list of athlete's connected specialists (coaches/nutritionists)
+  Future<List<dynamic>> getConnectedSpecialists() async {
+    try {
+      final resp = await _api.get('/athletes/me/specialists');
+      return (resp.data as List?) ?? [];
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
 }
