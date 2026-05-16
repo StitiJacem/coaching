@@ -1,0 +1,209 @@
+@startuml
+title GOSPORT - Classes 1/2 (Comptes, Coaching, Entrainement)
+left to right direction
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: number
+  +email: string
+  +role: string
+  +is_verified: boolean
+}
+
+class Athlete {
+  +id: number
+  +userId: number
+  +sport?: string
+  +fitnessLevel?: string
+}
+
+class CoachProfile {
+  +id: string
+  +userId: number
+  +experience_years: number
+  +rating: number
+}
+
+class CoachingRequest {
+  +id: string
+  +athleteId: number
+  +coachProfileId: string
+  +status: string
+}
+
+class Program {
+  +id: number
+  +name: string
+  +status: string
+}
+
+class ProgramDay {
+  +id: number
+  +programId: number
+  +day_number: number
+}
+
+class ProgramExercise {
+  +id: number
+  +programDayId: number
+  +exercise_id: string
+}
+
+class Session {
+  +id: number
+  +athleteId: number
+  +programId?: number
+  +programDayId?: number
+  +status: string
+}
+
+class WorkoutLog {
+  +id: number
+  +athleteId: number
+  +programId: number
+}
+
+class ExerciseLog {
+  +id: number
+  +workoutLogId: number
+  +exercise_name: string
+}
+
+class Goal {
+  +id: number
+  +athleteId: number
+  +status: string
+}
+
+class BodyMetric {
+  +id: number
+  +athleteId: number
+  +recordedAt: Date
+}
+
+User "1" -- "0..*" Athlete : profile
+User "1" -- "0..1" CoachProfile : profile
+Athlete "1" -- "0..*" CoachingRequest
+CoachProfile "1" -- "0..*" CoachingRequest
+CoachProfile "1" -- "0..*" Program : creates
+Athlete "0..1" -- "0..*" Program : assigned
+Program "1" -- "1..*" ProgramDay
+ProgramDay "1" -- "1..*" ProgramExercise
+Athlete "1" -- "0..*" Session
+Program "0..1" -- "0..*" Session
+ProgramDay "0..1" -- "0..*" Session
+Athlete "1" -- "0..*" WorkoutLog
+Program "1" -- "0..*" WorkoutLog
+Session "0..1" -- "0..*" WorkoutLog
+WorkoutLog "1" -- "0..*" ExerciseLog
+Athlete "1" -- "0..*" Goal
+Athlete "1" -- "0..*" BodyMetric
+@enduml
+
+@startuml
+title GOSPORT - Classes 2/2 (Nutrition, Communication, Notifications)
+left to right direction
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: number
+  +email: string
+  +role: string
+}
+
+class Athlete {
+  +id: number
+  +userId: number
+}
+
+class NutritionistProfile {
+  +id: string
+  +userId: number
+  +rating: number
+}
+
+class NutritionConnection {
+  +id: string
+  +athleteId: number
+  +nutritionistProfileId: string
+  +status: string
+}
+
+class NutritionPlan {
+  +id: string
+  +athleteId: number
+  +name: string
+}
+
+class NutritionPlanDay {
+  +id: string
+  +nutritionPlanId: string
+  +dayName: string
+}
+
+class DietPlan {
+  +id: number
+  +status: string
+}
+
+class DietDay {
+  +id: number
+  +dietPlanId: number
+}
+
+class Meal {
+  +id: number
+  +dietDayId: number
+  +name: string
+}
+
+class MealLog {
+  +id: number
+  +athleteId: number
+  +mealName: string
+}
+
+class DietaryProfile {
+  +id: number
+  +athleteId: number
+}
+
+class Conversation {
+  +id: number
+  +participantAId: number
+  +participantBId: number
+}
+
+class Message {
+  +id: number
+  +conversationId: number
+  +senderId: number
+}
+
+class Notification {
+  +id: number
+  +userId: number
+  +isRead: boolean
+}
+
+User "1" -- "0..*" Athlete : profile
+User "1" -- "0..1" NutritionistProfile : profile
+Athlete "1" -- "0..*" NutritionConnection
+NutritionistProfile "1" -- "0..*" NutritionConnection
+Athlete "1" -- "0..*" NutritionPlan
+NutritionPlan "1" -- "1..*" NutritionPlanDay
+NutritionistProfile "1" -- "0..*" DietPlan
+Athlete "0..1" -- "0..*" DietPlan
+DietPlan "1" -- "1..*" DietDay
+DietDay "1" -- "1..*" Meal
+Athlete "1" -- "0..*" MealLog
+Athlete "1" -- "0..1" DietaryProfile
+Conversation "1" -- "0..*" Message
+User "1" -- "0..*" Message : sends
+User "1" -- "0..*" Conversation : participant
+User "1" -- "0..*" Notification
+@enduml

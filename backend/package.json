@@ -17,7 +17,8 @@
     "cors": "^2.8.6",
     "debug": "~2.6.9",
     "dotenv": "^17.2.4",
-    "express": "~4.16.1",
+    "express": "~4.18.2",
+    "firebase-admin": "^12.1.0",
     "http-errors": "~1.6.3",
     "jade": "~1.11.0",
     "jsonwebtoken": "^9.0.3",
@@ -27,7 +28,9 @@
     "pg": "^8.18.0",
     "reflect-metadata": "^0.2.2",
     "socket.io": "^4.8.3",
-    "typeorm": "^0.3.28"
+    "stripe": "^15.6.0",
+    "typeorm": "^0.3.28",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",

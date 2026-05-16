@@ -44,6 +44,9 @@ export class User {
     @Column({ default: false })
     is_verified!: boolean;
 
+    @Column({ nullable: true })
+    fcmToken?: string;
+
     @Column({ type: "varchar", default: "athlete" })
     role!: string;
 

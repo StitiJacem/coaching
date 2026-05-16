@@ -29,8 +29,8 @@ export class OAuthService {
             const payload = response.data;
             const clientId = process.env.GOOGLE_CLIENT_ID;
             
-            console.log(`[DEBUG] Google Auth - Received ID Token for aud: ${payload.aud}`);
-            console.log(`[DEBUG] Google Auth - Expected Client ID: ${clientId}`);
+            // debug log removed
+            // debug log removed
 
             if (payload.aud !== clientId) {
                 console.error(`[ERROR] Google Auth - Client ID mismatch!`);

@@ -29,7 +29,7 @@ import { CardComponent } from './components/ui/card/card.component';
 import { BadgeComponent } from './components/ui/badge/badge.component';
 import { ButtonComponent } from './components/ui/button/button.component';
 import { AvatarComponent } from './components/ui/avatar/avatar.component';
-import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight, Scan, RefreshCw, Info } from 'lucide-angular';
+import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, XCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight, Scan, RefreshCw, Info, History, Sparkles, Circle, X, HelpCircle } from 'lucide-angular';
 import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
@@ -44,6 +44,8 @@ import { DietaryProfileComponent } from './pages/dashboard/athletes/dietary-prof
 import { DietBuilderComponent } from './pages/dashboard/programs/diet-builder/diet-builder.component';
 import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { ToastComponent } from './components/toast/toast.component';
+import { ConfirmComponent } from './components/confirm/confirm.component';
 
 @NgModule({
   declarations: [
@@ -106,7 +108,13 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
       ChevronRight,
       Scan,
       RefreshCw,
-      Info
+      Info,
+      History,
+      Sparkles,
+      Circle,
+      X,
+      XCircle,
+      HelpCircle
     }),
     StatsCardComponent,
     CardComponent,
@@ -124,7 +132,9 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
     DashboardComponent,
     AthleteOverviewComponent,
     DietaryProfileComponent,
-    DietBuilderComponent
+    DietBuilderComponent,
+    ToastComponent,
+    ConfirmComponent
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { Server as HttpServer } from "http";
 import jwt from "jsonwebtoken";
+import { getJwtSecret } from "../utils/jwt.config";
 import { AppDataSource } from "../orm/data-source";
 import { Message } from "../entities/Message";
 import { Conversation } from "../entities/Conversation";
@@ -31,8 +32,7 @@ export class SocketService {
             }
 
             try {
-                const secret = process.env.JWT_SECRET || 'your-secret-key';
-                const decoded = jwt.verify(token as string, secret) as any;
+                const decoded = jwt.verify(token as string, getJwtSecret()) as any;
                 
                 socket.data.userId = decoded.id;
                 socket.data.role = decoded.role;
@@ -98,6 +98,27 @@ export class SocketService {
                     }
                 } catch (error) {
                     console.error("[Socket] Error sending message:", error);
+                }
+            });
+
+            socket.on("mark_read", async (data: { conversationId: string }) => {
+                try {
+                    const messageRepository = AppDataSource.getRepository(Message);
+                    // Mark all messages as read where sender is NOT the current user
+                    await messageRepository.createQueryBuilder()
+                        .update(Message)
+                        .set({ isRead: true })
+                        .where("conversationId = :convId", { convId: data.conversationId })
+                        .andWhere("senderId != :userId", { userId })
+                        .execute();
+
+                    // Notify the room that messages were read
+                    this.io.to(data.conversationId).emit("messages_read", { 
+                        conversationId: data.conversationId, 
+                        readBy: userId 
+                    });
+                } catch (error) {
+                    console.error("[Socket] Error marking messages as read:", error);
                 }
             });
 

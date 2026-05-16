@@ -9,6 +9,41 @@ import { Program } from "../entities/Program";
 
 export class CoachController {
 
+    static getPublicCoaches = async (req: Request, res: Response) => {
+        const userRepo = AppDataSource.getRepository(User);
+        const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
+
+        try {
+            const coaches = await userRepo.find({ where: { role: 'coach' } });
+            const coachProfiles: any[] = [];
+            
+            for (const coachUser of coaches) {
+                const profile = await coachProfileRepo.findOne({
+                    where: { userId: coachUser.id, verified: true },
+                    relations: ['specializations']
+                });
+
+                if (profile) {
+                    coachProfiles.push({
+                        id: profile.id,
+                        userId: coachUser.id,
+                        name: `${coachUser.first_name || ''} ${coachUser.last_name || ''}`.trim() || coachUser.username || 'Coach',
+                            avatar: coachUser.photo_url ? (coachUser.photo_url.startsWith('http') ? coachUser.photo_url : coachUser.photo_url) : `https://ui-avatars.com/api/?name=${coachUser.first_name || 'Coach'}+${coachUser.last_name || ''}&background=random`,
+                        specializations: (profile.specializations || []).map((s: any) => s.specialization),
+                        bio: profile.bio || 'Professional Coach',
+                        rating: parseFloat(profile.rating as any) || 4.5,
+                        experience_years: profile.experience_years || 0,
+                        price: profile.monthlyPrice !== undefined ? parseFloat(profile.monthlyPrice as any) : 80.00
+                    });
+                }
+            }
+            res.json(coachProfiles);
+        } catch (error) {
+            console.error("Error fetching public coaches:", error);
+            res.status(500).json({ message: "Error fetching public coaches" });
+        }
+    };
+
     static getAll = async (req: Request, res: Response) => {
         const userRepo = AppDataSource.getRepository(User);
         const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
@@ -16,6 +51,7 @@ export class CoachController {
 
         try {
             const currentUserId = (req as any).user?.id;
+            const specializationFilter = req.query.specialization as string;
             let currentAthleteId: number | null = null;
 
             if (currentUserId) {
@@ -24,9 +60,8 @@ export class CoachController {
                 currentAthleteId = athlete ? athlete.id : null;
             }
 
-
+            // Find all users who are coaches
             const coaches = await userRepo.find({ where: { role: 'coach' } });
-
 
             const coachProfiles: any[] = [];
             for (const coachUser of coaches) {
@@ -36,7 +71,7 @@ export class CoachController {
                 });
 
                 if (!profile) {
-
+                    // Virtual profile for display if none exists
                     profile = coachProfileRepo.create({
                         userId: coachUser.id,
                         user: coachUser,
@@ -46,9 +81,18 @@ export class CoachController {
                         bio: 'Elite Performance Coach'
                     });
                     profile.user = coachUser;
+                    profile.specializations = [];
                 }
 
+                const specs = (profile.specializations || []).map((s: any) => s.specialization);
 
+                // Apply specialization filter if present
+                if (specializationFilter && specializationFilter !== 'ALL') {
+                    const matchesFilter = specs.some(s => s.toUpperCase() === specializationFilter.toUpperCase());
+                    if (!matchesFilter) continue;
+                }
+
+                // If logged in as athlete, hide coaches you already have a connection/request with
                 if (currentAthleteId && profile.id) {
                     const existingRequest = await requestRepo.findOne({
                         where: [
@@ -75,13 +119,13 @@ export class CoachController {
                     id: profile.id || null,
                     userId: coachUser.id,
                     name: `${coachUser.first_name || ''} ${coachUser.last_name || ''}`.trim() || coachUser.username || 'Coach',
-                    avatar: coachUser.photo_url ? (coachUser.photo_url.startsWith('http') ? coachUser.photo_url : `http://localhost:3000${coachUser.photo_url}`) : `https://ui-avatars.com/api/?name=${coachUser.first_name || 'Coach'}+${coachUser.last_name || ''}&background=random`,
-                    specializations: (profile.specializations || []).map((s: any) => s.specialization),
+                        avatar: coachUser.photo_url ? (coachUser.photo_url.startsWith('http') ? coachUser.photo_url : coachUser.photo_url) : `https://ui-avatars.com/api/?name=${coachUser.first_name || 'Coach'}+${coachUser.last_name || ''}&background=random`,
+                    specializations: specs,
                     bio: profile.bio || 'Professional Coach available for training.',
                     rating: parseFloat(profile.rating as any) || 4.5,
                     experience_years: profile.experience_years || 0,
                     verified: profile.verified ?? true,
-                    price: 80
+                    price: profile.monthlyPrice !== undefined ? parseFloat(profile.monthlyPrice as any) : 80.00
                 });
             }
 
@@ -160,10 +204,11 @@ export class CoachController {
                 return res.status(404).json({ message: "Coach profile not found" });
             }
 
-            const { bio, experience_years, specializations, first_name, last_name, phone, photo_url } = req.body;
+            const { bio, experience_years, specializations, first_name, last_name, phone, photo_url, monthlyPrice } = req.body;
 
             if (bio !== undefined) profile.bio = bio;
             if (experience_years !== undefined) profile.experience_years = experience_years;
+            if (monthlyPrice !== undefined) profile.monthlyPrice = monthlyPrice;
 
             // Handle User fields
             let userUpdateNeeded = false;

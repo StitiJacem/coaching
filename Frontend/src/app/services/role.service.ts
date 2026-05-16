@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export type UserRole = 'coach' | 'athlete' | 'doctor' | 'nutritionist' | 'admin';
 
@@ -109,7 +110,7 @@ export class RoleService {
         }
 
         const avatarUrl = user.photo_url || user.profilePicture || '';
-        const fullAvatarUrl = avatarUrl && avatarUrl.startsWith('/') ? `http://localhost:3000${avatarUrl}` : avatarUrl;
+        const fullAvatarUrl = avatarUrl && avatarUrl.startsWith('/') ? `${environment.apiUrl.replace('/api', '')}${avatarUrl}` : avatarUrl;
 
         return {
             id: user.id || 0,

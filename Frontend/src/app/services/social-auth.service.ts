@@ -70,8 +70,8 @@ export class SocialAuthService {
                 callback: (response: any) => {
                     this.handleGoogleCallback(response.credential)
                         .subscribe({
-                            next: (res) => resolve(res),
-                            error: (err) => reject(err)
+                            next: (res: AuthResponse) => resolve(res),
+                            error: (err: any) => reject(err)
                         });
                 }
             });
@@ -102,8 +102,8 @@ export class SocialAuthService {
                 if (response.authResponse) {
                     this.handleFacebookCallback(response.authResponse.accessToken)
                         .subscribe({
-                            next: (res) => resolve(res),
-                            error: (err) => reject(err)
+                            next: (res: AuthResponse) => resolve(res),
+                            error: (err: any) => reject(err)
                         });
                 } else {
                     reject(new Error('Facebook login cancelled'));

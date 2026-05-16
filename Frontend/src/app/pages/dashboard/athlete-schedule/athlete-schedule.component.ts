@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClientModule } from '@angular/common/http';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { RoleService } from '../../../services/role.service';
+import { ToastService } from '../../../services/toast.service';
 import { DashboardLayoutComponent } from '../../../components/dashboard-layout/dashboard-layout.component';
 
 @Component({
@@ -74,7 +75,8 @@ export class AthleteScheduleComponent implements OnInit {
 
     constructor(
         private athleteService: AthleteService,
-        private roleService: RoleService
+        private roleService: RoleService,
+        private toastService: ToastService
     ) { }
 
     ngOnInit() {
@@ -116,11 +118,11 @@ export class AthleteScheduleComponent implements OnInit {
         }).subscribe({
             next: () => {
                 this.isSaving = false;
-                alert('Schedule updated successfully!');
+                this.toastService.showSuccess('Schedule updated successfully!');
             },
             error: () => {
                 this.isSaving = false;
-                alert('Failed to update schedule.');
+                this.toastService.showError('Failed to update schedule.');
             }
         });
     }

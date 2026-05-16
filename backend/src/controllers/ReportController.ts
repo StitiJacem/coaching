@@ -76,13 +76,30 @@ export class ReportController {
             }
             for (const arr of byAthlete.values()) {
                 const dates = [...new Set(arr.map((l) => new Date(l.scheduledDate).toISOString().split("T")[0]))].sort();
+                if (dates.length === 0) continue;
+
+                const todayStr = new Date().toISOString().split("T")[0];
+                const todayDate = new Date(todayStr);
+                const lastWorkoutDate = new Date(dates[dates.length - 1]);
+                
+                const diffTime = todayDate.getTime() - lastWorkoutDate.getTime();
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+
                 let streak = 0;
-                const today = new Date().toISOString().split("T")[0];
-                for (let i = dates.length - 1; i >= 0; i--) {
-                    const expect = new Date();
-                    expect.setDate(expect.getDate() - (dates.length - 1 - i));
-                    if (dates[i] === expect.toISOString().split("T")[0]) streak++;
-                    else break;
+                // If last workout was today (0) or yesterday (1), streak is alive
+                if (diffDays <= 1) {
+                    streak = 1;
+                    let expectedDate = new Date(lastWorkoutDate);
+                    for (let i = dates.length - 2; i >= 0; i--) {
+                        expectedDate.setDate(expectedDate.getDate() - 1);
+                        const expectedStr = expectedDate.toISOString().split("T")[0];
+                        
+                        if (dates[i] === expectedStr) {
+                            streak++;
+                        } else {
+                            break;
+                        }
+                    }
                 }
                 if (streak > maxStreak) maxStreak = streak;
             }

@@ -7,99 +7,66 @@
             <!-- Header -->
             <div class="px-6 pt-6 pb-4 border-b border-white/5">
                 <div class="flex items-center justify-between mb-5">
-                    <h2 class="text-lg font-black text-white uppercase tracking-widest">Messages</h2>
+                    <h2 class="text-lg font-black text-white uppercase tracking-widest">Discussions</h2>
                     <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
                         <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
                         <span class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">En ligne</span>
                     </div>
                 </div>
 
-                <!-- Tabs -->
-                <div class="flex bg-black/30 p-1 rounded-xl border border-white/5">
-                    <button (click)="activeTab = 'messages'"
-                        [ngClass]="activeTab === 'messages' ? 'bg-gosport-orange text-white shadow-lg shadow-gosport-orange/20' : 'text-slate-500 hover:text-white'"
-                        class="flex-1 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all duration-200">
-                        Discussions
-                    </button>
-                    <button (click)="activeTab = 'contacts'"
-                        [ngClass]="activeTab === 'contacts' ? 'bg-gosport-orange text-white shadow-lg shadow-gosport-orange/20' : 'text-slate-500 hover:text-white'"
-                        class="flex-1 py-2.5 text-[11px] font-black uppercase tracking-widest rounded-lg transition-all duration-200">
-                        Contacts
-                    </button>
+                <!-- Search bar (placeholder for future use) -->
+                <div class="relative">
+                    <lucide-icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></lucide-icon>
+                    <input type="text" placeholder="Rechercher..." 
+                        class="w-full bg-black/30 border border-white/5 rounded-xl py-2 pl-9 pr-4 text-xs text-white placeholder:text-slate-600 outline-none focus:border-gosport-orange/30 transition-all">
                 </div>
             </div>
 
-            <!-- List -->
+            <!-- Unified List -->
             <div class="flex-1 overflow-y-auto py-3 px-3 space-y-1">
+                
+                <!-- Empty State -->
+                <div *ngIf="unifiedList.length === 0"
+                    class="flex flex-col items-center justify-center h-48 gap-3">
+                    <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
+                        <lucide-icon name="message-square" class="w-6 h-6 text-slate-600"></lucide-icon>
+                    </div>
+                    <p class="text-xs font-bold text-slate-500 uppercase tracking-widest text-center px-4">Aucun spécialiste connecté</p>
+                </div>
 
-                <!-- Conversations -->
-                <ng-container *ngIf="activeTab === 'messages'">
-                    <div *ngIf="conversations.length === 0"
-                        class="flex flex-col items-center justify-center h-48 gap-3">
-                        <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                            <lucide-icon name="message-square" class="w-6 h-6 text-slate-600"></lucide-icon>
+                <!-- List Items -->
+                <div *ngFor="let item of unifiedList"
+                    (click)="onItemSelect(item)"
+                    [ngClass]="{
+                        'bg-gosport-orange/10 border-gosport-orange/30': selectedConversation?.id === item.id,
+                        'border-transparent hover:bg-white/4 hover:border-white/8': selectedConversation?.id !== item.id
+                    }"
+                    class="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 border group">
+
+                    <!-- Avatar -->
+                    <div class="relative shrink-0">
+                        <div class="w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm uppercase transition-all duration-200"
+                            [ngClass]="selectedConversation?.id === item.id ? 'bg-gosport-orange text-white' : 'bg-white/8 text-slate-300 group-hover:bg-white/12'">
+                            {{ (item.participant?.first_name?.charAt(0) || '') }}{{ (item.participant?.last_name?.charAt(0) || '') }}
                         </div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Aucune discussion</p>
+                        <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-gosport-surface"></span>
                     </div>
 
-                    <div *ngFor="let conv of conversations; let i = index"
-                        (click)="selectConversation(conv)"
-                        [ngClass]="{
-                            'bg-gosport-orange/10 border-gosport-orange/30': selectedConversation?.id === conv.id,
-                            'border-transparent hover:bg-white/4 hover:border-white/8': selectedConversation?.id !== conv.id
-                        }"
-                        class="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 border group">
-
-                        <!-- Initials avatar -->
-                        <div class="relative shrink-0">
-                            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm uppercase"
-                                [ngClass]="selectedConversation?.id === conv.id ? 'bg-gosport-orange text-white' : 'bg-white/8 text-slate-300'">
-                                {{ (getParticipant(conv)?.first_name?.charAt(0) || '') }}{{ (getParticipant(conv)?.last_name?.charAt(0) || '') }}
-                            </div>
-                            <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-gosport-surface"></span>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex justify-between items-center mb-0.5">
+                            <h3 class="font-bold text-white text-sm truncate group-hover:text-gosport-orange transition-colors">
+                                {{ item.participant?.first_name }} {{ item.participant?.last_name }}
+                            </h3>
+                            <span *ngIf="item.lastMessageAt" class="text-[10px] font-bold text-slate-500 shrink-0 ml-2">
+                                {{ item.lastMessageAt | date:'HH:mm' }}
+                            </span>
                         </div>
-
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-center mb-0.5">
-                                <h3 class="font-bold text-white text-sm truncate">
-                                    {{ getParticipant(conv)?.first_name }} {{ getParticipant(conv)?.last_name }}
-                                </h3>
-                                <span class="text-[10px] font-bold text-slate-500 shrink-0 ml-2">{{ conv.lastMessageAt | date:'HH:mm' }}</span>
-                            </div>
-                            <p class="text-xs text-slate-500 truncate">
-                                {{ conv.lastMessageContent || 'Démarrer une discussion' }}
-                            </p>
-                        </div>
+                        <p class="text-xs truncate transition-colors"
+                           [ngClass]="selectedConversation?.id === item.id ? 'text-slate-300' : 'text-slate-500 group-hover:text-slate-400'">
+                            {{ item.lastMessage }}
+                        </p>
                     </div>
-                </ng-container>
-
-                <!-- Contacts -->
-                <ng-container *ngIf="activeTab === 'contacts'">
-                    <div *ngIf="contacts.length === 0"
-                        class="flex flex-col items-center justify-center h-48 gap-3">
-                        <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                            <lucide-icon name="users" class="w-6 h-6 text-slate-600"></lucide-icon>
-                        </div>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest">Aucun contact</p>
-                    </div>
-
-                    <div *ngFor="let contact of contacts; let i = index"
-                        (click)="selectContact(contact)"
-                        class="flex items-center gap-3 px-3 py-3 rounded-xl cursor-pointer transition-all duration-200 border border-transparent hover:bg-white/4 hover:border-white/8 group">
-
-                        <!-- Initials avatar -->
-                        <div class="w-10 h-10 rounded-xl bg-white/8 flex items-center justify-center font-black text-sm uppercase text-slate-300 shrink-0 group-hover:bg-gosport-orange/20 group-hover:text-gosport-orange transition-all">
-                            {{ (contact.first_name?.charAt(0) || '') }}{{ (contact.last_name?.charAt(0) || '') }}
-                        </div>
-
-                        <div class="flex-1 min-w-0">
-                            <h3 class="font-bold text-white text-sm truncate">{{ contact.first_name }} {{ contact.last_name }}</h3>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mt-0.5 group-hover:text-gosport-orange transition-colors">Nouvelle discussion</p>
-                        </div>
-
-                        <lucide-icon name="arrow-right" class="w-4 h-4 text-slate-600 group-hover:text-gosport-orange transition-colors shrink-0"></lucide-icon>
-                    </div>
-                </ng-container>
+                </div>
             </div>
         </div>
 

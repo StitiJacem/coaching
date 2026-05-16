@@ -1,5 +1,6 @@
 import * as bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../utils/jwt.config';
 import { UserRepository } from '../repositories/UserRepository';
 import { User } from '../entities/User';
 import { AppDataSource } from '../orm/data-source';
@@ -107,8 +108,8 @@ export class AuthService {
 
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
-            process.env.JWT_SECRET || 'your-secret-key',
-            { expiresIn: '1d' }
+            getJwtSecret(),
+            { expiresIn: '7d' }
         );
 
         // Enrich user response with role-specific profile IDs

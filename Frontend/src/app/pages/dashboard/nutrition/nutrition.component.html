@@ -10,10 +10,6 @@
                 <h1 class="nutr-title">Nutrition</h1>
             </div>
 
-            <div *ngIf="successMessage" class="success-toast anim-in">
-                <lucide-icon name="check-circle" class="w-5 h-5"></lucide-icon>
-                {{ successMessage }}
-            </div>
 
             <div class="nutr-header-actions">
                 <!-- Athlete Actions -->
@@ -119,7 +115,7 @@
                         <div class="log-list">
                             <div *ngFor="let log of todayLogs" class="log-item">
                                 <div class="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden border border-white/10 bg-white/5">
-                                    <img *ngIf="log.imagePath" [src]="'http://localhost:3000' + log.imagePath" class="w-full h-full object-cover">
+                                    <img *ngIf="log.imagePath" [src]="environment.apiUrl.replace('/api', '') + log.imagePath" class="w-full h-full object-cover">
                                     <lucide-icon *ngIf="!log.imagePath" name="image" class="w-full h-full p-4 opacity-20"></lucide-icon>
                                 </div>
                                 <div class="flex-1">
@@ -198,7 +194,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div *ngFor="let log of historyLogs" class="log-item">
                                 <div class="relative w-14 h-14 shrink-0 rounded-2xl overflow-hidden bg-white/5">
-                                    <img *ngIf="log.imagePath" [src]="'http://localhost:3000' + log.imagePath" class="w-full h-full object-cover">
+                                    <img *ngIf="log.imagePath" [src]="environment.apiUrl.replace('/api', '') + log.imagePath" class="w-full h-full object-cover">
                                 </div>
                                 <div class="flex-1">
                                     <p class="font-black text-white uppercase text-sm italic">{{ log.foodName }}</p>
@@ -338,6 +334,7 @@
         <div class="bg-gosport-surface border border-white/10 rounded-[3rem] p-10 max-w-xl w-full relative shadow-2xl">
             <button class="absolute top-8 right-8 text-slate-500 hover:text-white" (click)="showLogModal = false">✕</button>
             <h2 class="text-3xl font-black text-white uppercase italic mb-10">Manual Bio-Log</h2>
+            
             <form (ngSubmit)="submitMeal()" class="space-y-6">
                 <input type="text" [(ngModel)]="mealForm.foodName" name="foodName" class="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white font-bold" placeholder="Designation" required>
                 <div class="grid grid-cols-2 gap-4">

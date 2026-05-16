@@ -4,6 +4,7 @@ import { ExerciseService, Exercise } from '../../services/exercise.service';
 import { SessionService, Session } from '../../services/session.service';
 import { AthleteService } from '../../services/athlete.service';
 import { format } from 'date-fns';
+import { ToastService } from '../../services/toast.service';
 
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -59,7 +60,8 @@ export class WorkoutBuilderModalComponent implements OnInit {
         private exerciseService: ExerciseService,
         private sessionService: SessionService,
         private athleteService: AthleteService, // Injected for smart weight calc
-        private sanitizer: DomSanitizer
+        private sanitizer: DomSanitizer,
+        private toastService: ToastService
     ) { }
 
     ngOnInit(): void {
@@ -201,7 +203,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
 
     saveWorkout(): void {
         if (this.exercises.length === 0) {
-            alert('Please add at least one exercise.');
+            this.toastService.showWarning('Please add at least one exercise.');
             return;
         }
 
@@ -237,7 +239,7 @@ export class WorkoutBuilderModalComponent implements OnInit {
                     console.error('Error saving workout:', err);
                     this.isSaving = false;
                     const errorMsg = err.error?.message || 'Failed to save workout.';
-                    alert(errorMsg);
+                    this.toastService.showError(errorMsg);
                 }
             });
         } else {

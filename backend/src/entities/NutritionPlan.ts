@@ -2,6 +2,9 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 import { User } from "./User";
 import { NutritionPlanDay } from "./NutritionPlanDay";
 
+/**
+ * @deprecated Use DietPlan instead. This entity will be removed in future versions.
+ */
 @Entity("nutrition_plans")
 export class NutritionPlan {
     @PrimaryGeneratedColumn("uuid")

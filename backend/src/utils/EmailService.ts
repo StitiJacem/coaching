@@ -125,4 +125,43 @@ export class EmailService {
       throw error;
     }
   }
+
+  static async sendAthleteInvitation(email: string, coachName: string, role: string, signupUrl: string): Promise<boolean> {
+    const transporter = this.createTransporter();
+
+    const roleName = role === 'nutritionist' ? 'nutritionniste' : 'coach';
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `GOSPORT - Invitation de ${coachName}`,
+      html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #FF6B35 0%, #ff8a63 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0;">GOSPORT</h1>
+        </div>
+        <div style="background: #f9f9f9; padding: 30px;">
+          <h2 style="color: #333;">Bonjour !</h2>
+          <p style="color: #666; font-size: 16px;">Votre ${roleName} <strong>${coachName}</strong> vous invite à rejoindre GOSPORT pour suivre vos entraînements et votre progression.</p>
+          <div style="margin: 30px 0; text-align: center;">
+            <a href="${signupUrl}" style="background: #FF6B35; color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: bold;">Créer mon compte</a>
+          </div>
+          <p style="color: #666; font-size: 14px;">Cette invitation est exclusive. Si vous n'êtes pas concerné(e), vous pouvez ignorer cet email.</p>
+        </div>
+        <div style="background: #333; padding: 20px; text-align: center;">
+          <p style="color: #999; font-size: 12px; margin: 0;">© 2026 GOSPORT. Tous droits réservés.</p>
+        </div>
+      </div>
+    `
+    };
+
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Invitation email sent to:', email);
+      return true;
+    } catch (error) {
+      console.error('Error sending invitation email:', error);
+      return false;
+    }
+  }
 }

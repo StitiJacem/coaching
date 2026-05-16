@@ -15,6 +15,9 @@ import { AuthService } from '../../../services/auth.service';
 import { SocialAuthService } from '../../../services/social-auth.service';
 import { UserService } from '../../../services/user.service';
 import { RoleService } from '../../../services/role.service';
+import { GoalService } from '../../../services/goal.service';
+import { ToastService } from '../../../services/toast.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile-view',
@@ -42,8 +45,34 @@ export class ProfileViewComponent implements OnInit {
   editingNotes = false;
   editingInjuries = false;
   editingProfile = false;
+  showMetricModal = false;
+  showGoalModal = false;
   isOwnProfile = false;
   tempField = '';
+
+  // Metric Form
+  metricForm: {
+    weight?: number;
+    bodyFat?: number;
+    vo2max?: number;
+    date: string;
+    notes: string;
+  } = {
+    date: this.getLocalISODate(),
+    notes: ''
+  };
+
+  // Goal Form
+  goalForm: {
+    name: string;
+    targetValue?: number;
+    unit: string;
+    deadline: string;
+  } = {
+    name: '',
+    unit: 'kg',
+    deadline: ''
+  };
   
   // Stats helpers
   adherenceColor = '#10b981';
@@ -63,12 +92,18 @@ export class ProfileViewComponent implements OnInit {
 
   // Athlete edit mode
   editingAthleteProfile = false;
-  athleteEditForm = {
+  athleteEditForm: {
+    first_name: string;
+    last_name: string;
+    sport: string;
+    weight?: number;
+    height?: number;
+    goals: string;
+    experienceLevel: string;
+  } = {
     first_name: '',
     last_name: '',
     sport: '',
-    weight: null as number | null,
-    height: null as number | null,
     goals: '',
     experienceLevel: ''
   };
@@ -85,8 +120,12 @@ export class ProfileViewComponent implements OnInit {
     private nutritionistService: NutritionistService,
     private socialAuthService: SocialAuthService,
     private userService: UserService,
-    private roleService: RoleService
+    private roleService: RoleService,
+    private goalService: GoalService,
+    private toastService: ToastService
   ) { }
+
+  environment = environment;
 
   ngOnInit(): void {
     this.route.paramMap.subscribe(params => {
@@ -118,7 +157,7 @@ export class ProfileViewComponent implements OnInit {
           // Sync: keep localStorage avatar consistent with athlete's stored profilePicture
           if (this.isOwnProfile && currentUser && this.overview.athlete?.profilePicture) {
             const pic = this.overview.athlete.profilePicture;
-            const absolute = pic.startsWith('http') ? pic : `http://localhost:3000${pic}`;
+            const absolute = pic.startsWith('http') ? pic : `${environment.apiUrl.replace('/api', '')}${pic}`;
             if (currentUser.photo_url !== pic) {
               currentUser.photo_url = pic;
               currentUser.avatar = absolute;
@@ -128,7 +167,7 @@ export class ProfileViewComponent implements OnInit {
           
           this.loading = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error loading overview:', err);
           this.error = 'Impossible de charger l\'aperçu de l\'athlète.';
           this.loading = false;
@@ -204,8 +243,8 @@ export class ProfileViewComponent implements OnInit {
       first_name: this.overview.athlete?.user?.first_name || this.overview.athlete?.name?.split(' ')[0] || '',
       last_name: this.overview.athlete?.user?.last_name || this.overview.athlete?.name?.split(' ').slice(1).join(' ') || '',
       sport: this.overview.athlete?.sport || '',
-      weight: this.overview.athlete?.weight || null,
-      height: this.overview.athlete?.height || null,
+      weight: this.overview.athlete?.weight || undefined,
+      height: this.overview.athlete?.height || undefined,
       goals: this.overview.athlete?.goals || '',
       experienceLevel: this.overview.athlete?.experienceLevel || ''
     };
@@ -234,8 +273,8 @@ export class ProfileViewComponent implements OnInit {
       goals: this.athleteEditForm.goals,
       experienceLevel: this.athleteEditForm.experienceLevel
     };
-    if (this.athleteEditForm.weight !== null) athleteUpdate.weight = this.athleteEditForm.weight;
-    if (this.athleteEditForm.height !== null) athleteUpdate.height = this.athleteEditForm.height;
+    if (this.athleteEditForm.weight) athleteUpdate.weight = this.athleteEditForm.weight;
+    if (this.athleteEditForm.height) athleteUpdate.height = this.athleteEditForm.height;
 
     forkJoin({
       user: this.userService.updateProfile(userUpdate),
@@ -265,9 +304,9 @@ export class ProfileViewComponent implements OnInit {
         this.editingAthleteProfile = false;
         this.loading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error saving athlete profile:', err);
-        alert('Erreur lors de la mise à jour du profil.');
+        this.toastService.showError('Erreur lors de la mise à jour du profil.');
         this.loading = false;
       }
     });
@@ -318,9 +357,9 @@ export class ProfileViewComponent implements OnInit {
           localStorage.setItem('user', JSON.stringify(user));
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error updating profile:', err);
-        alert('Erreur lors de la mise à jour du profil.');
+        this.toastService.showError('Erreur lors de la mise à jour du profil.');
         this.loading = false;
       }
     });
@@ -335,7 +374,7 @@ export class ProfileViewComponent implements OnInit {
           // Build absolute URL
           const absoluteUrl = res.photoUrl.startsWith('http')
             ? res.photoUrl
-            : `http://localhost:3000${res.photoUrl}`;
+            : `${environment.apiUrl.replace('/api', '')}${res.photoUrl}`;
 
           // Update local state based on view type
           if ((this.viewType === 'coach' || this.viewType === 'nutritionist') && this.profile && this.profile.user) {
@@ -345,7 +384,7 @@ export class ProfileViewComponent implements OnInit {
             this.overview.athlete.profilePicture = absoluteUrl;
             // Persist to database
             this.athleteService.update(this.overview.athlete.id, { profilePicture: res.photoUrl }).subscribe({
-              error: (err) => console.error('Error persisting athlete photo:', err)
+              error: (err: any) => console.error('Error persisting athlete photo:', err)
             });
           }
 
@@ -362,7 +401,7 @@ export class ProfileViewComponent implements OnInit {
         },
         error: () => {
           this.uploadingPhoto = false;
-          alert('Erreur lors du téléchargement de la photo.');
+          this.toastService.showError('Erreur lors du téléchargement de la photo.');
         }
       });
     }
@@ -434,6 +473,12 @@ export class ProfileViewComponent implements OnInit {
     return `Il y a ${diffDays}j`;
   }
 
+  getLocalISODate(): string {
+    const now = new Date();
+    const offset = now.getTimezoneOffset() * 60000;
+    return new Date(now.getTime() - offset).toISOString().split('T')[0];
+  }
+
   startEdit(field: 'notes' | 'injuries'): void {
     this.tempField = this.overview.athlete[field] || '';
     if (field === 'notes') this.editingNotes = true;
@@ -448,9 +493,9 @@ export class ProfileViewComponent implements OnInit {
         this.editingNotes = false;
         this.editingInjuries = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error updating athlete field:', err);
-        alert('Erreur lors de la mise à jour.');
+        this.toastService.showError('Erreur lors de la mise à jour.');
       }
     });
   }
@@ -458,6 +503,75 @@ export class ProfileViewComponent implements OnInit {
   cancelEdit(): void {
     this.editingNotes = false;
     this.editingInjuries = false;
+  }
+
+  // --- Metric Management ---
+
+  openMetricModal(): void {
+    this.metricForm = {
+      weight: this.overview?.athlete?.weight || undefined,
+      bodyFat: undefined,
+      vo2max: undefined,
+      date: this.getLocalISODate(),
+      notes: ''
+    };
+    this.showMetricModal = true;
+  }
+
+  saveMetric(): void {
+    if (!this.entityId) return;
+    this.loading = true;
+    this.athleteService.addMetric(Number(this.entityId), this.metricForm).subscribe({
+      next: () => {
+        this.showMetricModal = false;
+        this.loadData(); // Refresh all data
+      },
+      error: (err: any) => {
+        console.error('Error saving metric:', err);
+        this.toastService.showError('Erreur lors de l\'enregistrement de la métrique.');
+        this.loading = false;
+      }
+    });
+  }
+
+  // --- Goal Management ---
+
+  openGoalModal(): void {
+    const currentGoal = this.overview?.primaryGoal;
+    this.goalForm = {
+      name: currentGoal?.name || 'Perte de poids',
+      targetValue: currentGoal?.targetValue || undefined,
+      unit: currentGoal?.unit || 'kg',
+      deadline: currentGoal?.deadline ? new Date(currentGoal.deadline).toISOString().split('T')[0] : ''
+    };
+    this.showGoalModal = true;
+  }
+
+  saveGoal(): void {
+    if (!this.entityId) return;
+    this.loading = true;
+
+    const payload = {
+      athleteId: Number(this.entityId),
+      ...this.goalForm,
+      status: 'active'
+    };
+
+    const obs = this.overview?.primaryGoal?.id
+      ? this.goalService.update(this.overview.primaryGoal.id, payload)
+      : this.goalService.create(payload);
+
+    obs.subscribe({
+      next: () => {
+        this.showGoalModal = false;
+        this.loadData();
+      },
+      error: (err: any) => {
+        console.error('Error saving goal:', err);
+        this.toastService.showError('Erreur lors de l\'enregistrement de l\'objectif.');
+        this.loading = false;
+      }
+    });
   }
 
   goBack(): void {

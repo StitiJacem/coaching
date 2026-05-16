@@ -9,6 +9,7 @@ import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { CoachService } from '../../../services/coach.service';
 import { SocialAuthService } from '../../../services/social-auth.service';
 import { NutritionistService } from '../../../services/nutritionist.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -67,7 +68,7 @@ export class ProfileComponent implements OnInit {
       if (this.user.photo_url) {
         this.user.avatar = this.user.photo_url.startsWith('http')
           ? this.user.photo_url
-          : `http://localhost:3000${this.user.photo_url}`;
+          : `${environment.apiUrl.replace('/api', '')}${this.user.photo_url}`;
       }
     }
   }
@@ -168,7 +169,7 @@ export class ProfileComponent implements OnInit {
           // Build absolute URL
           const absoluteUrl = res.photoUrl.startsWith('http')
             ? res.photoUrl
-            : `http://localhost:3000${res.photoUrl}`;
+            : `${environment.apiUrl.replace('/api', '')}${res.photoUrl}`;
           
           // Update displayed avatar immediately
           this.user.avatar = absoluteUrl;

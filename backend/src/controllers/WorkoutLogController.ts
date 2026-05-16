@@ -3,6 +3,7 @@ import { AppDataSource } from "../orm/data-source";
 import { WorkoutLog } from "../entities/WorkoutLog";
 import { ExerciseLog } from "../entities/ExerciseLog";
 import { ActivityEvent } from "../entities/ActivityEvent";
+import { Goal } from "../entities/Goal";
 import { canAccessAthlete } from "../utils/authorization";
 import { notifyCoachesOfAthlete } from "../utils/notificationHelper";
 
@@ -205,6 +206,32 @@ export class WorkoutLogController {
                     `An athlete completed their workout.`,
                     { workoutLogId: log.id }
                 );
+
+                // --- Goal Auto-Update ---
+                const goalRepo = AppDataSource.getRepository(Goal);
+                const activeGoals = await goalRepo.find({ where: { athleteId: log.athleteId, status: "active" } });
+                
+                for (const goal of activeGoals) {
+                    let updated = false;
+                    const unit = goal.unit?.toLowerCase() || "";
+                    
+                    if (unit.includes("workout") || unit.includes("session") || unit.includes("séance")) {
+                        goal.currentValue = (Number(goal.currentValue) || 0) + 1;
+                        updated = true;
+                    } else if ((unit === "min" || unit.includes("minute")) && durationMinutes) {
+                        goal.currentValue = (Number(goal.currentValue) || 0) + durationMinutes;
+                        updated = true;
+                    }
+
+                    if (updated) {
+                        if (goal.targetValue && Number(goal.currentValue) >= Number(goal.targetValue)) {
+                            goal.status = "achieved";
+                            notifyCoachesOfAthlete(log.athleteId, "goal_achieved", "Objectif atteint !", `L'athlète a atteint son objectif : ${goal.name}`, { goalId: goal.id });
+                        }
+                        await goalRepo.save(goal);
+                    }
+                }
+                // ------------------------
             }
             if (status === "missed") {
                 notifyCoachesOfAthlete(

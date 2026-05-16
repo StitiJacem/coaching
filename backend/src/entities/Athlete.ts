@@ -60,6 +60,9 @@ export class Athlete {
     @Column({ nullable: true })
     nationality?: string;
 
+    @Column({ nullable: true })
+    location?: string;
+
     @Column({ type: "date", nullable: true })
     dateOfBirth?: Date;
 

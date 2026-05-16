@@ -6,6 +6,7 @@ import { CoachSpecialization } from "../entities/CoachSpecialization";
 import { Program } from "../entities/Program";
 import { Session } from "../entities/Session";
 import { Goal } from "../entities/Goal";
+import { Exercise } from "../entities/Exercise";
 import * as bcrypt from "bcryptjs";
 
 export const seedDatabase = async () => {
@@ -112,6 +113,29 @@ export const seedDatabase = async () => {
             session.type = data.sport;
             session.status = "upcoming";
             await sessionRepo.save(session);
+        }
+
+        // --- SEED STANDARD EXERCISES ---
+        const exerciseRepo = AppDataSource.getRepository(Exercise);
+        const standardExercises = [
+            { name: "Squat", description: "Lower body barbell compound movement", target_muscle: "Quadriceps", difficulty_level: "intermediate" },
+            { name: "Deadlift", description: "Posterior chain compound movement", target_muscle: "Hamstrings & Glutes", difficulty_level: "advanced" },
+            { name: "Bench Press", description: "Upper body pushing movement", target_muscle: "Chest", difficulty_level: "intermediate" },
+            { name: "Pull-Up", description: "Upper body pulling movement", target_muscle: "Back", difficulty_level: "intermediate" },
+            { name: "Push-Up", description: "Bodyweight chest exercise", target_muscle: "Chest", difficulty_level: "beginner" },
+            { name: "Plank", description: "Core stability exercise", target_muscle: "Core", difficulty_level: "beginner" },
+            { name: "Lunge", description: "Unilateral leg exercise", target_muscle: "Quadriceps", difficulty_level: "beginner" }
+        ];
+
+        for (const exData of standardExercises) {
+            let ex = await exerciseRepo.findOne({ where: { name: exData.name } });
+            if (!ex) {
+                ex = exerciseRepo.create({
+                    ...exData,
+                    is_custom: false
+                });
+                await exerciseRepo.save(ex);
+            }
         }
 
         console.log("Database seeded successfully");

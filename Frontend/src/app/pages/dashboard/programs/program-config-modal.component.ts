@@ -2,6 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Program, ProgramService } from '../../../services/program.service';
+import { ToastService } from '../../../services/toast.service';
 
 @Component({
     selector: 'app-program-config-modal',
@@ -121,7 +122,7 @@ export class ProgramConfigModalComponent {
     startDate: string = new Date().toISOString().split('T')[0];
     isSubmitting = false;
 
-    constructor(private programService: ProgramService) { }
+    constructor(private programService: ProgramService, private toastService: ToastService) { }
 
     toggleDay(index: number) {
         const idx = this.selectedDays.indexOf(index);
@@ -150,7 +151,7 @@ export class ProgramConfigModalComponent {
             error: (err) => {
                 console.error('Error accepting program:', err);
                 this.isSubmitting = false;
-                alert('Failed to activate program. Please try again.');
+                this.toastService.showError('Failed to activate program. Please try again.');
             }
         });
     }

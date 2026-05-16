@@ -22,16 +22,24 @@ import aiRoutes from './routes/ai';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
 import sessionRoutes from './routes/sessions';
+import stripeRoutes from './routes/stripe';
 
 const app = express();
 
 app.use(logger('dev'));
 app.use(cors());
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+
+// Webhooks must be parsed as raw body
+const rawParser = require('express').raw({ type: 'application/json' });
+app.use('/api/stripe/webhook', rawParser);
+app.use('/api/stripe', stripeRoutes);
+
+const expressModule = require('express');
+app.use(expressModule.json());
+app.use(expressModule.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, '../public')));
-app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use(expressModule.static(path.join(__dirname, '../public')));
+app.use('/uploads', expressModule.static(path.join(__dirname, '../public/uploads')));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);

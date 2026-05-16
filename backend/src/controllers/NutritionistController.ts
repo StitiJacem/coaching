@@ -16,11 +16,36 @@ export class NutritionistController {
 
     // Get all nutritionists for discovery
     async getAll(req: Request, res: Response) {
+        const userRepo = AppDataSource.getRepository("User") as any;
+        const nutritionistRepo = AppDataSource.getRepository(NutritionistProfile);
+
         try {
-            const nutritionists = await this.nutritionistRepo.find({
-                relations: ["user"]
-            });
-            return res.json(nutritionists);
+            // Find all users who are nutritionists
+            const nutritionistUsers = await userRepo.find({ where: { role: 'nutritionist' } });
+            
+            const results: any[] = [];
+            for (const nutUser of nutritionistUsers) {
+                let profile = await nutritionistRepo.findOne({
+                    where: { userId: nutUser.id },
+                    relations: ["user"]
+                });
+
+                if (!profile) {
+                    // Create virtual profile for display
+                    profile = nutritionistRepo.create({
+                        userId: nutUser.id,
+                        user: nutUser,
+                        verified: true,
+                        rating: 4.5,
+                        experience_years: 0,
+                        bio: 'Professional Nutritionist'
+                    });
+                    profile.user = nutUser;
+                }
+                results.push(profile);
+            }
+            
+            return res.json(results);
         } catch (error) {
             console.error("Error fetching nutritionists", error);
             res.status(500).json({ message: "Server error" });

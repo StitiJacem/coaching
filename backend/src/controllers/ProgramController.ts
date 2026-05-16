@@ -11,25 +11,21 @@ import { CoachProfile } from "../entities/Coach";
 import { canAccessAthlete } from "../utils/authorization";
 import { notifyUser } from "../utils/notificationHelper";
 import { Session } from "../entities/Session";
+import { resolveAthleteId } from "../utils/resolveAthlete";
 
 export class ProgramController {
     static getTodayWorkout = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
-            let userId = parseInt(req.params.userId as string);
+            const paramId = parseInt(req.params.userId as string);
 
-
-            if (user.role === 'athlete' && user.id !== userId) {
-                console.warn(`Security Warning: User ${user.id} attempted to access workout for user ${userId}`);
-                userId = user.id;
-            }
-
+            const athleteId = await resolveAthleteId(user, paramId);
             const programRepo = AppDataSource.getRepository(Program);
             const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
             const sessionRepo = AppDataSource.getRepository(Session);
             const athleteRepo = AppDataSource.getRepository(Athlete);
 
-            const athlete = await athleteRepo.findOne({ where: { userId } });
+            const athlete = await athleteRepo.findOne({ where: { id: athleteId } });
             if (!athlete) {
                 return res.json({ program: null, day: null, workoutLog: null, message: "No athlete profile found" });
             }
@@ -152,7 +148,7 @@ export class ProgramController {
             if (user.role === 'athlete') {
                 let athlete = await athleteRepo.findOne({ where: { userId: user.id } });
                 if (!athlete) {
-                    console.log(`[DEBUG] Auto-creating missing athlete profile for user ${user.id} in ProgramController.getAll`);
+                    // debug log removed
                     athlete = athleteRepo.create({ userId: user.id, lastActive: new Date() });
                     await athleteRepo.save(athlete);
                 }
@@ -670,7 +666,7 @@ export class ProgramController {
                 session.programDayId = day.id;
                 session.coachId = program.coachId;
                 session.date = sessionDate;
-                session.time = "12:00"; 
+                session.time = program.athlete?.timePerSession || "12:00"; 
                 session.type = program.type || "Strength";
                 session.title = day.title;
                 session.status = "upcoming";

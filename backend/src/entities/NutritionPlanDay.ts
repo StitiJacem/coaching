@@ -1,6 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn } from "typeorm";
 import { NutritionPlan } from "./NutritionPlan";
 
+/**
+ * @deprecated Use DietDay instead. This entity will be removed in future versions.
+ */
 @Entity("nutrition_plan_days")
 export class NutritionPlanDay {
     @PrimaryGeneratedColumn("uuid")

@@ -4,6 +4,8 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { AthleteService } from '../../../../services/athlete.service';
 import { ProgramService } from '../../../../services/program.service';
+import { ConfirmService } from '../../../../services/confirm.service';
+import { ToastService } from '../../../../services/toast.service';
 import { DashboardLayoutComponent } from '../../../../components/dashboard-layout/dashboard-layout.component';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -24,10 +26,12 @@ export class AthleteOverviewComponent implements OnInit {
     public router: Router,
     private athleteService: AthleteService,
     private programService: ProgramService,
+    private confirmService: ConfirmService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit(): void {
-    this.route.params.subscribe(params => {
+    this.route.params.subscribe((params: any) => {
       this.athleteId = +params['id'];
       this.loadOverview();
     });
@@ -36,8 +40,8 @@ export class AthleteOverviewComponent implements OnInit {
   loadOverview(): void {
     this.isLoading = true;
     this.athleteService.getOverview(this.athleteId).subscribe({
-      next: (data) => { this.overview = data; this.isLoading = false; },
-      error: (err) => {
+      next: (data: any) => { this.overview = data; this.isLoading = false; },
+      error: (err: any) => {
         console.error('Error loading overview:', err);
         this.isLoading = false;
       }
@@ -48,18 +52,25 @@ export class AthleteOverviewComponent implements OnInit {
     this.router.navigate(['/dashboard/athletes', this.athleteId, 'calendar']);
   }
 
-  endProgram(): void {
+  async endProgram(): Promise<void> {
     if (!this.overview?.activeProgram?.id) return;
-    if (!confirm(`End "${this.overview.activeProgram.name}"? All remaining sessions will be cleared.`)) return;
+    const confirmed = await this.confirmService.danger(
+      `End "${this.overview.activeProgram.name}"? All remaining sessions will be cleared.`,
+      'End Program'
+    );
+    
+    if (!confirmed) return;
     this.isEndingProgram = true;
     this.programService.endProgram(this.overview.activeProgram.id).subscribe({
       next: () => {
         this.isEndingProgram = false;
+        this.toastService.showSuccess('Program ended successfully.');
         this.loadOverview();
       },
       error: (err: any) => {
         console.error('Error ending program:', err);
         this.isEndingProgram = false;
+        this.toastService.showError('Failed to end program.');
       }
     });
   }

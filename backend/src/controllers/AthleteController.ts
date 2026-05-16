@@ -13,12 +13,14 @@ import { NutritionistProfile } from "../entities/NutritionistProfile";
 import { NutritionConnection } from "../entities/NutritionConnection";
 import { Notification } from "../entities/Notification";
 import { Program } from "../entities/Program";
+import { resolveAthleteId } from "../utils/resolveAthlete";
+import { sendPushNotification } from "../utils/firebase";
 
 export class AthleteController {
 
     static getAll = async (req: Request, res: Response) => {
         try {
-            console.log(`[DEBUG] AthleteController.getAll called by user:`, (req as any).user);
+            // debug log removed
             const athleteRepo = AppDataSource.getRepository(Athlete);
             const { search, sport } = req.query;
 
@@ -33,7 +35,7 @@ export class AthleteController {
 
                 if (!coachProfile) {
 
-                    console.log(`[DEBUG] Auto-creating missing coach profile for user ${user.id} in getAll`);
+                    // debug log removed
                     const newProfile = coachProfileRepo.create({ userId: user.id });
                     await coachProfileRepo.save(newProfile);
                     return res.json([]);
@@ -43,14 +45,16 @@ export class AthleteController {
 
                 queryBuilder.andWhere(new Brackets(qb => {
                     qb.where(
-                        `EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)`,
-                        { coachId: user.id }
+                        `EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)`
                     );
                     qb.orWhere(
-                        `EXISTS (SELECT 1 FROM coaching_requests cr WHERE cr."athleteId" = athlete.id AND cr."coachProfileId" = :profileId AND cr.status = 'accepted')`,
-                        { profileId: coachProfile.id }
+                        `EXISTS (SELECT 1 FROM coaching_requests cr WHERE cr."athleteId" = athlete.id AND cr."coachProfileId" = :profileId AND cr.status = 'accepted')`
                     );
-                }));
+                }))
+                .setParameters({ 
+                    coachId: user.id, 
+                    profileId: coachProfile.id 
+                });
             } else if (user && user.role === 'nutritionist') {
                 const nutritionistProfileRepo = AppDataSource.getRepository("NutritionistProfile");
                 const profile = await nutritionistProfileRepo.findOne({ where: { userId: user.id } });
@@ -132,7 +136,7 @@ export class AthleteController {
             if (coachRole === 'coach') {
                 let coachProfile = await coachProfileRepo.findOne({ where: { userId: coachId } });
                 if (!coachProfile) {
-                    console.log(`[DEBUG] Auto-creating missing coach profile for user ${coachId} during invitation`);
+                    // debug log removed
                     coachProfile = coachProfileRepo.create({ userId: coachId });
                     await coachProfileRepo.save(coachProfile);
                 }
@@ -141,7 +145,7 @@ export class AthleteController {
                 const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
                 let nutriProfile = await nutriProfileRepo.findOne({ where: { userId: coachId } });
                 if (!nutriProfile) {
-                    console.log(`[DEBUG] Auto-creating missing nutritionist profile for user ${coachId} during invitation`);
+                    // debug log removed
                     nutriProfile = nutriProfileRepo.create({ userId: coachId });
                     await nutriProfileRepo.save(nutriProfile);
                 }
@@ -180,14 +184,22 @@ export class AthleteController {
                     const savedReq = await coachingRequestRepo.save(request);
 
                     // Create Notification
+                    const title = 'Nouvelle demande de coaching';
+                    const body = `${(req as any).user.first_name || 'Un coach'} souhaite vous ajouter à ses athlètes.`;
+                    
                     const notifRepo = AppDataSource.getRepository(Notification);
                     await notifRepo.save(notifRepo.create({
                         userId: existingUser.id,
                         type: 'coach_invite',
-                        title: 'Nouvelle demande de coaching',
-                        body: `${(req as any).user.first_name || 'Un coach'} souhaite vous ajouter à ses athlètes.`,
+                        title,
+                        body,
                         payload: { requestId: savedReq.id }
                     }));
+
+                    // Send Push Notification
+                    if (existingUser.fcmToken) {
+                        await sendPushNotification(existingUser.fcmToken, title, body, { requestId: savedReq.id.toString(), type: 'coach_invite' });
+                    }
                 } else {
                     // Nutritionist
                     const connectionRepo = AppDataSource.getRepository(NutritionConnection);
@@ -206,14 +218,22 @@ export class AthleteController {
                     const savedConn = await connectionRepo.save(connection);
 
                     // Create Notification
+                    const title = 'Nouvelle demande (Nutrition)';
+                    const body = `${(req as any).user.first_name || 'Un nutritionniste'} souhaite vous suivre.`;
+                    
                     const notifRepo = AppDataSource.getRepository(Notification);
                     await notifRepo.save(notifRepo.create({
                         userId: existingUser.id,
                         type: 'nutrition_invite',
-                        title: 'Nouvelle demande (Nutrition)',
-                        body: `${(req as any).user.first_name || 'Un nutritionniste'} souhaite vous suivre.`,
+                        title,
+                        body,
                         payload: { connectionId: savedConn.id }
                     }));
+
+                    // Send Push Notification
+                    if (existingUser.fcmToken) {
+                        await sendPushNotification(existingUser.fcmToken, title, body, { connectionId: savedConn.id.toString(), type: 'nutrition_invite' });
+                    }
                 }
 
                 return res.status(201).json({
@@ -234,6 +254,11 @@ export class AthleteController {
                 status: 'pending'
             });
             await inviteRepo.save(invitation);
+
+            const coachName = (req as any).user.first_name || 'Un professionnel';
+            const signupUrl = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/auth/signup?email=${encodeURIComponent(email)}`;
+            
+            await EmailService.sendAthleteInvitation(email, coachName, coachRole, signupUrl);
 
             res.status(201).json({
                 message: "Invitation email sent successfully!",
@@ -384,56 +409,58 @@ export class AthleteController {
         try {
             const user = (req as any).user;
             const athleteId = parseInt(req.params.id as string);
-            // Only coaches with access or the athlete themselves can add metrics
+            
+            console.log(`AddMetric: AthleteID=${athleteId}, UserID=${user?.id}, Role=${user?.role}`);
+            console.log('Metric Payload:', req.body);
+
             if (!(await canAccessAthlete(user, athleteId))) {
+                console.warn('Access denied for AddMetric');
                 return res.status(403).json({ message: "Access denied: You do not have permission to add metrics" });
             }
+
             const { date, weight, bodyFat, vo2max, notes } = req.body;
 
             const metricRepo = AppDataSource.getRepository(BodyMetric);
             const metric = metricRepo.create({
                 athleteId,
                 date: date ? new Date(date) : new Date(),
-                weight,
-                bodyFat,
-                vo2max,
+                weight: weight ? Number(weight) : undefined,
+                bodyFat: bodyFat ? Number(bodyFat) : undefined,
+                vo2max: vo2max ? Number(vo2max) : undefined,
                 notes
             });
 
-            const savedMetric = await metricRepo.save(metric);
+            console.log('Created Metric Entity:', metric);
 
-            // Also update the latest weight on the athlete profile if weight provided
+            const savedMetric = await metricRepo.save(metric);
+            console.log('Saved Metric Success:', savedMetric.id);
+
             if (weight) {
                 const athleteRepo = AppDataSource.getRepository(Athlete);
-                await athleteRepo.update(athleteId, { weight });
+                await athleteRepo.update(athleteId, { weight: Number(weight) });
+                console.log('Updated Athlete current weight');
             }
 
             res.status(201).json(savedMetric);
-        } catch (error) {
-            console.error("Error adding athlete metric:", error);
-            res.status(500).json({ message: "Error adding athlete metric" });
+        } catch (error: any) {
+            console.error("CRITICAL ERROR adding athlete metric:", error);
+            res.status(500).json({ 
+                message: "Error adding athlete metric", 
+                error: error.message,
+                detail: error.detail || 'No additional details'
+            });
         }
     };
 
     static getOverview = async (req: Request, res: Response) => {
         try {
             const user = (req as any).user;
-            let athleteId = parseInt(req.params.id as string);
+            const paramId = parseInt(req.params.id as string);
             
+            const athleteId = await resolveAthleteId(user, paramId);
             const athleteRepo = AppDataSource.getRepository(Athlete);
             
-            // Critical Self-Resolution: If user is athlete and ID is their userId, or no athlete found by ID, find by userId
-            let athlete = await athleteRepo.findOne({ where: { id: athleteId }, relations: ["user"] });
-            
-            if (!athlete && user.role === 'athlete' && Number(athleteId) === Number(user.id)) {
-                athlete = await athleteRepo.findOne({ where: { userId: user.id }, relations: ["user"] });
-                if (athlete) athleteId = athlete.id;
-            }
-
-            if (!athlete) {
-               // Second attempt if athleteId resolution was needed
-               athlete = await athleteRepo.findOne({ where: { id: athleteId }, relations: ["user"] });
-            }
+            const athlete = await athleteRepo.findOne({ where: { id: athleteId }, relations: ["user"] });
 
             if (!athlete) return res.status(404).json({ message: "Athlete record not found for this identifier" });
 
@@ -543,7 +570,7 @@ export class AthleteController {
                     joinedDate: athlete.joinedDate,
                     lastActive: athlete.lastActive,
                     nationality: athlete.nationality,
-                    location: athlete.nationality // Using nationality as location for now
+                    location: athlete.location || "Unknown"
                 },
                 trainingStats: {
                     last7Completed,
@@ -635,7 +662,7 @@ export class AthleteController {
                             name: `${profile.user.first_name || ''} ${profile.user.last_name || ''}`.trim() || 'Coach',
                             specialization: profile.specializations?.[0]?.specialization || 'Performance Coach',
                             bio: profile.bio || 'Professional Coach',
-                            avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : `http://localhost:3000${profile.user.photo_url}`) : null,
+                            avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : profile.user.photo_url) : null,
                             email: profile.user.email,
                             rating: profile.rating || 4.5,
                             experience: profile.experience_years || 0
@@ -663,7 +690,7 @@ export class AthleteController {
                         name: `${profile.user.first_name || ''} ${profile.user.last_name || ''}`.trim() || 'Coach',
                         specialization: profile.specializations?.[0]?.specialization || 'Performance Coach',
                         bio: profile.bio || 'Professional Coach',
-                        avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : `http://localhost:3000${profile.user.photo_url}`) : null,
+                        avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : profile.user.photo_url) : null,
                         email: profile.user.email,
                         rating: profile.rating || 4.5,
                         experience: profile.experience_years || 0
@@ -685,7 +712,7 @@ export class AthleteController {
                             name: `${profile.user.first_name || ''} ${profile.user.last_name || ''}`.trim() || 'Nutritionist',
                             specialization: 'Nutrition Specialist',
                             bio: profile.bio || 'Professional Nutritionist',
-                            avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : `http://localhost:3000${profile.user.photo_url}`) : null,
+                            avatar: profile.user.photo_url ? (profile.user.photo_url.startsWith('http') ? profile.user.photo_url : profile.user.photo_url) : null,
                             email: profile.user.email,
                             rating: profile.rating || 4.5,
                             experience: profile.experience_years || 0

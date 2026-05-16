@@ -25,22 +25,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   final _phoneCtrl = TextEditingController();
   final _bioCtrl = TextEditingController();
 
-  // Athlete-specific
   double? _weight;
   double? _height;
   String _sport = '';
 
-  // Coach-specific
   List<String> _specializations = [];
   final _specCtrl = TextEditingController();
 
   Map<String, dynamic>? _profile;
 
-  final _specs = [
-    'Padel', 'Football','Swimming',
-    'Running', 'Weightlifting',
-    'CrossFit','Musculation', 'Nutrition',
-  ];
+  final _specs = ['Padel', 'Football', 'Swimming', 'Running', 'Weightlifting', 'CrossFit', 'Musculation', 'Nutrition'];
 
   @override
   void initState() {
@@ -50,11 +44,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   void dispose() {
-    _firstNameCtrl.dispose();
-    _lastNameCtrl.dispose();
-    _phoneCtrl.dispose();
-    _bioCtrl.dispose();
-    _specCtrl.dispose();
+    _firstNameCtrl.dispose(); _lastNameCtrl.dispose(); _phoneCtrl.dispose(); _bioCtrl.dispose(); _specCtrl.dispose();
     super.dispose();
   }
 
@@ -71,11 +61,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       _weight = (data['weight'] as num?)?.toDouble();
       _height = (data['height'] as num?)?.toDouble();
       final specs = data['specializations'] as List?;
-      _specializations = specs
-              ?.map((s) => s['specialization']?.toString() ?? '')
-              .where((s) => s.isNotEmpty)
-              .toList() ??
-          [];
+      _specializations = specs?.map((s) => s['specialization']?.toString() ?? '').where((s) => s.isNotEmpty).toList() ?? [];
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
   }
@@ -94,13 +80,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           if (_weight != null) 'weight': _weight,
           if (_height != null) 'height': _height,
         },
-        if (user.role == AppConstants.roleCoach)
-          'specializations': _specializations,
+        if (user.role == AppConstants.roleCoach) 'specializations': _specializations,
       };
       await ref.read(athletesRepositoryProvider).updateMyProfile(data);
-      setState(() => _saveMessage = '✓  Profile updated successfully!');
+      setState(() => _saveMessage = '✓  PROFILE UPDATED SUCCESSFULLY');
     } catch (e) {
-      setState(() => _saveMessage = 'Error: $e');
+      setState(() => _saveMessage = 'ERROR: $e');
     }
     if (mounted) setState(() => _saving = false);
   }
@@ -110,289 +95,124 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = ref.watch(currentUserProvider);
     final isAthlete = user?.role == AppConstants.roleAthlete;
     final isCoach = user?.role == AppConstants.roleCoach;
-    final initial = _firstNameCtrl.text.isNotEmpty
-        ? _firstNameCtrl.text[0].toUpperCase()
-        : (user?.firstName.isNotEmpty == true
-            ? user!.firstName[0].toUpperCase()
-            : 'U');
+    final initial = _firstNameCtrl.text.isNotEmpty ? _firstNameCtrl.text[0].toUpperCase() : (user?.firstName.isNotEmpty == true ? user!.firstName[0].toUpperCase() : 'U');
 
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
           slivers: [
             SliverAppBar(
               floating: true,
-              backgroundColor: AppColors.background,
-              surfaceTintColor: Colors.transparent,
-              titleSpacing: 16,
-              title: const Text('MY PROFILE',
-                  style: TextStyle(
-                      color: AppColors.textPrimary,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800)),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              title: const Text('PROFILE', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -1)),
               actions: [
                 TextButton(
                   onPressed: _saving ? null : _save,
-                  child: _saving
-                      ? const SizedBox(
-                          width: 18, height: 18,
-                          child: CircularProgressIndicator(
-                              color: AppColors.primary, strokeWidth: 2))
-                      : const Text('Save',
-                          style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15)),
+                  child: _saving ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2)) : const Text('SAVE', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 1)),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
               ],
             ),
-            if (_loading)
-              const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.all(16),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    // ── Avatar block ──────────────────────────────────────
-                    AnimateIn(
-                      delay: 100,
-                      child: Center(
-                        child: Stack(
-                          children: [
-                            Container(
-                              width: 96,
-                              height: 96,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [AppColors.primary, Color(0xFFBF4D10)],
-                                ),
-                                shape: BoxShape.circle,
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AppColors.primary.withValues(alpha: 0.3),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 5),
-                                  ),
-                                ],
-                              ),
-                              child: Center(
-                                child: Text(initial,
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w800,
-                                        fontSize: 38)),
-                              ),
-                            ),
-                            Positioned(
-                              bottom: 0,
-                              right: 0,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                    color: AppColors.surface,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(color: AppColors.background, width: 2)
-                                ),
-                                child: const Icon(Icons.camera_alt_rounded,
-                                    color: AppColors.primary, size: 16),
-                              ),
-                            ),
-                          ],
-                        ),
+            if (_loading) const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+            else SliverPadding(
+              padding: const EdgeInsets.all(24),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  AnimateIn(
+                    delay: 100,
+                    child: Center(
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(width: 120, height: 120, decoration: BoxDecoration(shape: BoxShape.circle, boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 40, spreadRadius: 5)])),
+                          Container(
+                            width: 100, height: 100,
+                            decoration: BoxDecoration(gradient: const LinearGradient(colors: [AppColors.primary, Color(0xFFE8621A)], begin: Alignment.topLeft, end: Alignment.bottomRight), shape: BoxShape.circle),
+                            child: Center(child: Text(initial, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 42))),
+                          ),
+                          Positioned(bottom: 0, right: 0, child: Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: AppColors.surface, shape: BoxShape.circle, border: Border.all(color: AppColors.background, width: 3)), child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary, size: 18))),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    if (user != null)
-                      AnimateIn(
-                        delay: 150,
-                        child: Center(
-                          child: _RolePill(role: user.role),
-                        ),
-                      ),
-                    const SizedBox(height: 28),
+                  ),
+                  const SizedBox(height: 16),
+                  if (user != null) AnimateIn(delay: 150, child: Center(child: _RolePill(role: user.role))),
+                  const SizedBox(height: 40),
 
-                    // ── Basic info card ───────────────────────────────────
+                  AnimateIn(
+                    delay: 200,
+                    child: _Section(
+                      title: 'IDENTITY',
+                      children: [
+                        _TwoColRow(left: _InputField(label: 'FIRST NAME', controller: _firstNameCtrl), right: _InputField(label: 'LAST NAME', controller: _lastNameCtrl)),
+                        const SizedBox(height: 20),
+                        _InputField(label: 'EMAIL ADDRESS', initialValue: user?.email ?? '', readOnly: true),
+                        const SizedBox(height: 20),
+                        _InputField(label: 'PHONE NUMBER', controller: _phoneCtrl, keyboardType: TextInputType.phone),
+                        const SizedBox(height: 20),
+                        _InputField(label: 'BIO', controller: _bioCtrl, maxLines: 3, hint: 'Tell your world...'),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (isAthlete) ...[
                     AnimateIn(
-                      delay: 200,
+                      delay: 300,
                       child: _Section(
-                        title: 'Basic Info',
+                        title: 'ATHLETIC DATA',
                         children: [
+                          _InputField(label: 'PRIMARY SPORT', initialValue: _sport, onChanged: (v) => _sport = v, hint: 'e.g. Football, CrossFit'),
+                          const SizedBox(height: 20),
                           _TwoColRow(
-                            left: _InputField(
-                              label: 'FIRST NAME',
-                              controller: _firstNameCtrl,
-                            ),
-                            right: _InputField(
-                              label: 'LAST NAME',
-                              controller: _lastNameCtrl,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          _InputField(
-                            label: 'EMAIL (READ-ONLY)',
-                            initialValue: user?.email ?? '',
-                            readOnly: true,
-                          ),
-                          const SizedBox(height: 14),
-                          _InputField(
-                            label: 'PHONE',
-                            controller: _phoneCtrl,
-                            keyboardType: TextInputType.phone,
-                          ),
-                          const SizedBox(height: 14),
-                          _InputField(
-                            label: 'BIO',
-                            controller: _bioCtrl,
-                            maxLines: 3,
-                            hint: 'Tell your clients about yourself...',
+                            left: _InputField(label: 'WEIGHT (KG)', initialValue: _weight?.toString() ?? '', keyboardType: TextInputType.number, onChanged: (v) => _weight = double.tryParse(v)),
+                            right: _InputField(label: 'HEIGHT (CM)', initialValue: _height?.toString() ?? '', keyboardType: TextInputType.number, onChanged: (v) => _height = double.tryParse(v)),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 24),
+                  ],
 
-                    // ── Athlete-specific ──────────────────────────────────
-                    if (isAthlete) ...[
-                      AnimateIn(
-                        delay: 300,
-                        child: _Section(
-                          title: 'Athletic Profile',
-                          children: [
-                            _InputField(
-                              label: 'SPORT',
-                              initialValue: _sport,
-                              onChanged: (v) => _sport = v,
-                              hint: 'e.g. Football, CrossFit, Padel',
-                            ),
-                            const SizedBox(height: 14),
-                            _TwoColRow(
-                              left: _InputField(
-                                label: 'WEIGHT (KG)',
-                                initialValue: _weight?.toString() ?? '',
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => _weight = double.tryParse(v),
-                              ),
-                              right: _InputField(
-                                label: 'HEIGHT (CM)',
-                                initialValue: _height?.toString() ?? '',
-                                keyboardType: TextInputType.number,
-                                onChanged: (v) => _height = double.tryParse(v),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
-                    // ── Coach-specific ────────────────────────────────────
-                    if (isCoach) ...[
-                      AnimateIn(
-                        delay: 300,
-                        child: _Section(
-                          title: 'Specializations',
-                          children: [
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _specs.map((s) {
-                                final selected = _specializations.contains(s);
-                                return GestureDetector(
-                                  onTap: () => setState(() {
-                                    if (selected) {
-                                      _specializations.remove(s);
-                                    } else {
-                                      _specializations.add(s);
-                                    }
-                                  }),
-                                  child: AnimatedContainer(
-                                    duration: const Duration(milliseconds: 150),
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 14, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: selected
-                                          ? AppColors.primary
-                                          : AppColors.surfaceVariant,
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: selected
-                                            ? AppColors.primary
-                                            : AppColors.cardBorder,
-                                      ),
-                                    ),
-                                    child: Text(s,
-                                        style: TextStyle(
-                                            color: selected
-                                                ? Colors.white
-                                                : AppColors.textSecondary,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600)),
-                                  ),
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                    ],
-
-                    // ── Save message ──────────────────────────────────────
-                    if (_saveMessage.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: _saveMessage.startsWith('✓')
-                              ? AppColors.success.withOpacity(0.1)
-                              : AppColors.error.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: _saveMessage.startsWith('✓')
-                                ? AppColors.success.withOpacity(0.3)
-                                : AppColors.error.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Text(_saveMessage,
-                            style: TextStyle(
-                              color: _saveMessage.startsWith('✓')
-                                  ? AppColors.success
-                                  : AppColors.error,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            )),
-                      ),
-                    const SizedBox(height: 16),
-
-                    // ── Logout ────────────────────────────────────────────
+                  if (isCoach) ...[
                     AnimateIn(
-                      delay: 400,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: AppColors.card,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.cardBorder),
-                        ),
-                        child: ListTile(
-                          leading: const Icon(Icons.logout_rounded,
-                              color: AppColors.error, size: 22),
-                          title: const Text('Log out',
-                              style: TextStyle(
-                                  color: AppColors.error,
-                                  fontWeight: FontWeight.w600)),
-                          onTap: () => _logout(context),
-                        ),
+                      delay: 300,
+                      child: _Section(
+                        title: 'SPECIALIZATIONS',
+                        children: [
+                          Wrap(
+                            spacing: 10, runSpacing: 10,
+                            children: _specs.map((s) {
+                              final selected = _specializations.contains(s);
+                              return GestureDetector(
+                                onTap: () => setState(() => selected ? _specializations.remove(s) : _specializations.add(s)),
+                                child: AnimatedContainer(duration: const Duration(milliseconds: 200), padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10), decoration: BoxDecoration(color: selected ? AppColors.primary : AppColors.surfaceVariant, borderRadius: BorderRadius.circular(12), border: Border.all(color: selected ? AppColors.primary : AppColors.cardBorder, width: 1.5)), child: Text(s.toUpperCase(), style: TextStyle(color: selected ? Colors.black : AppColors.textSecondary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5))),
+                              );
+                            }).toList(),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 40),
-                  ]),
-                ),
+                    const SizedBox(height: 24),
+                  ],
+
+                  if (_saveMessage.isNotEmpty) AnimateIn(child: Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: _saveMessage.contains('SUCCESS') ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16), border: Border.all(color: _saveMessage.contains('SUCCESS') ? AppColors.success : AppColors.error, width: 1.5)), child: Text(_saveMessage, style: TextStyle(color: _saveMessage.contains('SUCCESS') ? AppColors.success : AppColors.error, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1)))),
+                  const SizedBox(height: 32),
+
+                  AnimateIn(
+                    delay: 400,
+                    child: GestureDetector(
+                      onTap: () => _logout(context),
+                      child: AppTheme.glassCard(opacity: 0.05, child: const ListTile(leading: Icon(Icons.logout_rounded, color: AppColors.error), title: Text('TERMINATE SESSION', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: 2)))),
+                    ),
+                  ),
+                  const SizedBox(height: 64),
+                ]),
               ),
+            ),
           ],
         ),
       ),
@@ -400,40 +220,113 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _logout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGeneralDialog<bool>(
       context: context,
-      barrierDismissible: false,
-      builder: (dialogCtx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: const Text('Log out?',
-            style: TextStyle(color: AppColors.textPrimary)),
-        content: const Text('You will be returned to the login screen.',
-            style: TextStyle(color: AppColors.textMuted)),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(dialogCtx, false),
-              child: const Text('Cancel')),
-          TextButton(
-              onPressed: () => Navigator.pop(dialogCtx, true),
-              child: const Text('Log out',
-                  style: TextStyle(color: AppColors.error))),
-        ],
+      barrierDismissible: true,
+      barrierLabel: 'Logout',
+      pageBuilder: (ctx, anim1, anim2) => Center(
+        child: AppTheme.glassCard(
+          opacity: 0.1,
+          child: Container(
+            width: 300, padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text('TERMINATE SESSION?', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                const SizedBox(height: 16),
+                const Text('You will be returned to the login screen.', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted, fontSize: 14)),
+                const SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(child: OutlinedButton(onPressed: () => Navigator.pop(ctx, false), style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.cardBorder), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('CANCEL', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)))),
+                    const SizedBox(width: 16),
+                    Expanded(child: ElevatedButton(onPressed: () => Navigator.pop(ctx, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text('LOGOUT', style: TextStyle(fontWeight: FontWeight.w900)))),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
 
     if (confirmed == true && mounted) {
-      // Show a non-blocking loading indicator if needed, but the redirect should be fast
-      try {
-        await ref.read(authProvider.notifier).logout();
-        // GoRouter will pick up the state change and redirect via its redirect: property
-        // but explicit navigation here as a fallback is safer if redirect is delayed
-        if (mounted) context.go('/login');
-      } catch (e) {
-        debugPrint('Logout error: $e');
-      }
+      await ref.read(authProvider.notifier).logout();
+      if (mounted) context.go('/login');
     }
   }
 }
+
+class _RolePill extends StatelessWidget {
+  final String role;
+  const _RolePill({required this.role});
+  @override
+  Widget build(BuildContext context) {
+    Color color = AppColors.primary;
+    if (role == AppConstants.roleCoach) color = Colors.indigoAccent;
+    return Container(padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6), decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withValues(alpha: 0.4))), child: Text(role.toUpperCase(), style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5)));
+  }
+}
+
+class _Section extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+  const _Section({required this.title, required this.children});
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 2)),
+        const SizedBox(height: 16),
+        AppTheme.glassCard(opacity: 0.05, child: Padding(padding: const EdgeInsets.all(20), child: Column(children: children))),
+      ],
+    );
+  }
+}
+
+class _TwoColRow extends StatelessWidget {
+  final Widget left;
+  final Widget right;
+  const _TwoColRow({required this.left, required this.right});
+  @override
+  Widget build(BuildContext context) => Row(children: [Expanded(child: left), const SizedBox(width: 16), Expanded(child: right)]);
+}
+
+class _InputField extends StatelessWidget {
+  final String label;
+  final TextEditingController? controller;
+  final String? initialValue;
+  final bool readOnly;
+  final int maxLines;
+  final TextInputType? keyboardType;
+  final String? hint;
+  final ValueChanged<String>? onChanged;
+
+  const _InputField({required this.label, this.controller, this.initialValue, this.readOnly = false, this.maxLines = 1, this.keyboardType, this.hint, this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 8, fontWeight: FontWeight.w900, letterSpacing: 1)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          initialValue: controller == null ? initialValue : null,
+          readOnly: readOnly,
+          maxLines: maxLines,
+          keyboardType: keyboardType,
+          onChanged: onChanged,
+          style: TextStyle(color: readOnly ? AppColors.textMuted : Colors.white, fontSize: 14, fontWeight: FontWeight.w600),
+          decoration: InputDecoration(hintText: hint, hintStyle: const TextStyle(color: Colors.white24), filled: true, fillColor: readOnly ? Colors.transparent : AppColors.surfaceVariant.withValues(alpha: 0.3), contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14), border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none), enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none)),
+        ),
+      ],
+    );
+  }
+}
+
 
 // ─── Shared helper widgets ────────────────────────────────────────────────────
 

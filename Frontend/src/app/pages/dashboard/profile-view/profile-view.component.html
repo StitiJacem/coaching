@@ -14,7 +14,7 @@
       <p class="text-slate-400 mb-6">{{ error }}</p>
       <button (click)="loadData()" class="btn-primary">Réessayer</button>
     </div>
-    <!-- DATA DASHBOARD (Athlete View) -->
+    <!-- DATA DASHBOARD (Athlete View) -->
     <ng-container *ngIf="!loading && !error && viewType === 'athlete' && overview">
       
       <!-- HEADER / IDENTITY -->
@@ -32,7 +32,7 @@
               <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
                 <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <img [src]="(overview.athlete?.profilePicture?.startsWith('/') ? 'http://localhost:3000' + overview.athlete.profilePicture : overview.athlete?.profilePicture) || 'https://ui-avatars.com/api/?name=' + (overview.athlete?.name || 'U') + '&background=f97316&color=fff'"
+              <img [src]="(overview.athlete?.profilePicture?.startsWith('/') ? environment.apiUrl.replace('/api', '') + overview.athlete.profilePicture : overview.athlete?.profilePicture) || 'https://ui-avatars.com/api/?name=' + (overview.athlete?.name || 'U') + '&background=f97316&color=fff'"
                    class="w-full h-full object-cover"
                    (error)="$any($event.target).src='https://ui-avatars.com/api/?name=' + (overview.athlete?.name || 'U') + '&background=f97316&color=fff&size=160'">
               <input #athleteFileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
@@ -257,15 +257,24 @@
                 <h3 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">{{ getMetricLabel(selectedMetric) }}</h3>
               </div>
               
-              <div class="chart-toggle">
+              <div class="chart-toggle flex gap-2">
                 <button (click)="setMetric('weight')" [class.active]="selectedMetric === 'weight'" class="toggle-btn">Poids</button>
                 <button (click)="setMetric('bodyFat')" [class.active]="selectedMetric === 'bodyFat'" class="toggle-btn">Masse Grasse</button>
                 <button (click)="setMetric('vo2max')" [class.active]="selectedMetric === 'vo2max'" class="toggle-btn">VO2 Max</button>
+                <button (click)="openMetricModal()" class="ml-4 p-2 bg-gosport-orange rounded-xl hover:bg-white hover:text-black transition-all group shadow-lg shadow-gosport-orange/20">
+                  <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+                </button>
               </div>
             </div>
 
             <div class="h-64 relative flex items-end justify-center group overflow-hidden">
-               <svg class="w-full h-full drop-shadow-[0_0_20px_rgba(249,115,22,0.2)]" viewBox="0 0 1000 200" preserveAspectRatio="none" *ngIf="$any(overview.metrics)?.length">
+               <div *ngIf="!overview.metrics?.length" class="absolute inset-0 flex flex-col items-center justify-center bg-white/5 rounded-3xl border border-dashed border-white/10">
+                 <lucide-icon name="line-chart" class="w-10 h-10 text-slate-600 mb-4"></lucide-icon>
+                 <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Aucune donnée disponible</p>
+                 <button (click)="openMetricModal()" class="mt-4 text-gosport-orange font-black uppercase text-[9px] tracking-widest hover:underline italic">Ajouter ma première mesure</button>
+               </div>
+
+               <svg class="w-full h-full drop-shadow-[0_0_20px_rgba(249,115,22,0.2)]" viewBox="0 0 1000 200" preserveAspectRatio="none" *ngIf="overview.metrics?.length">
                 <defs>
                   <linearGradient id="metricGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stop-color="#f97316" stop-opacity="0.3" />
@@ -354,13 +363,22 @@
           <div class="tile-card bg-gradient-to-br from-gosport-orange/20 to-transparent border-gosport-orange/30 shadow-[0_20px_50px_rgba(249,115,22,0.1)]">
             <div class="flex justify-between items-center mb-6">
               <span class="section-label text-gosport-orange">OBJECTIF PRINCIPAL</span>
-              <lucide-icon name="target" class="w-5 h-5 text-gosport-orange"></lucide-icon>
+              <button (click)="openGoalModal()" class="p-2 bg-white/5 hover:bg-gosport-orange hover:text-white rounded-lg transition-all">
+                <lucide-icon name="target" class="w-4 h-4"></lucide-icon>
+              </button>
             </div>
             
             <h4 class="text-2xl font-display font-black text-white uppercase italic tracking-tight mb-6">
-              {{ overview.primaryGoal?.name || 'Veuillez définir un objectif' }}
+              {{ overview.primaryGoal?.name || 'Définir un objectif' }}
             </h4>
             
+            <div *ngIf="!overview.primaryGoal" class="py-6 flex flex-col items-center justify-center">
+               <button (click)="openGoalModal()" class="text-slate-500 hover:text-gosport-orange text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                 <lucide-icon name="plus-circle" class="w-4 h-4"></lucide-icon>
+                 Cliquer pour configurer
+               </button>
+            </div>
+
             <div *ngIf="overview.primaryGoal" class="space-y-6">
               <div class="grid grid-cols-2 gap-4">
                 <div class="p-4 bg-black/30 rounded-2xl border border-white/5">
@@ -486,7 +504,7 @@
               <div *ngIf="uploadingPhoto" class="absolute inset-0 bg-black/60 flex items-center justify-center z-30">
                 <div class="w-8 h-8 border-4 border-gosport-orange border-t-transparent rounded-full animate-spin"></div>
               </div>
-              <img [src]="profile?.user?.photo_url ? (profile.user.photo_url.startsWith('/') ? 'http://localhost:3000' + profile.user.photo_url : profile.user.photo_url) : ('https://ui-avatars.com/api/?name=' + (profile?.user?.first_name || 'U') + '+' + (profile?.user?.last_name || '') + '&background=f97316&color=fff')"
+              <img [src]="profile?.user?.photo_url ? (profile.user.photo_url.startsWith('/') ? environment.apiUrl.replace('/api', '') + profile.user.photo_url : profile.user.photo_url) : ('https://ui-avatars.com/api/?name=' + (profile?.user?.first_name || 'U') + '+' + (profile?.user?.last_name || '') + '&background=f97316&color=fff')"
                    class="w-full h-full object-cover"
                    (error)="$any($event.target).src='https://ui-avatars.com/api/?name=' + (profile?.user?.first_name || 'U') + '&background=f97316&color=fff&size=160'">
               <input #fileInput type="file" (change)="onPhotoSelected($event)" accept="image/*" class="hidden">
@@ -612,5 +630,180 @@
        </div>
     </ng-container>
 
+  </div>
+
+  <!-- METRIC LOGGING MODAL -->
+  <div *ngIf="showMetricModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-3xl animate-in fade-in duration-300">
+    <div class="w-full max-w-lg bg-[#0F172A]/40 border border-white/5 rounded-[3rem] p-12 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+      <!-- Decorative background glow -->
+      <div class="absolute -top-24 -right-24 w-48 h-48 bg-gosport-orange/10 blur-[100px] rounded-full"></div>
+      
+      <div class="flex justify-between items-center mb-10 relative z-10">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-[0.4em] text-gosport-orange mb-2 block">Nouvelle Saisie</span>
+          <h3 class="text-4xl font-display font-black text-white uppercase italic tracking-tighter">Mesures Biométriques</h3>
+        </div>
+        <button (click)="showMetricModal = false" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+          <lucide-icon name="x" class="w-6 h-6"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="space-y-8 relative z-10">
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="section-label">Poids Actuel</label>
+            <div class="relative group/input">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+                <lucide-icon name="activity" class="w-5 h-5"></lucide-icon>
+              </div>
+              <input type="number" [(ngModel)]="metricForm.weight" 
+                     placeholder="0.0"
+                     class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-xl font-black outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all placeholder:text-slate-700">
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-500 uppercase tracking-widest">KG</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="section-label">Date du relevé</label>
+            <div class="relative group/input">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+                <lucide-icon name="calendar" class="w-5 h-5"></lucide-icon>
+              </div>
+              <input type="date" [(ngModel)]="metricForm.date" 
+                     class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-sm font-bold outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all [color-scheme:dark]">
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="section-label">Masse Grasse</label>
+            <div class="relative group/input">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+                <lucide-icon name="percent" class="w-5 h-5"></lucide-icon>
+              </div>
+              <input type="number" [(ngModel)]="metricForm.bodyFat" 
+                     placeholder="--"
+                     class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-xl font-black outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all placeholder:text-slate-700">
+              <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-slate-500 uppercase tracking-widest">%</span>
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="section-label">VO2 Max Est.</label>
+            <div class="relative group/input">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+                <lucide-icon name="zap" class="w-5 h-5"></lucide-icon>
+              </div>
+              <input type="number" [(ngModel)]="metricForm.vo2max" 
+                     placeholder="--"
+                     class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-xl font-black outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all placeholder:text-slate-700">
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="section-label">Observations Techniques</label>
+          <div class="relative group/input">
+            <textarea [(ngModel)]="metricForm.notes" rows="3" 
+                      placeholder="Commentaires sur la condition physique ou l'état de forme..."
+                      class="w-full bg-black/40 border border-white/5 rounded-2xl p-6 text-white text-sm outline-none resize-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all placeholder:text-slate-700 italic"></textarea>
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button (click)="saveMetric()" [disabled]="loading" 
+                  class="w-full py-6 bg-gosport-orange text-white font-black uppercase text-xs tracking-[0.3em] rounded-2xl hover:bg-white hover:text-black transition-all transform active:scale-95 shadow-[0_20px_40px_rgba(249,115,22,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group/btn">
+            <span class="flex items-center justify-center gap-3">
+              {{ loading ? 'Synchronisation...' : 'Enregistrer les données' }}
+              <lucide-icon *ngIf="!loading" name="arrow-right" class="w-4 h-4 group-hover/btn:translate-x-2 transition-transform"></lucide-icon>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOAL SETTING MODAL -->
+  <div *ngIf="showGoalModal" class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/80 backdrop-blur-3xl animate-in fade-in duration-300">
+    <div class="w-full max-w-lg bg-[#0F172A]/40 border border-white/5 rounded-[3rem] p-12 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden group">
+      <!-- Decorative background glow -->
+      <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-gosport-orange/10 blur-[100px] rounded-full"></div>
+      
+      <div class="flex justify-between items-center mb-10 relative z-10">
+        <div>
+          <span class="text-[10px] font-black uppercase tracking-[0.4em] text-gosport-orange mb-2 block">Performance Target</span>
+          <h3 class="text-4xl font-display font-black text-white uppercase italic tracking-tighter">Objectif Principal</h3>
+        </div>
+        <button (click)="showGoalModal = false" class="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all">
+          <lucide-icon name="x" class="w-6 h-6"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="space-y-8 relative z-10">
+        <div class="space-y-2">
+          <label class="section-label">Intitulé de l'objectif</label>
+          <div class="relative group/input">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+              <lucide-icon name="award" class="w-5 h-5"></lucide-icon>
+            </div>
+            <input [(ngModel)]="goalForm.name" 
+                   class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-xl font-black outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all placeholder:text-slate-700 italic" 
+                   placeholder="Ex: Perte de poids massive">
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-6">
+          <div class="space-y-2">
+            <label class="section-label">Valeur Cible</label>
+            <div class="relative group/input">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+                <lucide-icon name="target" class="w-5 h-5"></lucide-icon>
+              </div>
+              <input type="number" [(ngModel)]="goalForm.targetValue" 
+                     placeholder="0.0"
+                     class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-xl font-black outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all placeholder:text-slate-700">
+            </div>
+          </div>
+          <div class="space-y-2">
+            <label class="section-label">Unité</label>
+            <div class="relative group/input">
+              <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+                <lucide-icon name="settings" class="w-5 h-5"></lucide-icon>
+              </div>
+              <select [(ngModel)]="goalForm.unit" 
+                      class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-sm font-bold outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all appearance-none cursor-pointer">
+                <option value="kg">KILOGRAMMES (KG)</option>
+                <option value="%">MASSE GRASSE (%)</option>
+                <option value="ml/kg/min">VO2 MAX (ML/KG/MIN)</option>
+                <option value="repetitions">RÉPÉTITIONS (REPS)</option>
+              </select>
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+                <lucide-icon name="chevron-down" class="w-4 h-4"></lucide-icon>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="section-label">Deadline / Date de fin</label>
+          <div class="relative group/input">
+            <div class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/input:text-gosport-orange transition-colors">
+              <lucide-icon name="clock" class="w-5 h-5"></lucide-icon>
+            </div>
+            <input type="date" [(ngModel)]="goalForm.deadline" 
+                   class="w-full bg-black/40 border border-white/5 rounded-2xl py-5 pl-12 pr-6 text-white text-sm font-bold outline-none focus:border-gosport-orange/50 focus:bg-black/60 transition-all [color-scheme:dark]">
+          </div>
+        </div>
+
+        <div class="pt-4">
+          <button (click)="saveGoal()" [disabled]="loading" 
+                  class="w-full py-6 bg-gosport-orange text-white font-black uppercase text-xs tracking-[0.3em] rounded-2xl hover:bg-white hover:text-black transition-all transform active:scale-95 shadow-[0_20px_40px_rgba(249,115,22,0.2)] disabled:opacity-50 disabled:cursor-not-allowed group/btn">
+            <span class="flex items-center justify-center gap-3">
+              {{ loading ? 'Mise à jour...' : 'Fixer l\'objectif' }}
+              <lucide-icon *ngIf="!loading" name="shield-check" class="w-4 h-4 group-hover/btn:scale-125 transition-transform"></lucide-icon>
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </app-dashboard-layout>

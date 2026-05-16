@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CoachService, Coach } from '../../../services/coach.service';
 import { NutritionistService } from '../../../services/nutritionist.service';
 import { AuthService } from '../../../services/auth.service';
+import { ToastService } from '../../../services/toast.service';
+import { ConfirmService } from '../../../services/confirm.service';
 
 @Component({
   selector: 'app-discovery',
@@ -26,7 +28,9 @@ export class DiscoveryComponent implements OnInit {
   constructor(
     private coachService: CoachService,
     private nutritionistService: NutritionistService,
-    private authService: AuthService
+    private authService: AuthService,
+    private toastService: ToastService,
+    private confirmService: ConfirmService
   ) { }
 
   ngOnInit(): void {
@@ -37,7 +41,7 @@ export class DiscoveryComponent implements OnInit {
     this.isLoading = true;
     if (this.activeFilter === 'NUTRITION') {
       this.nutritionistService.getAllNutritionists().subscribe({
-        next: (nutritionists) => {
+        next: (nutritionists: any[]) => {
           this.filteredCoaches = nutritionists.map(n => ({
             id: n.id,
             userId: n.userId,
@@ -52,18 +56,18 @@ export class DiscoveryComponent implements OnInit {
           }));
           this.isLoading = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error loading nutritionists:', err);
           this.isLoading = false;
         }
       });
     } else {
       this.coachService.getCoaches(this.activeFilter).subscribe({
-        next: (coaches) => {
+        next: (coaches: Coach[]) => {
           this.filteredCoaches = coaches;
           this.isLoading = false;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error loading coaches:', err);
           this.isLoading = false;
         }
@@ -76,30 +80,32 @@ export class DiscoveryComponent implements OnInit {
     this.loadCoaches();
   }
 
-  requestConnection(specialist: Coach): void {
+  async requestConnection(specialist: Coach): Promise<void> {
     const isNutritionist = this.activeFilter === 'NUTRITION' || specialist.specializations.includes('Nutritionist');
-    if (confirm(`Do you want to send a connection request to ${specialist.name}?`)) {
+    const confirmed = await this.confirmService.ask(`Do you want to send a connection request to ${specialist.name}?`);
+    
+    if (confirmed) {
       if (isNutritionist) {
         const athleteId = this.authService.getUser()?.id;
         if (!athleteId) {
-          alert('Error: Athlete ID not found. Please log in again.');
+          this.toastService.showError('Error: Athlete ID not found. Please log in again.');
           return;
         }
         this.nutritionistService.sendConnectionRequest(athleteId, specialist.id).subscribe({
           next: () => {
-            alert('Nutritionist connection request sent! They will review your profile shortly.');
+            this.toastService.showSuccess('Nutritionist connection request sent! They will review your profile shortly.');
           },
-          error: (err) => {
-            alert(err.error?.message || 'Error sending request. Please try again.');
+          error: (err: any) => {
+            this.toastService.showError(err.error?.message || 'Error sending request. Please try again.');
           }
         });
       } else {
         this.coachService.sendConnectionRequest(specialist.id).subscribe({
-          next: (response) => {
-            alert('Connection request sent! They will review your profile shortly.');
+          next: (response: any) => {
+            this.toastService.showSuccess('Connection request sent! They will review your profile shortly.');
           },
-          error: (err) => {
-            alert(err.error?.message || 'Error sending request. Please try again.');
+          error: (err: any) => {
+            this.toastService.showError(err.error?.message || 'Error sending request. Please try again.');
           }
         });
       }

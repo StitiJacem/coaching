@@ -12,11 +12,11 @@ dns.setDefaultResultOrder('ipv4first');
 
 const debug = debugLib('backend:server');
 
-console.log(`[DEBUG] Index file loaded. PID: ${process.pid}`);
+// debug log removed
 
 const startServer = async () => {
     try {
-        console.log(`[DEBUG] Starting server initialization... PID: ${process.pid}`);
+        // debug log removed
 
         console.log("Initializing Data Source...");
         await AppDataSource.initialize();

@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CoachService, CoachingRequest } from '../../../services/coach.service';
 import { NutritionistService, NutritionConnection } from '../../../services/nutritionist.service';
 import { forkJoin } from 'rxjs';
+import { ToastService } from '../../../services/toast.service';
+import { ConfirmService } from '../../../services/confirm.service';
 
 @Component({
     selector: 'app-my-coaches',
@@ -180,7 +182,9 @@ export class MyCoachesComponent implements OnInit {
 
     constructor(
         private coachService: CoachService,
-        private nutritionistService: NutritionistService
+        private nutritionistService: NutritionistService,
+        private toastService: ToastService,
+        private confirmService: ConfirmService
     ) { }
 
     ngOnInit(): void {
@@ -193,28 +197,33 @@ export class MyCoachesComponent implements OnInit {
             coaches: this.coachService.getMyRequests(),
             nutrition: this.nutritionistService.getAthleteConnections()
         }).subscribe({
-            next: (results) => {
-                this.connectedRequests = results.coaches.filter(r => r.status === 'accepted');
-                this.connectedNutritionConnections = results.nutrition.filter(c => c.status === 'accepted');
+            next: (results: any) => {
+                this.connectedRequests = results.coaches.filter((r: CoachingRequest) => r.status === 'accepted');
+                this.connectedNutritionConnections = results.nutrition.filter((c: NutritionConnection) => c.status === 'accepted');
                 this.isLoading = false;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error loading connections:', err);
                 this.isLoading = false;
             }
         });
     }
 
-    onTerminate(request: CoachingRequest): void {
-        if (confirm(`Are you sure you want to terminate your connection with ${request.coachProfile?.user?.first_name}? This cannot be undone.`)) {
+    async onTerminate(request: CoachingRequest): Promise<void> {
+        const confirmed = await this.confirmService.danger(
+          `Are you sure you want to terminate your connection with ${request.coachProfile?.user?.first_name}? This cannot be undone.`,
+          'Terminate Connection'
+        );
+        
+        if (confirmed) {
             this.coachService.terminateConnection(request.id!).subscribe({
                 next: () => {
                     this.connectedRequests = this.connectedRequests.filter(r => r.id !== request.id);
-                    alert('Connection terminated successfully.');
+                    this.toastService.showSuccess('Connection terminated successfully.');
                 },
-                error: (err) => {
+                error: (err: any) => {
                     console.error('Error terminating connection:', err);
-                    alert('Failed to terminate connection. Please try again.');
+                    this.toastService.showError('Failed to terminate connection. Please try again.');
                 }
             });
         }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { OAuthService } from '../services/OAuthService';
 import jwt from 'jsonwebtoken';
+import { getJwtSecret } from '../utils/jwt.config';
 
 const oauthService = new OAuthService();
 
@@ -32,7 +33,7 @@ export class OAuthController {
 
             const token = jwt.sign(
                 { id: user.id, email: user.email, role: user.role },
-                process.env.JWT_SECRET || 'your-secret-key',
+                getJwtSecret(),
                 { expiresIn: '7d' }
             );
 
@@ -80,7 +81,7 @@ export class OAuthController {
 
             const token = jwt.sign(
                 { id: user.id, email: user.email, role: user.role },
-                process.env.JWT_SECRET || 'your-secret-key',
+                getJwtSecret(),
                 { expiresIn: '7d' }
             );
 

@@ -5,6 +5,8 @@ import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { AuthService } from '../../../services/auth.service';
 import { CoachService, CoachingRequest } from '../../../services/coach.service';
 import { ChatService } from '../../../services/chat.service';
+import { ToastService } from '../../../services/toast.service';
+import { ConfirmService } from '../../../services/confirm.service';
 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -31,7 +33,9 @@ export class AthletesComponent implements OnInit {
     private authService: AuthService,
     private coachService: CoachService,
     private chatService: ChatService,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService,
+    private confirmService: ConfirmService
   ) { }
 
   ngOnInit(): void {
@@ -45,11 +49,11 @@ export class AthletesComponent implements OnInit {
   loadAthletes(): void {
     this.isLoading = true;
     this.athleteService.getAll({ search: this.searchTerm }).subscribe({
-      next: (data) => {
+      next: (data: Athlete[]) => {
         this.athletes = data;
         this.isLoading = false;
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error loading athletes:', err);
         this.isLoading = false;
       }
@@ -74,17 +78,22 @@ export class AthletesComponent implements OnInit {
     this.router.navigate(['/dashboard/athletes', athlete.id, 'overview']);
   }
 
-  onDisconnect(athlete: Athlete): void {
+  async onDisconnect(athlete: Athlete): Promise<void> {
     if (!athlete.id) return;
-    if (confirm(`Are you sure you want to terminate your connection with ${athlete.user?.first_name}? This will remove them from your client list.`)) {
+    const confirmed = await this.confirmService.danger(
+      `Are you sure you want to terminate your connection with ${athlete.user?.first_name}? This will remove them from your client list.`,
+      'Terminate Connection'
+    );
+    
+    if (confirmed) {
       this.coachService.disconnectAthlete(athlete.id).subscribe({
         next: () => {
           this.athletes = this.athletes.filter(a => a.id !== athlete.id);
-          alert('Connection terminated successfully.');
+          this.toastService.showSuccess('Connection terminated successfully.');
         },
         error: (err: any) => {
           console.error('Error terminating connection:', err);
-          alert('Failed to terminate connection.');
+          this.toastService.showError('Failed to terminate connection.');
         }
       });
     }

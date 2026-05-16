@@ -32,11 +32,15 @@ export class DashboardController {
 
                 const totalAthletes: number = await athleteRepo.createQueryBuilder("athlete")
                     .where(new Brackets(qb => {
-                        qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)', { coachId });
+                        qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)');
                         if (coachProfile) {
-                            qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                            qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')');
                         }
                     }))
+                    .setParameters({ 
+                        coachId, 
+                        profileId: coachProfile?.id 
+                    })
                     .getCount();
 
                 const totalPrograms: number = await programRepo.count({ where: { coachId } });
@@ -61,10 +65,11 @@ export class DashboardController {
                 
                 const workoutLogRepo = AppDataSource.getRepository(WorkoutLog);
                 const logs = await workoutLogRepo.createQueryBuilder("log")
-                    .leftJoin("log.athlete", "athlete")
-                    .leftJoin("programs", "p", 'p."athleteId" = athlete.id AND p."coachId" = :coachId')
-                    .where("log.scheduledDate >= :thirtyDaysAgo", { thirtyDaysAgo })
+                    .leftJoinAndSelect("log.athlete", "athlete")
+                    .leftJoin(Program, "p", 'p."athleteId" = athlete.id AND p."coachId" = :coachId')
+                    .where("log.scheduledDate >= :thirtyDaysAgo")
                     .andWhere("p.id IS NOT NULL")
+                    .setParameters({ coachId, thirtyDaysAgo })
                     .getMany();
 
                 let avgAdherence = 0;
@@ -197,11 +202,17 @@ export class DashboardController {
                 .leftJoinAndSelect("athlete.user", "user")
                 .leftJoinAndSelect("session.program", "program")
                 .where(new Brackets(qb => {
-                    qb.where("program.coachId = :coachId", { coachId });
+                    qb.where("program.coachId = :coachId");
                     if (coachProfile) {
-                        qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                        qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')');
                     }
                 }))
+                .andWhere("program.status = 'active'")
+                .andWhere("session.status != 'cancelled'")
+                .setParameters({ 
+                    coachId, 
+                    profileId: coachProfile?.id 
+                })
                 .orderBy("session.time", "ASC")
                 .getMany();
 
@@ -239,11 +250,15 @@ export class DashboardController {
             const athletes: Athlete[] = await athleteRepo.createQueryBuilder("athlete")
                 .leftJoinAndSelect("athlete.user", "user")
                 .where(new Brackets(qb => {
-                    qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)', { coachId });
+                    qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)');
                     if (coachProfile) {
-                        qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                        qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')');
                     }
                 }))
+                .setParameters({ 
+                    coachId, 
+                    profileId: coachProfile?.id 
+                })
                 .orderBy("athlete.lastActive", "DESC")
                 .take(5)
                 .getMany();
@@ -279,12 +294,17 @@ export class DashboardController {
                     .leftJoinAndSelect("event.athlete", "athlete")
                     .leftJoinAndSelect("athlete.user", "user")
                     .where(new Brackets(qb => {
-                        qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)', { coachId });
+                        qb.where('EXISTS (SELECT 1 FROM programs p WHERE p."athleteId" = athlete.id AND p."coachId" = :coachId)');
                         if (coachProfile) {
-                            qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')', { profileId: coachProfile.id });
+                            qb.orWhere('EXISTS (SELECT 1 FROM coaching_requests r WHERE r."athleteId" = athlete.id AND r."coachProfileId" = :profileId AND r.status = \'accepted\')');
                         }
                     }))
-                    .andWhere("event.type = :type", { type: "new_pr" })
+                    .andWhere("event.type = :type")
+                    .setParameters({ 
+                        coachId, 
+                        profileId: coachProfile?.id,
+                        type: "new_pr"
+                    })
                     .orderBy("event.created_at", "DESC")
                     .take(5)
                     .getMany();

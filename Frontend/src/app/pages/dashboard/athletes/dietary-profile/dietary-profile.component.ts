@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { DietService, DietaryProfile } from '../../../../services/diet.service';
 import { DashboardLayoutComponent } from '../../../../components/dashboard-layout/dashboard-layout.component';
 import { RoleService } from '../../../../services/role.service';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
   selector: 'app-dietary-profile',
@@ -31,7 +32,8 @@ export class DietaryProfileComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private dietService: DietService,
-    public roleService: RoleService
+    public roleService: RoleService,
+    private toastService: ToastService
   ) {}
 
   ngOnInit() {
@@ -87,11 +89,11 @@ export class DietaryProfileComponent implements OnInit {
       next: (res: DietaryProfile) => {
         this.profile = res;
         this.isCustomizing = false;
-        alert('Dietary Profile updated!');
+        this.toastService.showSuccess('Dietary Profile updated!');
       },
       error: (err: any) => {
         console.error('Error saving profile', err);
-        alert('Failed to save profile');
+        this.toastService.showError('Failed to save profile');
       }
     });
   }

@@ -16,4 +16,7 @@ router.get("/:id/stats", AthleteController.getStats);
 router.post("/invite", AthleteController.invite);
 router.put("/:id", AthleteController.update);
 
+router.get("/:id/metrics", AthleteController.getMetrics);
+router.post("/:id/metrics", AthleteController.addMetric);
+
 export default router;

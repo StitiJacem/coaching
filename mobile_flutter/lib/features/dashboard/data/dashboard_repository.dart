@@ -119,5 +119,22 @@ class DashboardRepository {
     } catch (e) {
       throw ApiException.fromDioError(e);
     }
+  /// GET /api/athletes/:id/overview
+  Future<Map<String, dynamic>> getAthleteOverview(int athleteId) async {
+    try {
+      final resp = await _api.get('/athletes/$athleteId/overview');
+      return (resp.data as Map<String, dynamic>?) ?? {};
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
+  }
+
+  /// POST /api/athletes/:id/metrics
+  Future<void> addMetric(int athleteId, Map<String, dynamic> data) async {
+    try {
+      await _api.post('/athletes/$athleteId/metrics', data: data);
+    } catch (e) {
+      throw ApiException.fromDioError(e);
+    }
   }
 }

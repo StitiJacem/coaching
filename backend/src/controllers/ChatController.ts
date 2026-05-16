@@ -9,6 +9,7 @@ import { Athlete } from "../entities/Athlete";
 import { CoachProfile } from "../entities/Coach";
 import { NutritionConnection } from "../entities/NutritionConnection";
 import { NutritionistProfile } from "../entities/NutritionistProfile";
+import { Program } from "../entities/Program";
 
 export class ChatController {
     // Helper to get conversations
@@ -27,82 +28,106 @@ export class ChatController {
     // Helper to get contacts
     static async fetchContacts(userId: number, role: string) {
         const contacts: any[] = [];
-        console.log(`[ChatController] Fetching contacts for userId: ${userId}, role: ${role}`);
+        const roleLower = (role || '').toLowerCase();
+        const currentUserId = Number(userId);
 
-        if (role === 'coach') {
+        console.log(`[ChatController] Fetching contacts for userId: ${currentUserId}, role: ${roleLower}`);
+
+        if (roleLower === 'coach') {
             const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
-            const coachProfile = await coachProfileRepo.findOne({ where: { userId } });
-            
-            console.log(`[ChatController] CoachProfile found: ${!!coachProfile} for userId: ${userId}`);
+            const coachProfile = await coachProfileRepo.findOne({ where: { userId: currentUserId } });
             
             if (coachProfile) {
-                const athleteRepo = AppDataSource.getRepository(Athlete);
-                // We use a cleaner JOIN approach instead of raw SQL EXISTS strings where possible
-                const athletes = await athleteRepo.createQueryBuilder("athlete")
-                    .leftJoinAndSelect("athlete.user", "user")
-                    .innerJoin("coaching_requests", "cr", 'cr."athleteId" = athlete.id AND cr."coachProfileId" = :profileId AND cr.status = \'accepted\'', { profileId: coachProfile.id })
-                    .getMany();
+                const crRepo = AppDataSource.getRepository(CoachingRequest);
+                const requests = await crRepo.find({
+                    where: { coachProfileId: coachProfile.id, status: 'accepted' },
+                    relations: ["athlete", "athlete.user"]
+                });
+                requests.forEach(r => { if (r.athlete?.user) contacts.push(r.athlete.user); });
 
-                console.log(`[ChatController] Athletes found via coaching_requests: ${athletes.length} (ProfileId: ${coachProfile.id})`);
+                const programRepo = AppDataSource.getRepository(Program);
+                const programs = await programRepo.find({
+                    where: { coachId: currentUserId },
+                    relations: ["athlete", "athlete.user"]
+                });
+                programs.forEach(p => { if (p.athlete?.user) contacts.push(p.athlete.user); });
+            }
+        } else if (roleLower === 'nutritionist') {
+            const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
+            const profile = await nutriProfileRepo.findOne({ where: { userId: currentUserId } });
+            
+            if (profile) {
+                const ncRepo = AppDataSource.getRepository(NutritionConnection);
+                const connections = await ncRepo.find({
+                    where: { nutritionistProfileId: profile.id, status: 'accepted' },
+                    relations: ["athlete", "athlete.user"]
+                });
+                connections.forEach(nc => { if (nc.athlete?.user) contacts.push(nc.athlete.user); });
+            }
+        } else if (roleLower === 'athlete') {
+            const athleteRepo = AppDataSource.getRepository(Athlete);
+            const athlete = await athleteRepo.findOne({ where: { userId: currentUserId } });
+            
+            if (athlete) {
+                // 1. Get Coaches via Coaching Requests
+                const crRepo = AppDataSource.getRepository(CoachingRequest);
+                const requests = await crRepo.find({
+                    where: [
+                        { athleteId: athlete.id, status: 'accepted' },
+                        { athleteId: athlete.id, initiator: 'coach' } // Include invitations from coaches
+                    ],
+                    relations: ["coachProfile", "coachProfile.user"]
+                });
+                
+                requests.forEach(r => {
+                    if (r.coachProfile?.user) {
+                        contacts.push(r.coachProfile.user);
+                    }
+                });
 
-                // Also get athletes from programs even if no coaching request (migration/edge cases)
-                const programAthletes = await athleteRepo.createQueryBuilder("athlete")
-                    .leftJoinAndSelect("athlete.user", "user")
-                    .innerJoin("programs", "p", 'p."athleteId" = athlete.id AND p."coachId" = :coachId', { coachId: userId })
-                    .getMany();
+                // 2. Get Coaches via Programs
+                const programRepo = AppDataSource.getRepository(Program);
+                const programs = await programRepo.find({
+                    where: { athleteId: athlete.id },
+                    relations: ["coach", "coachProfile", "coachProfile.user"]
+                });
+                
+                programs.forEach(p => {
+                    if (p.coach) contacts.push(p.coach);
+                    if (p.coachProfile?.user) contacts.push(p.coachProfile.user);
+                });
 
-                console.log(`[ChatController] Athletes found via programs: ${programAthletes.length}`);
-
-                [...athletes, ...programAthletes].forEach(a => {
-                    if (a.user) {
-                        console.log(`[ChatController] Adding contact: ${a.user.email}`);
-                        contacts.push(a.user);
+                // 3. Get Nutritionists via Connections
+                const ncRepo = AppDataSource.getRepository(NutritionConnection);
+                const nutritionConnections = await ncRepo.find({
+                    where: [
+                        { athleteId: athlete.id, status: 'accepted' },
+                        { athleteId: athlete.id, initiator: 'nutritionist' }
+                    ],
+                    relations: ["nutritionistProfile", "nutritionistProfile.user"]
+                });
+                
+                nutritionConnections.forEach(nc => {
+                    if (nc.nutritionistProfile?.user) {
+                        contacts.push(nc.nutritionistProfile.user);
                     }
                 });
             }
-        } else if (role === 'nutritionist') {
-            const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
-            const profile = await nutriProfileRepo.findOne({ where: { userId } });
-            
-            if (profile) {
-                const athleteRepo = AppDataSource.getRepository(Athlete);
-                const athletes = await athleteRepo.createQueryBuilder("athlete")
-                    .leftJoinAndSelect("athlete.user", "user")
-                    .innerJoin("nutrition_connections", "nc", 'nc."athleteId" = athlete.id AND nc."nutritionistProfileId" = :nutriId AND nc.status = \'accepted\'', { nutriId: profile.id })
-                    .getMany();
-
-                athletes.forEach(a => {
-                    if (a.user) contacts.push(a.user);
-                });
-            }
-        } else if (role === 'athlete') {
-            const athleteRepo = AppDataSource.getRepository(Athlete);
-            const athlete = await athleteRepo.findOne({ where: { userId } });
-            
-            if (athlete) {
-                // Find all coaches through coaching_requests
-                const coachProfileRepo = AppDataSource.getRepository(CoachProfile);
-                const coaches = await coachProfileRepo.createQueryBuilder("coach")
-                    .leftJoinAndSelect("coach.user", "user")
-                    .innerJoin("coaching_requests", "cr", 'cr."coachProfileId" = coach.id AND cr."athleteId" = :athleteId AND cr.status = \'accepted\'', { athleteId: athlete.id })
-                    .getMany();
-                
-                coaches.forEach(c => { if (c.user) contacts.push(c.user); });
-
-                // Find all nutritionists through nutrition_connections
-                const nutriProfileRepo = AppDataSource.getRepository(NutritionistProfile);
-                const nutritionists = await nutriProfileRepo.createQueryBuilder("nutri")
-                    .leftJoinAndSelect("nutri.user", "user")
-                    .innerJoin("nutrition_connections", "nc", 'nc."nutritionistProfileId" = nutri.id AND nc."athleteId" = :athleteId AND nc.status = \'accepted\'', { athleteId: athlete.id })
-                    .getMany();
-                
-                nutritionists.forEach(n => { if (n.user) contacts.push(n.user); });
-            }
         }
 
-        console.log(`[ChatController] Found ${contacts.length} raw contacts`);
-        // Filter out self and unique
-        return Array.from(new Map(contacts.filter(c => c.id !== userId).map(c => [c.id, c])).values());
+        console.log(`[ChatController] Found ${contacts.length} raw contacts for user ${currentUserId}`);
+        
+        // Filter out self, nulls, and ensure uniqueness by ID
+        const uniqueContacts = Array.from(
+            new Map(
+                contacts
+                    .filter(c => c && c.id && Number(c.id) !== currentUserId)
+                    .map(c => [c.id, c])
+            ).values()
+        );
+
+        console.log(`[ChatController] Returning ${uniqueContacts.length} unique contacts`);
+        return uniqueContacts;
     }
 
     static async getConversations(req: Request, res: Response) {
@@ -119,7 +144,16 @@ export class ChatController {
     static async getMessages(req: Request, res: Response) {
         try {
             const { conversationId } = req.params;
+            const userId = (req as any).user.id;
             const messageRepo = AppDataSource.getRepository(Message);
+
+            // Mark unread messages as read when opened by the recipient
+            await messageRepo.createQueryBuilder()
+                .update(Message)
+                .set({ isRead: true })
+                .where("conversationId = :convId", { convId: conversationId })
+                .andWhere("senderId != :userId", { userId })
+                .execute();
 
             const messages = await messageRepo.find({
                 where: { conversationId: conversationId as string },

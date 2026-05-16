@@ -4,6 +4,8 @@ import { ProgramService, Program } from '../../../services/program.service';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { AuthService } from '../../../services/auth.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ToastService } from '../../../services/toast.service';
+import { ConfirmService } from '../../../services/confirm.service';
 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -39,7 +41,9 @@ export class ProgramsComponent implements OnInit {
     private athleteService: AthleteService,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private toastService: ToastService,
+    private confirmService: ConfirmService
   ) { }
 
   ngOnInit(): void {
@@ -49,9 +53,9 @@ export class ProgramsComponent implements OnInit {
   }
 
   checkQueryParameters(): void {
-    this.route.queryParams.subscribe(params => {
+    this.route.queryParams.subscribe((params: any) => {
       if (params['athleteId']) {
-
+        // Handle athleteId param
       }
     });
   }
@@ -66,7 +70,7 @@ export class ProgramsComponent implements OnInit {
     } else {
       // Find athlete record for current user
       this.athleteService.getAll().subscribe({
-        next: (athletes) => {
+        next: (athletes: Athlete[]) => {
           const found = athletes.find(a => a.userId === currentUser.id);
           if (found && found.id) {
             this.athlete = found;
@@ -82,7 +86,7 @@ export class ProgramsComponent implements OnInit {
 
   private fetchProgramsWithFilters(filters: any): void {
     this.programService.getAll(filters).subscribe({
-      next: (data) => {
+      next: (data: Program[]) => {
         if (this.roleService.currentRole === 'athlete') {
             // For athletes, don't show draft or replaced programs in the main lists
             this.athletePendingPrograms = data.filter(p => p.status === 'assigned');
@@ -101,7 +105,7 @@ export class ProgramsComponent implements OnInit {
     if (this.roleService.currentRole !== 'coach') return;
     this.isLoadingAthletes = true;
     this.athleteService.getAll().subscribe({
-      next: (data) => { this.athletes = data; this.isLoadingAthletes = false; },
+      next: (data: Athlete[]) => { this.athletes = data; this.isLoadingAthletes = false; },
       error: () => { this.isLoadingAthletes = false; }
     });
   }
@@ -121,12 +125,17 @@ export class ProgramsComponent implements OnInit {
   }
 
 
-  declineProgram(program: Program): void {
+  async declineProgram(program: Program): Promise<void> {
       if (!program.id) return;
-      if (confirm('Are you sure you want to decline this program?')) {
+      const confirmed = await this.confirmService.danger(
+        'Are you sure you want to decline this program?',
+        'Decline Program'
+      );
+      
+      if (confirmed) {
           this.programService.quitProgram(program.id).subscribe({
               next: () => {
-                  alert('Program declined.');
+                  this.toastService.showSuccess('Program declined.');
                   this.loadPrograms();
               },
               error: (err: any) => console.error('Error declining program', err)
@@ -166,12 +175,12 @@ export class ProgramsComponent implements OnInit {
         this.isAssigning = false;
         this.showAssignModal = false;
         this.assigningProgram = null;
-        alert('Program assigned! The athlete has been notified and can accept it.');
+        this.toastService.showSuccess('Program assigned! The athlete has been notified and can accept it.');
         this.loadPrograms();
       },
       error: (err: any) => {
         console.error('Assign failed:', err);
-        alert('Failed to assign program: ' + (err?.error?.message || 'Unknown error'));
+        this.toastService.showError('Failed to assign program: ' + (err?.error?.message || 'Unknown error'));
         this.isAssigning = false;
       }
     });

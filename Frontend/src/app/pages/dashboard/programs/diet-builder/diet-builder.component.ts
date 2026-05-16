@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { NutritionService, DietPlan, DietDay, Meal } from '../../../../services/nutrition.service';
 import { DashboardLayoutComponent } from '../../../../components/dashboard-layout/dashboard-layout.component';
+import { ToastService } from '../../../../services/toast.service';
 
 @Component({
     selector: 'app-diet-builder',
@@ -26,8 +27,6 @@ export class DietBuilderComponent implements OnInit {
     activeDayIndex: number = 0;
 
     isSaving = false;
-    saveError: string | null = null;
-    connectionError: string | null = null;
 
     readonly mealTypes = ['breakfast', 'lunch', 'dinner', 'snack'];
     readonly goals = [
@@ -41,7 +40,8 @@ export class DietBuilderComponent implements OnInit {
     constructor(
         private nutritionService: NutritionService,
         private router: Router,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private toastService: ToastService
     ) {}
 
     ngOnInit() {
@@ -147,18 +147,16 @@ export class DietBuilderComponent implements OnInit {
 
     savePlan() {
         if (!this.planData.name?.trim()) {
-            this.saveError = 'Le plan doit avoir un nom.';
+            this.toastService.showWarning('Le plan doit avoir un nom.');
             return;
         }
 
         if (this.planData.days.some(d => !d.isRestDay && d.meals.length === 0)) {
-            this.saveError = 'Chaque jour non-repos doit avoir au moins un repas.';
+            this.toastService.showWarning('Chaque jour non-repos doit avoir au moins un repas.');
             return;
         }
 
         this.isSaving = true;
-        this.saveError = null;
-        this.connectionError = null;
 
         const planPayload: Partial<DietPlan> = {
             name: this.planData.name,
@@ -180,7 +178,7 @@ export class DietBuilderComponent implements OnInit {
                         },
                         error: (err) => {
                             this.isSaving = false;
-                            this.saveError = 'Erreur lors de la sauvegarde de la structure du plan.';
+                            this.toastService.showError('Erreur lors de la sauvegarde de la structure du plan.');
                         }
                     });
                 }
@@ -188,9 +186,9 @@ export class DietBuilderComponent implements OnInit {
             error: (err) => {
                 this.isSaving = false;
                 if (err.status === 403) {
-                    this.connectionError = 'Connexion nutritionnelle non acceptée — l\'athlète doit d\'abord accepter votre invitation.';
+                    this.toastService.showError('Connexion nutritionnelle non acceptée — l\'athlète doit d\'abord accepter votre invitation.');
                 } else {
-                    this.saveError = 'Erreur lors de la création du plan.';
+                    this.toastService.showError('Erreur lors de la création du plan.');
                 }
             }
         });

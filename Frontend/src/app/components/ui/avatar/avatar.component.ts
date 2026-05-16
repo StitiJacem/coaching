@@ -1,5 +1,6 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../../environments/environment';
 
 export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl';
 export type AvatarStatus = 'online' | 'offline' | 'busy';
@@ -21,7 +22,7 @@ export class AvatarComponent {
 
   get displaySrc(): string | undefined {
     if (!this.src) return undefined;
-    return this.src.startsWith('/') ? `http://localhost:3000${this.src}` : this.src;
+    return this.src.startsWith('/') ? `${environment.apiUrl.replace('/api', '')}${this.src}` : this.src;
   }
 
   get sizeClasses(): string {

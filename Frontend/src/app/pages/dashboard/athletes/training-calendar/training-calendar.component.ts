@@ -6,6 +6,8 @@ import { ProgramService, Program } from '../../../../services/program.service';
 import { WorkoutLogService } from '../../../../services/workout-log.service';
 import { AuthService } from '../../../../services/auth.service';
 import { RoleService } from '../../../../services/role.service';
+import { ToastService } from '../../../../services/toast.service';
+import { ConfirmService } from '../../../../services/confirm.service';
 import {
     startOfWeek,
     endOfWeek,
@@ -102,7 +104,9 @@ export class TrainingCalendarComponent implements OnInit {
         private programService: ProgramService,
         private workoutLogService: WorkoutLogService,
         private authService: AuthService,
-        public roleService: RoleService
+        public roleService: RoleService,
+        private toastService: ToastService,
+        private confirmService: ConfirmService
     ) { }
 
     ngOnInit(): void {
@@ -126,7 +130,7 @@ export class TrainingCalendarComponent implements OnInit {
                     // Identify the athlete
                     const currentUser = this.authService.getUser();
                     if (currentUser && currentUser.role === 'athlete') {
-                        this.athleteService.getAll().subscribe(athletes => {
+                        this.athleteService.getAll().subscribe((athletes: Athlete[]) => {
                             const found = athletes.find(a => a.userId === currentUser.id);
                             if (found && found.id) {
                                 this.athleteId = found.id;
@@ -149,11 +153,11 @@ export class TrainingCalendarComponent implements OnInit {
 
     loadAthlete(): void {
         this.athleteService.getById(this.athleteId).subscribe({
-            next: (data) => {
+            next: (data: Athlete) => {
                 this.athlete = data;
                 this.loadSessions();
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error loading athlete:', err);
                 if (err.status === 403) {
                     this.router.navigate(['/dashboard']);
@@ -174,11 +178,11 @@ export class TrainingCalendarComponent implements OnInit {
             startDate,
             endDate
         }).subscribe({
-            next: (data) => {
+            next: (data: Session[]) => {
                 this.sessions = data;
                 this.isLoading = false;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error loading sessions:', err);
                 this.isLoading = false;
                 if (err.status === 403) {
@@ -204,7 +208,7 @@ export class TrainingCalendarComponent implements OnInit {
         if (!this.previewProgramId) return;
         this.isLoading = true;
         this.programService.getById(this.previewProgramId).subscribe({
-            next: (program) => {
+            next: (program: Program) => {
                 this.previewProgram = program;
                 this.programTitle = program.name;
                 this.programDescription = program.description || '';
@@ -222,7 +226,7 @@ export class TrainingCalendarComponent implements OnInit {
     loadProgramIntoCalendar(programId: number, isMaster: boolean): void {
         this.isLoading = true;
         this.programService.getById(programId).subscribe({
-            next: (program) => {
+            next: (program: Program) => {
                 this.sessions = [];
                 const anchorDate = this.days[0];
                 program.days.forEach(day => {
@@ -313,13 +317,13 @@ export class TrainingCalendarComponent implements OnInit {
         this.programService.acceptProgram(this.previewProgramId, payload).subscribe({
             next: () => {
                 this.isAccepting = false;
-                alert('Success! Your program is now active.');
+                this.toastService.showSuccess('Success! Your program is now active.');
                 this.router.navigate(['/dashboard/programs']);
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error accepting program:', err);
                 this.isAccepting = false;
-                alert('Failed to activate program: ' + (err?.error?.message || 'Please try again.'));
+                this.toastService.showError('Failed to activate program: ' + (err?.error?.message || 'Please try again.'));
             }
         });
     }
@@ -329,7 +333,7 @@ export class TrainingCalendarComponent implements OnInit {
         if (!coach.id) return;
         this.isLoadingTemplates = true;
         this.programService.getAll({ coachId: coach.id }).subscribe({
-            next: (data) => {
+            next: (data: Program[]) => {
                 this.templates = data;
                 this.isLoadingTemplates = false;
             },
@@ -347,7 +351,7 @@ export class TrainingCalendarComponent implements OnInit {
         if (!coach.id || !this.athleteId) return;
 
         if (this.sessions.length === 0) {
-            alert('No sessions found in the current calendar view to assign.');
+            this.toastService.showWarning('No sessions found in the current calendar view to assign.');
             return;
         }
 
@@ -391,27 +395,26 @@ export class TrainingCalendarComponent implements OnInit {
         this.programService.create(payload).subscribe({
             next: () => {
                 this.isAssigning = false;
-                alert('Success! Custom program bundled and assigned to athlete.');
+                this.toastService.showSuccess('Success! Custom program bundled and assigned to athlete.');
             },
             error: (err: any) => {
                 console.error('Assign failed:', err);
                 this.isAssigning = false;
-                alert('Failed to bundle and assign program.');
+                this.toastService.showError('Failed to bundle and assign program.');
             }
         });
     }
 
-    applyTemplate(template: Program): void {
+    async applyTemplate(template: Program): Promise<void> {
         if (!this.athleteId || !template.id) return;
 
         const proceed = () => {
             this.isApplyingTemplate = true;
             this.programService.getById(template.id!).subscribe({
-                next: (fullTemplate) => {
+                next: (fullTemplate: Program) => {
                     const newSessions: any[] = [];
                     const anchorDate = this.selectedDate || this.days[0];
-                    const preferredDays = this.athlete?.preferredTrainingDays || [0, 1, 2, 3, 4, 5, 6];
-
+                    
                     const coach = JSON.parse(localStorage.getItem('user') || '{}');
                     const weeksCount = this.blueprintRepeatWeeks || 1;
 
@@ -419,7 +422,6 @@ export class TrainingCalendarComponent implements OnInit {
                         const weekAnchorDate = addDays(new Date(anchorDate), w * 7);
                         
                         fullTemplate.days.forEach(day => {
-                            // Use exact day offset from the blueprint configuration
                             const offset = (day.day_number || 1) - 1;
                             const sessionDate = addDays(weekAnchorDate, offset);
 
@@ -454,7 +456,7 @@ export class TrainingCalendarComponent implements OnInit {
                                 next: () => {
                                     this.isApplyingTemplate = false;
                                     this.showTemplateLibrary = false;
-                                    alert(`Applied "${template.name}" template starting from ${format(anchorDate, 'MMM d')}`);
+                                    this.toastService.showSuccess(`Applied "${template.name}" template starting from ${format(anchorDate, 'MMM d')}`);
                                     this.loadSessions();
                                 },
                                 error: (err) => {
@@ -473,13 +475,14 @@ export class TrainingCalendarComponent implements OnInit {
 
         const upcomingSessions = this.sessions.filter(s => s.status === 'upcoming');
         if (upcomingSessions.length > 0) {
-            if (confirm(`This blueprint will add new sessions. Would you like to CLEAR the existing ${upcomingSessions.length} upcoming sessions first for a clean schedule?`)) {
+            const confirmed = await this.confirmService.ask(`This blueprint will add new sessions. Would you like to CLEAR the existing ${upcomingSessions.length} upcoming sessions first for a clean schedule?`, 'warning');
+            if (confirmed) {
                 this.isLoading = true;
                 import('rxjs').then(({ forkJoin }) => {
                     const deletions = upcomingSessions.map(s => this.sessionService.delete(s.id!));
                     forkJoin(deletions).subscribe({
                         next: () => proceed(),
-                        error: () => proceed() // Proceed anyway
+                        error: () => proceed()
                     });
                 });
             } else {
@@ -626,7 +629,7 @@ export class TrainingCalendarComponent implements OnInit {
             
             const targetDate = new Date(newDateStr);
             if (isBefore(targetDate, today)) {
-                alert('You cannot move a workout to a date in the past.');
+                this.toastService.showWarning('You cannot move a workout to a date in the past.');
                 this.draggedSession = null;
                 return;
             }
@@ -645,7 +648,7 @@ export class TrainingCalendarComponent implements OnInit {
         today.setHours(0, 0, 0, 0);
 
         if (isBefore(date, today) && !this.isMasterMode) {
-            alert('Selection Restricted: You cannot add or edit workouts for past dates.');
+            this.toastService.showWarning('Selection Restricted: You cannot add or edit workouts for past dates.');
             return;
         }
 
@@ -717,18 +720,18 @@ export class TrainingCalendarComponent implements OnInit {
             next: () => {
                 this.isSavingTemplate = false;
                 this.showSaveModal = false;
-                alert('Master Program Saved to Drafts!');
+                this.toastService.showSuccess('Master Program Saved to Drafts!');
                 this.router.navigate(['/dashboard/programs']);
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error saving master program:', err);
                 this.isSavingTemplate = false;
-                alert('Failed to save master program.');
+                this.toastService.showError('Failed to save master program.');
             }
         });
     }
 
-    deleteSession(session: any, event?: MouseEvent): void {
+    async deleteSession(session: any, event?: MouseEvent): Promise<void> {
         if (event) event.stopPropagation();
         
         if (this.isMasterMode || this.isPreviewMode) {
@@ -741,7 +744,8 @@ export class TrainingCalendarComponent implements OnInit {
             return;
         }
 
-        if (confirm('Delete this workout from the calendar?')) {
+        const confirmed = await this.confirmService.danger('Delete this workout from the calendar?', 'Delete Session');
+        if (confirmed) {
             this.sessionService.delete(session.id).subscribe({
                 next: () => this.loadSessions(),
                 error: (err) => console.error('Error deleting session', err)
@@ -749,28 +753,33 @@ export class TrainingCalendarComponent implements OnInit {
         }
     }
 
-    clearCalendar(): void {
+    async clearCalendar(): Promise<void> {
         if (!this.athleteId || this.isMasterMode || this.isPreviewMode) return;
         const upcomingSessions = this.sessions.filter(s => s.status === 'upcoming');
         if (upcomingSessions.length === 0) {
-            alert('No upcoming sessions to clear in this view.');
+            this.toastService.showInfo('No upcoming sessions to clear in this view.');
             return;
         }
 
-        if (confirm(`This will permanently delete ALL ${upcomingSessions.length} upcoming sessions for this athlete. Use this to fix duplicated workouts or to totally reset their schedule. Proceed?`)) {
+        const confirmed = await this.confirmService.danger(
+          `This will permanently delete ALL ${upcomingSessions.length} upcoming sessions for this athlete. Use this to fix duplicated workouts or to totally reset their schedule. Proceed?`,
+          'Clear Calendar'
+        );
+        
+        if (confirmed) {
             this.isLoading = true;
             import('rxjs').then(({ forkJoin }) => {
                 const deletions = upcomingSessions.map(s => this.sessionService.delete(s.id!));
                 forkJoin(deletions).subscribe({
                     next: () => {
                         this.isLoading = false;
-                        alert('Calendar cleared successfully.');
+                        this.toastService.showSuccess('Calendar cleared successfully.');
                         this.loadSessions();
                     },
                     error: (err) => {
                         this.isLoading = false;
                         console.error('Error clearing calendar', err);
-                        alert('Some sessions could not be deleted.');
+                        this.toastService.showError('Some sessions could not be deleted.');
                         this.loadSessions();
                     }
                 });

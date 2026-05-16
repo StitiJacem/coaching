@@ -12,6 +12,8 @@ import {
 } from '../../../services/nutrition.service';
 import { AiService, FoodAnalysisResult } from '../../../services/ai.service';
 import { LucideAngularModule } from 'lucide-angular';
+import { ToastService } from '../../../services/toast.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
     selector: 'app-nutrition',
@@ -61,14 +63,15 @@ export class NutritionComponent implements OnInit {
     clientPlan: DietPlan | null = null;
     isLoadingClient = false;
 
-    successMessage: string | null = null;
-
     constructor(
         public roleService: RoleService,
         private nutritionService: NutritionService,
         private aiService: AiService,
-        private router: Router
+        private router: Router,
+        private toastService: ToastService
     ) {}
+
+    environment = environment;
 
     ngOnInit(): void {
         const role = this.roleService.currentRole;
@@ -125,7 +128,7 @@ export class NutritionComponent implements OnInit {
         this.loadTodayLogs(athleteId);
 
         this.nutritionService.getAthleteActivePlan(athleteId).subscribe({
-            next: (plan) => {
+            next: (plan: DietPlan | null) => {
                 this.activePlan = plan;
                 if (plan?.days?.length) {
                     this.todayDay = this.findTodayDay(plan);
@@ -138,7 +141,7 @@ export class NutritionComponent implements OnInit {
     loadCompliance(athleteId: number): void {
         const localDate = this.getLocalISODate();
         this.nutritionService.getCompliance(athleteId, localDate).subscribe({
-            next: (data) => {
+            next: (data: MacroCompliance) => {
                 this.compliance = data;
                 if (data.todayDay) this.todayDay = data.todayDay;
             },
@@ -149,7 +152,7 @@ export class NutritionComponent implements OnInit {
     loadTodayLogs(athleteId: number): void {
         const localDate = this.getLocalISODate();
         this.nutritionService.getLogsByDate(athleteId, localDate).subscribe({
-            next: (logs) => {
+            next: (logs: MealLog[]) => {
                 this.todayLogs = logs;
                 this.isLoading = false;
             },
@@ -173,11 +176,18 @@ export class NutritionComponent implements OnInit {
 
     submitMeal(): void {
         const athleteId = this.getAthleteId();
-        if (!athleteId || !this.mealForm.foodName.trim()) return;
+        if (!athleteId) {
+            this.toastService.showError("Impossible de récupérer l'ID de l'athlète. Veuillez vous reconnecter.");
+            return;
+        }
+        if (!this.mealForm.foodName.trim()) {
+            this.toastService.showWarning("Veuillez entrer le nom de l'aliment.");
+            return;
+        }
 
         this.isSubmittingLog = true;
         this.nutritionService.logMeal(athleteId, this.mealForm).subscribe({
-            next: (log) => {
+            next: (log: MealLog) => {
                 this.todayLogs = [log, ...this.todayLogs];
                 this.showLogModal = false;
                 this.resetMealForm();
@@ -188,19 +198,16 @@ export class NutritionComponent implements OnInit {
                 }
                 
                 this.isSubmittingLog = false;
-                this.showSuccess('Repas enregistré avec succès !');
+                this.toastService.showSuccess('Repas enregistré avec succès !');
             },
-            error: (err) => { 
+            error: (err: any) => { 
                 console.error('Submit meal error:', err);
                 this.isSubmittingLog = false; 
+                this.toastService.showError(err.error?.message || "Erreur lors de l'enregistrement du repas. Vérifiez votre connexion.");
             }
         });
     }
 
-    showSuccess(msg: string): void {
-        this.successMessage = msg;
-        setTimeout(() => this.successMessage = null, 3000);
-    }
 
     deleteLog(logId: string): void {
         const athleteId = this.getAthleteId();
@@ -227,10 +234,10 @@ export class NutritionComponent implements OnInit {
 
         this.isLoading = true;
         this.nutritionService.getLogsByDate(athleteId, this.selectedHistoryDate).subscribe({
-            next: (logs) => {
+            next: (logs: MealLog[]) => {
                 this.historyLogs = logs;
                 this.nutritionService.getCompliance(athleteId, this.selectedHistoryDate).subscribe({
-                    next: (comp) => {
+                    next: (comp: MacroCompliance) => {
                         this.historyCompliance = comp;
                         this.isLoading = false;
                     },
@@ -251,7 +258,7 @@ export class NutritionComponent implements OnInit {
     loadNutritionistData(): void {
         this.isLoading = true;
         this.nutritionService.getMyProfile().subscribe({
-            next: (profile) => {
+            next: (profile: any) => {
                 this.nutritionistProfile = profile;
                 if (profile?.id) this.loadClients(profile.id);
             },
@@ -261,7 +268,7 @@ export class NutritionComponent implements OnInit {
 
     loadClients(nutritionistProfileId: string): void {
         this.nutritionService.getClients(nutritionistProfileId).subscribe({
-            next: (clients) => {
+            next: (clients: any[]) => {
                 this.clients = clients;
                 this.isLoading = false;
             },
@@ -287,7 +294,7 @@ export class NutritionComponent implements OnInit {
             this.selectedClient.athlete.id,
             this.selectedClientDate
         ).subscribe({
-            next: (compliance) => {
+            next: (compliance: ClientCompliance) => {
                 this.clientCompliance = compliance;
                 this.isLoadingClient = false;
             },
@@ -312,10 +319,16 @@ export class NutritionComponent implements OnInit {
             const raw = localStorage.getItem('user');
             if (raw) {
                 const u = JSON.parse(raw);
+                // Try athleteId, then id (which might be the same in some contexts)
                 return u.athleteId || u.id || null;
             }
-        } catch {}
-        return this.roleService.user?.id || null;
+        } catch (e) {
+            console.error('Error getting athlete ID:', e);
+        }
+        
+        // Final fallback to roleService user ID
+        const roleUser = this.roleService.user;
+        return roleUser && roleUser.id !== 0 ? roleUser.id : null;
     }
 
     getLocalISODate(): string {

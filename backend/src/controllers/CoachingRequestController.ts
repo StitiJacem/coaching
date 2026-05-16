@@ -23,7 +23,7 @@ export class CoachingRequestController {
             let athlete = await athleteRepo.findOne({ where: { userId } });
 
             if (!athlete) {
-                console.log(`[DEBUG] Auto-creating missing athlete profile for user ${userId}`);
+                // debug log removed
                 athlete = athleteRepo.create({ userId, lastActive: new Date() });
                 await athleteRepo.save(athlete);
             }
@@ -180,7 +180,7 @@ export class CoachingRequestController {
                 let athlete = await athleteRepo.findOne({ where: { userId } });
 
                 if (!athlete) {
-                    console.log(`[DEBUG] Auto-creating missing athlete profile for user ${userId} in getMyRequests`);
+                    // debug log removed
                     athlete = athleteRepo.create({ userId, lastActive: new Date() });
                     await athleteRepo.save(athlete);
                 }
@@ -242,7 +242,7 @@ export class CoachingRequestController {
                 let coachProfile = await coachRepo.findOne({ where: { userId } });
 
                 if (!coachProfile) {
-                    console.log(`[DEBUG] Auto-creating missing coach profile for user ${userId}`);
+                    // debug log removed
                     coachProfile = coachRepo.create({ userId });
                     await coachRepo.save(coachProfile);
                 }

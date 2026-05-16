@@ -18,7 +18,7 @@ export class MessagingComponent implements OnInit, OnDestroy {
   selectedConversation: any = null;
   messages: any[] = [];
   newMessage: string = '';
-  activeTab: 'messages' | 'contacts' = 'messages';
+  
   private messagesSubscription?: Subscription;
   private contactsSubscription?: Subscription;
   private conversationsSubscription?: Subscription;
@@ -54,18 +54,65 @@ export class MessagingComponent implements OnInit, OnDestroy {
     this.chatService.refreshConversations();
   }
 
+  get unifiedList() {
+    const list: any[] = [];
+    
+    // 1. Add existing conversations
+    this.conversations.forEach(conv => {
+      const participant = this.getParticipant(conv);
+      if (!participant) return;
+      
+      list.push({
+        type: 'conversation',
+        id: conv.id,
+        participant: participant,
+        lastMessage: conv.lastMessageContent || 'Démarrer une discussion',
+        lastMessageAt: conv.lastMessageAt,
+        raw: conv
+      });
+    });
+
+    // 2. Add contacts who DON'T have a conversation yet
+    this.contacts.forEach(contact => {
+      const hasConv = this.conversations.some(conv => 
+        conv.participant1Id === contact.id || conv.participant2Id === contact.id
+      );
+      
+      if (!hasConv) {
+        list.push({
+          type: 'contact',
+          id: `contact-${contact.id}`,
+          participant: contact,
+          lastMessage: 'Nouveau contact',
+          lastMessageAt: null,
+          raw: contact
+        });
+      }
+    });
+
+    // 3. Sort by last message date (conversations first, then alphabetically)
+    return list.sort((a, b) => {
+      const dateA = a.lastMessageAt ? new Date(a.lastMessageAt).getTime() : 0;
+      const dateB = b.lastMessageAt ? new Date(b.lastMessageAt).getTime() : 0;
+      
+      if (dateA !== dateB) return dateB - dateA;
+      
+      const nameA = (a.participant.first_name || '').toLowerCase();
+      const nameB = (b.participant.first_name || '').toLowerCase();
+      return nameA.localeCompare(nameB);
+    });
+  }
+
   handleQueryParams() {
     this.route.queryParams.subscribe(params => {
       const coachId = params['coachId'];
       const athleteId = params['athleteId'];
 
       if (coachId) {
-        // Find coach's user ID and start conversation
         this.coachService.getById(coachId).subscribe((profile: Coach) => {
           this.startOrSelectConversation(profile.userId, 'coach-athlete');
         });
       } else if (athleteId) {
-        // Find athlete's user ID and start conversation
         this.athleteService.getById(Number(athleteId)).subscribe((athlete: Athlete) => {
           if (athlete.userId) {
             const type = this.roleService.currentRole === 'nutritionist' ? 'nutritionist-athlete' : 'coach-athlete';
@@ -76,8 +123,15 @@ export class MessagingComponent implements OnInit, OnDestroy {
     });
   }
 
+  onItemSelect(item: any) {
+    if (item.type === 'conversation') {
+      this.selectConversation(item.raw);
+    } else {
+      this.selectContact(item.raw);
+    }
+  }
+
   selectContact(contact: any) {
-    // Check if conversation exists
     const receiverUserId = contact.id;
     const type = this.roleService.currentRole === 'nutritionist' ? 'nutritionist-athlete' : 'coach-athlete';
     
@@ -89,12 +143,10 @@ export class MessagingComponent implements OnInit, OnDestroy {
       this.selectConversation(existing);
     } else {
       this.chatService.startConversation(receiverUserId, type).subscribe((newConv: any) => {
-        // Socket should refresh list, but we can unshift for instant feedback
         this.conversations.unshift(newConv);
         this.selectConversation(newConv);
       });
     }
-    this.activeTab = 'messages';
   }
 
   startOrSelectConversation(receiverUserId: number, type: any) {

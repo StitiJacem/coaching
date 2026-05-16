@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProgramService, Program } from '../../services/program.service';
 import { SessionService, Session } from '../../services/session.service';
 import { AthleteService, Athlete } from '../../services/athlete.service';
+import { ConfirmService } from '../../services/confirm.service';
 import {
     startOfWeek,
     endOfWeek,
@@ -70,6 +71,15 @@ export class DashboardComponent implements OnInit {
     showConfigModal = false;
     selectedProgramForConfig: Program | null = null;
     athleteId: number | null = null;
+    
+    // Onboarding
+    showOnboarding = false;
+    onboardingSteps: any[] = [
+        { id: 'coach', label: 'Connect with a Coach', completed: false, description: 'Find a specialist to guide your journey.', link: '/dashboard/discovery', queryParams: null },
+        { id: 'program', label: 'Get a Program', completed: false, description: 'Your coach will assign a plan tailored to you.', link: '/dashboard/messaging', queryParams: null },
+        { id: 'workout', label: 'Start First Workout', completed: false, description: 'Begin your transformation today.', link: null, queryParams: null }
+    ];
+    onboardingProgress = 0;
 
     constructor(
         public roleService: RoleService,
@@ -80,7 +90,8 @@ export class DashboardComponent implements OnInit {
         private coachService: CoachService,
         private programService: ProgramService,
         private sessionService: SessionService,
-        private athleteService: AthleteService
+        private athleteService: AthleteService,
+        private confirmService: ConfirmService
     ) { }
 
     ngOnInit() {
@@ -97,18 +108,18 @@ export class DashboardComponent implements OnInit {
         const role = this.roleService.currentRole;
 
         this.dashboardService.getStats(role).subscribe({
-            next: (data) => { this.stats = data; },
-            error: (err) => { console.error('Error loading stats', err); }
+            next: (data: any[]) => { this.stats = data; },
+            error: (err: any) => { console.error('Error loading stats', err); }
         });
 
         this.dashboardService.getTodaySessions().subscribe({
-            next: (data) => { this.todaySessions = data; },
-            error: (err) => { console.error('Error loading sessions', err); }
+            next: (data: any[]) => { this.todaySessions = data; },
+            error: (err: any) => { console.error('Error loading sessions', err); }
         });
 
         this.dashboardService.getRecentAthletes().subscribe({
-            next: (data) => { this.recentAthletes = data; this.loading = false; },
-            error: (err) => { console.error('Error loading athletes', err); this.loading = false; }
+            next: (data: any[]) => { this.recentAthletes = data; this.loading = false; },
+            error: (err: any) => { console.error('Error loading athletes', err); this.loading = false; }
         });
 
 
@@ -117,7 +128,7 @@ export class DashboardComponent implements OnInit {
             this.loadRecentPRs();
         } else if (role === 'athlete') {
             this.athleteService.getAll().subscribe({
-                next: (athletes) => {
+                next: (athletes: Athlete[]) => {
                     if (athletes.length > 0) {
                         const athlete = athletes[0];
                         this.athleteId = athlete.id!;
@@ -134,7 +145,7 @@ export class DashboardComponent implements OnInit {
                         this.initializeWeeklySchedule(this.athleteId);
                     }
                 },
-                error: (err) => console.error('Error loading athlete profile', err)
+                error: (err: any) => console.error('Error loading athlete profile', err)
             });
         }
     }
@@ -156,10 +167,10 @@ export class DashboardComponent implements OnInit {
             startDate: format(start, 'yyyy-MM-dd'),
             endDate: format(end, 'yyyy-MM-dd')
         }).subscribe({
-            next: (sessions) => {
+            next: (sessions: Session[]) => {
                 this.weekSessions = sessions;
             },
-            error: (err) => {
+            error: (err: any) => {
                 console.error('Error loading weekly sessions', err);
             }
         });
@@ -181,8 +192,12 @@ export class DashboardComponent implements OnInit {
         this.workoutLogService.getTodayWorkout(user.id).subscribe({
             next: (data: TodayWorkout) => {
                 this.todayWorkout = data;
+                this.calculateOnboardingProgress(); // Update onboarding when workout data arrives
                 this.workoutLogService.getAthleteStats(athleteId).subscribe({
-                    next: (stats: AthleteWorkoutStats) => { this.workoutStats = stats; },
+                    next: (stats: AthleteWorkoutStats) => { 
+                        this.workoutStats = stats; 
+                        this.calculateOnboardingProgress(); // Update again with stats
+                    },
                     error: (err: any) => { console.error('Error loading workout stats', err); }
                 });
             },
@@ -192,18 +207,47 @@ export class DashboardComponent implements OnInit {
 
     loadRecentPRs() {
         this.dashboardService.getRecentPRs(this.roleService.currentRole).subscribe({
-            next: (data) => { this.recentPRs = data; },
-            error: (err) => { console.error('Error loading PRs', err); }
+            next: (data: any[]) => { this.recentPRs = data; },
+            error: (err: any) => { console.error('Error loading PRs', err); }
         });
     }
 
     loadCoachData() {
         this.coachService.getMyRequests().subscribe({
-            next: (requests) => {
+            next: (requests: CoachingRequest[]) => {
                 this.pendingRequests = requests.filter(r => r.status === 'pending');
+                
+                if (this.roleService.currentRole === 'athlete') {
+                    const hasAccepted = requests.some(r => r.status === 'accepted');
+                    const coachStep = this.onboardingSteps.find(s => s.id === 'coach');
+                    if (coachStep) coachStep.completed = hasAccepted;
+                    
+                    const programStep = this.onboardingSteps.find(s => s.id === 'program');
+                    if (programStep) programStep.completed = !!this.todayWorkout?.program;
+                    
+                    const workoutStep = this.onboardingSteps.find(s => s.id === 'workout');
+                    if (workoutStep) workoutStep.completed = this.completedSessions > 0;
+                    
+                    this.calculateOnboardingProgress(requests);
+                }
             },
-            error: (err) => { console.error('Error loading coaching requests', err); }
+            error: (err: any) => { console.error('Error loading coaching requests', err); }
         });
+    }
+
+    calculateOnboardingProgress(requests?: CoachingRequest[]) {
+        const completed = this.onboardingSteps.filter(s => s.completed).length;
+        this.onboardingProgress = Math.round((completed / this.onboardingSteps.length) * 100);
+        
+        // Simple link to messaging - the component will now intelligently pick the best tab
+        const programStep = this.onboardingSteps.find(s => s.id === 'program');
+        if (programStep) {
+            programStep.link = '/dashboard/messaging';
+            programStep.queryParams = null;
+        }
+
+        // Show onboarding if not all steps are completed
+        this.showOnboarding = this.onboardingProgress < 100;
     }
 
     handleRequest(requestId: string | undefined, status: 'accepted' | 'rejected') {
@@ -249,9 +293,13 @@ export class DashboardComponent implements OnInit {
         });
     }
 
-    quitWorkout() {
+    async quitWorkout() {
         if (!this.todayWorkout?.workoutLog?.id) return;
-        if (confirm('Are you sure you want to quit this workout? Your coach will be notified.')) {
+        const confirmed = await this.confirmService.danger(
+          'Are you sure you want to quit this workout? Your coach will be notified.',
+          'Quit Workout'
+        );
+        if (confirmed) {
             this.workoutLogService.quitWorkout(this.todayWorkout.workoutLog.id).subscribe({
                 next: () => this.loadDashboardData(),
                 error: (err) => console.error('Error quitting workout', err)
@@ -259,9 +307,13 @@ export class DashboardComponent implements OnInit {
         }
     }
 
-    quitProgram() {
+    async quitProgram() {
         if (!this.todayWorkout?.program?.id) return;
-        if (confirm('Are you sure you want to quit your current program? Your coach will be notified.')) {
+        const confirmed = await this.confirmService.danger(
+          'Are you sure you want to quit your current program? Your coach will be notified.',
+          'Quit Program'
+        );
+        if (confirmed) {
             this.programService.quitProgram(this.todayWorkout.program.id).subscribe({
                 next: () => this.loadDashboardData(),
                 error: (err) => console.error('Error quitting program', err)

@@ -15,12 +15,12 @@ import { CoachingRequest } from "../entities/CoachingRequest";
 import { UserInvitation } from "../entities/UserInvitation";
 import { ActivityEvent } from "../entities/ActivityEvent";
 import { Notification } from "../entities/Notification";
-import { NutritionPlan } from "../entities/NutritionPlan";
-import { NutritionPlanDay } from "../entities/NutritionPlanDay";
 import { MealLog } from "../entities/MealLog";
 import { DietPlan } from "../entities/DietPlan";
 import { DietDay } from "../entities/DietDay";
 import { Meal } from "../entities/Meal";
+import { Subscription } from "../entities/Subscription";
+import { Exercise } from "../entities/Exercise";
 import { DietaryProfile } from "../entities/DietaryProfile";
 import { DietLog } from "../entities/DietLog";
 import { NutritionConnection } from "../entities/NutritionConnection";
@@ -48,7 +48,7 @@ export const AppDataSource = new DataSource({
     entities: [
         User, Athlete, Program, Goal, CoachProfile, CoachSpecialization, CoachCertification, 
         ProgramDay, ProgramExercise, WorkoutLog, ExerciseLog, CoachingRequest, UserInvitation, 
-        ActivityEvent, Notification, NutritionPlan, NutritionPlanDay, MealLog,
+        ActivityEvent, Notification, MealLog, Subscription, Exercise,
         DietPlan, DietDay, Meal, DietaryProfile, DietLog, NutritionConnection, NutritionistProfile, BodyMetric, Session, Conversation, Message
     ],
     migrations: [],

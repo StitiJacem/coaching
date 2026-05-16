@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:math' as math;
+import 'dart:ui';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
@@ -19,8 +20,7 @@ class DashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends ConsumerState<DashboardScreen>
-    with SingleTickerProviderStateMixin {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTickerProviderStateMixin {
   Map<String, dynamic>? _stats;
   Map<String, dynamic>? _todayWorkout;
   int _unreadCount = 0;
@@ -30,6 +30,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   List<dynamic> _pendingPrograms = [];
   List<dynamic> _weeklySessions = [];
   List<dynamic> _recentAthletes = [];
+  Map<String, dynamic>? _overview;
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -37,10 +38,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   void initState() {
     super.initState();
-    _fadeController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 600));
-    _fadeAnimation =
-        CurvedAnimation(parent: _fadeController, curve: Curves.easeOut);
+    _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800));
+    _fadeAnimation = CurvedAnimation(parent: _fadeController, curve: Curves.easeOutCubic);
     _load();
   }
 
@@ -51,9 +50,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   }
 
   Future<void> _load() async {
+    if (!mounted) return;
     setState(() => _loading = true);
     try {
-      final user = ref.read(currentUserProvider)!;
+      final user = ref.read(currentUserProvider);
+      if (user == null) return;
+      
       final repo = ref.read(dashboardRepositoryProvider);
       final notifRepo = ref.read(notificationsRepositoryProvider);
 
@@ -61,33 +63,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       final isCoach = user.role == AppConstants.roleCoach;
 
       final results = await Future.wait([
-        isAthlete
-            ? repo.getAthleteStats(user.id)
-            : repo.getStats(role: user.role),
+        isAthlete ? repo.getAthleteStats(user.id) : repo.getStats(role: user.role),
         notifRepo.getUnreadCount(),
         repo.getRecentPRs(role: user.role),
         if (isAthlete) repo.getTodayWorkout(userId: user.id),
         if (isAthlete) repo.getPendingPrograms(user.id),
-        if (isAthlete)
-          repo.getWeeklySessions(
-            user.id,
-            _weekStart().toIso8601String().split('T')[0],
-            _weekEnd().toIso8601String().split('T')[0],
-          ),
+        if (isAthlete) repo.getWeeklySessions(user.id, _weekStart().toIso8601String().split('T')[0], _weekEnd().toIso8601String().split('T')[0]),
         if (isCoach) repo.getMyRequests(),
         if (isCoach) repo.getRecentAthletes(),
+        if (isAthlete) repo.getAthleteOverview(user.id),
       ]);
 
       final statsData = results[0];
       if (isCoach && statsData is List) {
-        // Normalize list of card stats to a Map for the UI
         final Map<String, dynamic> normalized = {};
         for (var item in statsData) {
           final label = item['label']?.toString().toLowerCase() ?? '';
           final valStr = item['value']?.toString() ?? '0';
-          final numeric =
-              int.tryParse(valStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
-
+          final numeric = int.tryParse(valStr.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
           if (label.contains('athlete')) normalized['totalAthletes'] = numeric;
           if (label.contains('program')) normalized['totalPrograms'] = numeric;
           if (label.contains('session')) normalized['todaySessions'] = numeric;
@@ -96,8 +89,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
         _stats = normalized;
       } else if (statsData is Map<String, dynamic>) {
         _stats = statsData;
-      } else {
-        _stats = {};
       }
 
       _unreadCount = results[1] as int;
@@ -111,16 +102,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       }
       if (isCoach) {
         final reqs = results[idx++] as List<dynamic>;
-        _pendingRequests =
-            reqs.where((r) => r['status'] == 'pending').toList();
+        _pendingRequests = reqs.where((r) => r['status'] == 'pending').toList();
         _recentAthletes = results[idx++] as List<dynamic>;
       }
+      if (isAthlete) {
+        _overview = results[results.length - 1] as Map<String, dynamic>?;
+      }
     } catch (e) {
-      debugPrint('[Dashboard] load error: $e');
-    }
-    if (mounted) {
-      setState(() => _loading = false);
-      _fadeController.forward(from: 0);
+      debugPrint('[Dashboard] error: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+        _fadeController.forward(from: 0);
+      }
     }
   }
 
@@ -128,7 +122,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
     final now = DateTime.now();
     return now.subtract(Duration(days: now.weekday - 1));
   }
-
   DateTime _weekEnd() => _weekStart().add(const Duration(days: 6));
 
   Future<void> _handleRequest(String id, String status) async {
@@ -168,335 +161,83 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
       if (mounted) setState(() => _loading = false);
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final isCoach = user?.role == AppConstants.roleCoach;
-    final isAthlete = user?.role == AppConstants.roleAthlete;
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: RefreshIndicator(
-          color: AppColors.primary,
-          backgroundColor: AppColors.surface,
-          onRefresh: _load,
-          child: CustomScrollView(
-            slivers: [
-              // ─── App Bar ──────────────────────────────────────────────────
-              SliverAppBar(
-                floating: true,
-                backgroundColor: AppColors.background,
-                surfaceTintColor: Colors.transparent,
-                titleSpacing: 16,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _greeting(),
-                      style: const TextStyle(
-                          color: AppColors.textMuted,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500),
-                    ),
-                    Text(
-                      user?.fullName ?? 'Athlete',
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 19,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                actions: [
-                  // Notification bell
-                  Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.notifications_outlined,
-                            color: AppColors.textPrimary, size: 24),
-                        onPressed: () => NotificationPopup.show(context),
-                      ),
-                      if (_unreadCount > 0)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            width: 16,
-                            height: 16,
-                            decoration: const BoxDecoration(
-                                color: AppColors.error,
-                                shape: BoxShape.circle),
-                            child: Center(
-                              child: Text(
-                                _unreadCount > 9 ? '9+' : '$_unreadCount',
-                                style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.logout_rounded, color: AppColors.error, size: 22),
-                    onPressed: () {
-                      ref.read(authProvider.notifier).logout();
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => context.push('/profile'),
-                    child: Container(
-                      margin: const EdgeInsets.only(right: 16),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundColor:
-                            AppColors.primary.withValues(alpha: 0.2),
-                        child: Text(
-                          user?.firstName.isNotEmpty == true
-                              ? user!.firstName[0].toUpperCase()
-                              : 'U',
-                          style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14),
+      body: Stack(
+        children: [
+          // ── Background Glows ──────────────────────────────────────────────
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.05),
+              ),
+              child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100), child: const SizedBox()),
+            ),
+          ),
+
+          // ── Main Content ──────────────────────────────────────────────────
+          SafeArea(
+            child: RefreshIndicator(
+              color: AppColors.primary,
+              onRefresh: _load,
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildAppBar(context, user, _unreadCount),
+                  if (_loading)
+                    const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+                  else
+                    SliverFadeTransition(
+                      opacity: _fadeAnimation,
+                      sliver: SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 40),
+                        sliver: SliverList(
+                          delegate: SliverChildListDelegate([
+                            _buildHeroSection(user, _stats),
+                            const SizedBox(height: 32),
+                            _buildQuickActions(context, isCoach),
+                            const SizedBox(height: 32),
+                            _buildStatsGrid(isCoach, _stats),
+                            const SizedBox(height: 32),
+                            if (!isCoach) ...[
+                              _buildWeeklySchedule(),
+                              const SizedBox(height: 32),
+                              _buildTodayWorkout(),
+                            ] else ...[
+                              _buildPendingRequests(),
+                              const SizedBox(height: 32),
+                              _buildRecentAthletes(),
+                            ],
+                            if (!isCoach && _overview != null) ...[
+                              _buildBiometricsSection(_overview!),
+                              const SizedBox(height: 32),
+                              _buildObservationsSection(_overview!),
+                              const SizedBox(height: 32),
+                            ],
+                            _buildActivityLog(isCoach),
+                          ]),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-              if (_loading)
-                const SliverFillRemaining(
-                  child: Center(
-                      child:
-                          CircularProgressIndicator(color: AppColors.primary)),
-                )
-              else
-                SliverFadeTransition(
-                  opacity: _fadeAnimation,
-                  sliver: SliverPadding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    sliver: SliverList(
-                      delegate: SliverChildListDelegate([
-                        // ─── Role Badge ──────────────────────────────────
-                        AnimateIn(
-                          delay: 100,
-                          child: _RoleBadge(role: user?.role ?? 'athlete'),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // ─── Hero Header ─────────────────────────────────
-                        AnimateIn(
-                          delay: 200,
-                          child: isAthlete
-                              ? _AthleteHero(
-                                  firstName: user!.firstName,
-                                  streak: _stats?['currentStreak'] ?? 0,
-                                )
-                              : _CoachHero(name: user!.firstName),
-                        ),
-                        const SizedBox(height: 20),
-
-                        // ─── Stats Grid ──────────────────────────────────
-                        AnimateIn(
-                          delay: 300,
-                          child: isCoach
-                              ? _CoachStatsGrid(stats: _stats)
-                              : _AthleteStatsGrid(stats: _stats),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // ─── Quick Actions ──────────────────────────────
-                        AnimateIn(
-                          delay: 350,
-                          child: _QuickActions(isCoach: isCoach),
-                        ),
-                        const SizedBox(height: 28),
-
-                        // ─── ATHLETE SECTION ─────────────────────────────
-                        if (isAthlete) ...[
-                          // Massive START SESSION button
-                          AnimateIn(
-                            delay: 380,
-                            child: _StartSessionBanner(
-                              workout: _todayWorkout,
-                              onStart: _startSession,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Weekly schedule
-                          AnimateIn(
-                            delay: 400,
-                            child: _WeeklyScheduleCard(
-                              sessions: _weeklySessions,
-                              weekStart: _weekStart(),
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Pending invitations from coaches
-                          if (_pendingRequests.isNotEmpty) ...[
-                            AnimateIn(
-                              delay: 500,
-                              child: Column(
-                                children: [
-                                  _SectionHeader(
-                                    title: 'New Invitations',
-                                    badge: '${_pendingRequests.length} NEW',
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ..._pendingRequests.map((r) => _InvitationCard(
-                                        request: r,
-                                        isCoach: false,
-                                        onAccept: () => _handleRequest(
-                                            r['id'].toString(), 'accepted'),
-                                        onReject: () => _handleRequest(
-                                            r['id'].toString(), 'rejected'),
-                                      )),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-
-                          // Connect with specialist CTA
-                          AnimateIn(
-                            delay: 600,
-                            child: Column(
-                              children: [
-                                _NutritionistBanner(),
-                                const SizedBox(height: 12),
-                                _ConnectSpecialistBanner(),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Today's workout
-                          AnimateIn(
-                            delay: 700,
-                            child: Column(
-                              children: [
-                                _SectionHeader(title: "Today's Workout"),
-                                const SizedBox(height: 12),
-                                _TodayWorkoutCard(data: _todayWorkout),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-
-                          // Pending programs from coach
-                          if (_pendingPrograms.isNotEmpty) ...[
-                            AnimateIn(
-                              delay: 800,
-                              child: Column(
-                                children: [
-                                  _SectionHeader(
-                                    title: 'Pending Programs',
-                                    actionLabel: 'View All',
-                                    onAction: () => context.push('/programs'),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ..._pendingPrograms
-                                      .take(3)
-                                      .map((p) => _PendingProgramTile(program: p)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                        ],
-
-                        // ─── COACH SECTION ───────────────────────────────
-                        if (isCoach) ...[
-                          // Connection requests
-                          if (_pendingRequests.isNotEmpty) ...[
-                            AnimateIn(
-                              delay: 400,
-                              child: Column(
-                                children: [
-                                  _SectionHeader(
-                                    title: 'Connection Requests',
-                                    badge: '${_pendingRequests.length} NEW',
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ..._pendingRequests.map((r) => _InvitationCard(
-                                        request: r,
-                                        isCoach: true,
-                                        onAccept: () => _handleRequest(
-                                            r['id'].toString(), 'accepted'),
-                                        onReject: () => _handleRequest(
-                                            r['id'].toString(), 'rejected'),
-                                      )),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-
-                          // Recent athletes
-                          if (_recentAthletes.isNotEmpty) ...[
-                            AnimateIn(
-                              delay: 500,
-                              child: Column(
-                                children: [
-                                  _SectionHeader(
-                                    title: 'Recent Athletes',
-                                    actionLabel: 'View All',
-                                    onAction: () => context.push('/athletes'),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  ..._recentAthletes
-                                      .take(4)
-                                      .map((a) => _RecentAthleteTile(athlete: a)),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                          ],
-                        ],
-
-                        // ─── Activity Log (PRs) — both roles ────────────
-                        AnimateIn(
-                          delay: 600,
-                          child: Column(
-                            children: [
-                              _SectionHeader(title: 'Activity Log'),
-                              const SizedBox(height: 12),
-                              _ActivityLog(prs: _recentPRs, isCoach: isCoach),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // ─── Logout Footer ──────────────────────────────
-                        AnimateIn(
-                          delay: 700,
-                          child: Container(
-                            width: double.infinity,
-                            margin: const EdgeInsets.only(bottom: 40),
-                            child: OutlinedButton.icon(
-                              onPressed: () => ref.read(authProvider.notifier).logout(),
-                              icon: const Icon(Icons.logout_rounded, size: 18),
-                              label: const Text('LOG OUT OF SESSION'),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(vertical: 16),
-                                foregroundColor: AppColors.error,
-                                side: BorderSide(color: AppColors.error.withValues(alpha: 0.3)),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              ),
-                            ),
-                          ),
                         ),
                       ]),
                     ),
@@ -600,338 +341,278 @@ class _QuickActions extends StatelessWidget {
                     onTap: () => context.push('/workout-history'),
                   ),
                 ],
+=======
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => context.push('/profile'),
+          child: Container(
+            margin: const EdgeInsets.only(right: 20),
+            padding: const EdgeInsets.all(2),
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.surface,
+              child: Text(user?.firstName[0] ?? 'A', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+            ),
+>>>>>>> Stashed changes
           ),
         ),
       ],
     );
   }
-}
 
-class _QuickActionItem extends StatelessWidget {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final VoidCallback onTap;
+  Widget _buildHeroSection(user, stats) {
+    final isAthlete = user?.role == AppConstants.roleAthlete;
+    final progress = isAthlete ? ((stats?['adherencePercent'] ?? 0) / 100.0).toDouble() : 0.85;
 
-  const _QuickActionItem({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 85,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.cardBorder),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return AppTheme.glassCard(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Row(
           children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+                    child: Text(user?.role.toUpperCase() ?? 'ATHLETE', style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(isAthlete ? "YOUR PROGRESS" : "TEAM STATUS", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 4),
+                  Text(isAthlete ? "Keep pushing your limits" : "Monitoring performance", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                ],
               ),
-              child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(height: 8),
-            Text(
-              label,
-              style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w700),
-              textAlign: TextAlign.center,
+            SizedBox(
+              width: 80,
+              height: 80,
+              child: CustomPaint(
+                painter: _PerformanceRingPainter(progress),
+                child: Center(
+                  child: Text("${(progress * 100).toInt()}%", style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 16)),
+                ),
+              ),
             ),
           ],
         ),
       ),
     );
   }
-}
 
-class _RoleBadge extends StatelessWidget {
-  final String role;
-  const _RoleBadge({required this.role});
+  Widget _buildQuickActions(BuildContext context, bool isCoach) {
+    final actions = isCoach 
+      ? [
+          {'icon': Icons.search_rounded, 'label': 'Market', 'route': '/discovery', 'color': AppColors.primary},
+          {'icon': Icons.add_box_rounded, 'label': 'Program', 'route': '/programs/create', 'color': AppColors.secondary},
+          {'icon': Icons.analytics_rounded, 'label': 'Analytics', 'route': '/analytics', 'color': AppColors.accent},
+          {'icon': Icons.chat_bubble_rounded, 'label': 'Chat', 'route': '/notifications', 'color': Colors.white},
+        ]
+      : [
+          {'icon': Icons.play_arrow_rounded, 'label': 'Train', 'route': '/sessions', 'color': AppColors.primary},
+          {'icon': Icons.calendar_today_rounded, 'label': 'Plan', 'route': '/schedule', 'color': AppColors.secondary},
+          {'icon': Icons.restaurant_rounded, 'label': 'Diet', 'route': '/nutrition', 'color': AppColors.success},
+          {'icon': Icons.history_rounded, 'label': 'Logs', 'route': '/workout-history', 'color': Colors.white},
+        ];
 
-  Color _color() {
-    switch (role) {
-      case AppConstants.roleCoach:
-        return AppColors.roleCoach;
-      case AppConstants.roleDoctor:
-        return AppColors.roleDoctor;
-      case AppConstants.roleNutritionist:
-        return AppColors.roleNutritionist;
-      default:
-        return AppColors.roleAthlete;
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final c = _color();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: c.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: c.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        role.toUpperCase(),
-        style: TextStyle(
-            color: c,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2),
-      ),
-    );
-  }
-}
-
-class _AthleteHero extends StatelessWidget {
-  final String firstName;
-  final int streak;
-  const _AthleteHero({required this.firstName, required this.streak});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text("TODAY",
-                  style: TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1.5)),
-              const SizedBox(height: 4),
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.textPrimary,
-                      height: 1.1),
-                  children: [
-                    const TextSpan(text: "LET'S GO,\n"),
-                    TextSpan(
-                      text: firstName.toUpperCase(),
-                      style: const TextStyle(color: AppColors.primary),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0x33E8621A), Color(0x1AE8621A)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.local_fire_department_rounded,
-                  color: AppColors.primary, size: 18),
-              const SizedBox(width: 4),
-              Text(
-                '$streak Day Streak',
-                style: const TextStyle(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CoachHero extends StatelessWidget {
-  final String name;
-  const _CoachHero({required this.name});
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text("COACH DASHBOARD",
-            style: TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.5)),
-        const SizedBox(height: 4),
-        Text(
-          "YOUR ATHLETES",
-          style: const TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.w800,
-            color: AppColors.textPrimary,
-          ),
+        const Text("READY FOR ACTION?", style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: actions.map((a) => _buildQuickActionItem(context, a)).toList(),
         ),
       ],
     );
   }
-}
 
-class _CoachStatsGrid extends StatelessWidget {
-  final Map<String, dynamic>? stats;
-  const _CoachStatsGrid({this.stats});
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.7,
-      children: [
-        StatCard(
-          label: 'ATHLETES',
-          value: '${stats?['totalAthletes'] ?? 0}',
-          icon: Icons.people_alt_rounded,
-          color: AppColors.primary,
-        ),
-        StatCard(
-          label: 'PROGRAMS',
-          value: '${stats?['totalPrograms'] ?? 0}',
-          icon: Icons.fitness_center_rounded,
-          color: AppColors.accent,
-        ),
-        StatCard(
-          label: 'ADHERENCE',
-          value: '${stats?['adherencePercent'] ?? 0}%',
-          icon: Icons.trending_up_rounded,
-          color: AppColors.success,
-        ),
-        StatCard(
-          label: 'TODAY',
-          value: '${stats?['todaySessions'] ?? 0}',
-          subtext: 'sessions scheduled',
-          icon: Icons.today_rounded,
-          color: AppColors.info,
-        ),
-      ],
-    );
-  }
-}
-
-class _AthleteStatsGrid extends StatelessWidget {
-  final Map<String, dynamic>? stats;
-  const _AthleteStatsGrid({this.stats});
-
-  @override
-  Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.7,
-      children: [
-        StatCard(
-          label: 'SESSIONS DONE',
-          value: '${stats?['completedSessions'] ?? stats?['totalWorkouts'] ?? 0}',
-          subtext: 'Consistency: ${stats?['adherencePercent'] ?? 0}%',
-          icon: Icons.check_circle_outline_rounded,
-          color: AppColors.primary,
-        ),
-        StatCard(
-          label: 'DAY STREAK',
-          value: '${stats?['currentStreak'] ?? 0}',
-          subtext: 'Keep it up!',
-          icon: Icons.local_fire_department_rounded,
-          color: AppColors.warning,
-        ),
-        StatCard(
-          label: 'ADHERENCE',
-          value: '${stats?['adherencePercent'] ?? 0}%',
-          icon: Icons.trending_up_rounded,
-          color: AppColors.success,
-        ),
-        StatCard(
-          label: 'VOLUME',
-          value: '${stats?['totalVolumeKg'] ?? 0} kg',
-          icon: Icons.speed_rounded,
-          color: AppColors.roleNutritionist,
-        ),
-      ],
-    );
-  }
-}
-
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  final String? badge;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-  const _SectionHeader({
-    required this.title,
-    this.badge,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(title,
-            style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary)),
-        if (badge != null) ...[
-          const SizedBox(width: 8),
+  Widget _buildQuickActionItem(BuildContext context, Map<String, dynamic> action) {
+    return GestureDetector(
+      onTap: () => context.push(action['route']),
+      child: Column(
+        children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
-              color: AppColors.primary,
+              color: AppColors.surfaceVariant,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(badge!,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.5)),
+            child: Icon(action['icon'] as IconData, color: action['color'] as Color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            (action['label'] as String).toUpperCase(),
+            style: const TextStyle(color: AppColors.textPrimary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
           ),
         ],
-        const Spacer(),
-        if (actionLabel != null)
-          GestureDetector(
-            onTap: onAction,
-            child: Text(actionLabel!,
-                style: const TextStyle(
-                    color: AppColors.primary,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700)),
-          ),
+      ),
+    );
+  }
+
+  Widget _buildBiometricsSection(Map<String, dynamic> overview) {
+    final metrics = (overview['metrics'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+    final lastMetric = metrics.isNotEmpty ? metrics.first : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text("BIOMÉTRIE & PERF", style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+            GestureDetector(
+              onTap: () => _showAddMetricModal(),
+              child: const Text("LOG DATA +", style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w900, italic: true)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _MetricCard(
+                label: "POIDS",
+                value: "${lastMetric?['weight'] ?? '--'}",
+                unit: "KG",
+                trend: "stable",
+                icon: Icons.monitor_weight_rounded,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: _MetricCard(
+                label: "GRAS",
+                value: "${lastMetric?['bodyFat'] ?? '--'}",
+                unit: "%",
+                trend: "down",
+                icon: Icons.percent_rounded,
+              ),
+            ),
+          ],
+        ),
       ],
+    );
+  }
+
+  Widget _buildObservationsSection(Map<String, dynamic> overview) {
+    final athlete = overview['athlete'] as Map<String, dynamic>?;
+    final notes = athlete?['notes'] ?? "Aucune observation technique pour le moment.";
+    final injuries = athlete?['injuries'] ?? "Aucune contre-indication signalée.";
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("PROFESSIONAL FEEDBACK", style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
+        const SizedBox(height: 16),
+        AppTheme.glassCard(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.psychology_rounded, color: AppColors.primary, size: 18),
+                    SizedBox(width: 8),
+                    Text("NOTES DU SPECIALISTE", style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w800)),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(notes, style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5)),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(color: Colors.red.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.red.withValues(alpha: 0.2))),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 18),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text("LIMITATIONS / BLESSURES", style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.w900)),
+                            const SizedBox(height: 4),
+                            Text(injuries, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showAddMetricModal() {
+    final weightController = TextEditingController();
+    final bodyFatController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom, left: 24, right: 24, top: 40),
+          decoration: const BoxDecoration(color: AppColors.surface, borderRadius: BorderRadius.vertical(top: Radius.circular(40))),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text("LOG NEW BIOMETRICS", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, italic: true)),
+              const SizedBox(height: 32),
+              TextField(
+                controller: weightController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.white),
+                decoration: AppTheme.inputDecoration(label: "WEIGHT (KG)", icon: Icons.monitor_weight_rounded),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: bodyFatController,
+                keyboardType: TextInputType.number,
+                style: const TextStyle(color: Colors.white),
+                decoration: AppTheme.inputDecoration(label: "BODY FAT (%)", icon: Icons.percent_rounded),
+              ),
+              const SizedBox(height: 40),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (weightController.text.isEmpty) return;
+                    try {
+                      final user = ref.read(currentUserProvider);
+                      await ref.read(dashboardRepositoryProvider).addMetric(user!.id, {
+                        'weight': double.parse(weightController.text),
+                        'bodyFat': bodyFatController.text.isNotEmpty ? double.parse(bodyFatController.text) : null,
+                        'date': DateTime.now().toIso8601String(),
+                      });
+                      if (context.mounted) Navigator.pop(context);
+                      _load();
+                    } catch (e) {
+                      debugPrint("Add metric error: $e");
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary, padding: const EdgeInsets.symmetric(vertical: 20), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20))),
+                  child: const Text("CONFIRM ENTRY", style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 2)),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -1828,6 +1509,7 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }
 
+<<<<<<< Updated upstream
 class _StartSessionBanner extends StatelessWidget {
   final Map<String, dynamic>? workout;
   final void Function(Map<String, dynamic>)? onStart;
@@ -1897,6 +1579,54 @@ class _StartSessionBanner extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
+=======
+class _MetricCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final String unit;
+  final String trend;
+  final IconData icon;
+
+  const _MetricCard({
+    required this.label,
+    required this.value,
+    required this.unit,
+    required this.trend,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppTheme.glassCard(
+      child: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Icon(icon, color: AppColors.textMuted, size: 16),
+                if (trend == "up")
+                  const Icon(Icons.trending_up_rounded, color: AppColors.success, size: 14)
+                else if (trend == "down")
+                  const Icon(Icons.trending_down_rounded, color: Colors.blueAccent, size: 14)
+                else
+                  const Icon(Icons.trending_flat_rounded, color: AppColors.textMuted, size: 14),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(label, style: const TextStyle(color: AppColors.textMuted, fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 1)),
+            const SizedBox(height: 4),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(value, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -1)),
+                const SizedBox(width: 4),
+                Text(unit, style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w800)),
+              ],
+>>>>>>> Stashed changes
             ),
           ],
         ),
@@ -1904,3 +1634,42 @@ class _StartSessionBanner extends StatelessWidget {
     );
   }
 }
+<<<<<<< Updated upstream
+=======
+
+// Performance Ring Painter for Hero Section
+class _PerformanceRingPainter extends CustomPainter {
+  final double progress;
+  _PerformanceRingPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final strokeWidth = 8.0;
+
+    final bgPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.05)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth;
+
+    final progressPaint = Paint()
+      ..color = AppColors.primary
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius - strokeWidth / 2, bgPaint);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius - strokeWidth / 2),
+      -math.pi / 2,
+      2 * math.pi * progress,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+>>>>>>> Stashed changes
