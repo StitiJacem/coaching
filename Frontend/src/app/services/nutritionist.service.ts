@@ -43,6 +43,10 @@ export class NutritionistService {
         return this.http.get<NutritionistProfile[]>(`${this.apiUrl}/nutritionists`);
     }
 
+    getMyProfile(): Observable<NutritionistProfile> {
+        return this.http.get<NutritionistProfile>(`${this.apiUrl}/nutritionists/me/profile`);
+    }
+
     getById(id: string): Observable<NutritionistProfile> {
         return this.http.get<NutritionistProfile>(`${this.apiUrl}/nutritionists/${id}`);
     }

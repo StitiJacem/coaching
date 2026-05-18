@@ -28,8 +28,9 @@ export class ChatService {
   private initializeSocket() {
     const token = this.authService.getToken();
     
-    // Connect with token if available
-    this.socket = io(environment.apiUrl, {
+    // Connect using window.location.origin and the proxied path '/api/socket.io'
+    this.socket = io(window.location.origin, {
+      path: '/api/socket.io',
       auth: { token },
       autoConnect: !!token // Only connect if we have a token initially
     });

@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
 import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { CoachService, Coach } from '../../../services/coach.service';
+import { NutritionistService } from '../../../services/nutritionist.service';
 
 @Component({
   selector: 'app-messaging',
@@ -19,6 +20,10 @@ export class MessagingComponent implements OnInit, OnDestroy {
   messages: any[] = [];
   newMessage: string = '';
   
+  // Tab and search support
+  activeTab: 'discussions' | 'contacts' = 'discussions';
+  searchText: string = '';
+  
   private messagesSubscription?: Subscription;
   private contactsSubscription?: Subscription;
   private conversationsSubscription?: Subscription;
@@ -28,7 +33,8 @@ export class MessagingComponent implements OnInit, OnDestroy {
     private chatService: ChatService,
     private route: ActivatedRoute,
     private athleteService: AthleteService,
-    private coachService: CoachService
+    private coachService: CoachService,
+    private nutritionistService: NutritionistService
   ) {}
 
   ngOnInit() {
@@ -52,6 +58,27 @@ export class MessagingComponent implements OnInit, OnDestroy {
     // Initial refresh to trigger socket fetch
     this.chatService.refreshContacts();
     this.chatService.refreshConversations();
+  }
+
+  get discoverableContacts() {
+    return this.contacts.map(c => {
+      let subtitle = 'Spécialiste';
+      if (c.role === 'coach') {
+        subtitle = 'Coach Sportif';
+      } else if (c.role === 'nutritionist') {
+        subtitle = 'Nutritionniste';
+      } else if (c.role === 'athlete') {
+        subtitle = 'Athlète';
+      }
+      return {
+        id: c.id,
+        first_name: c.first_name || '',
+        last_name: c.last_name || '',
+        photo_url: c.photo_url || c.avatar,
+        role: c.role,
+        subtitle: subtitle
+      };
+    });
   }
 
   get unifiedList() {
@@ -103,6 +130,29 @@ export class MessagingComponent implements OnInit, OnDestroy {
     });
   }
 
+  get filteredUnifiedList() {
+    const list = this.unifiedList;
+    if (!this.searchText.trim()) return list;
+    
+    const query = this.searchText.toLowerCase();
+    return list.filter(item => 
+      (item.participant?.first_name || '').toLowerCase().includes(query) ||
+      (item.participant?.last_name || '').toLowerCase().includes(query)
+    );
+  }
+
+  get filteredDiscoverableContacts() {
+    const list = this.discoverableContacts;
+    if (!this.searchText.trim()) return list;
+    
+    const query = this.searchText.toLowerCase();
+    return list.filter(item => 
+      (item.first_name || '').toLowerCase().includes(query) ||
+      (item.last_name || '').toLowerCase().includes(query) ||
+      (item.subtitle || '').toLowerCase().includes(query)
+    );
+  }
+
   handleQueryParams() {
     this.route.queryParams.subscribe(params => {
       const coachId = params['coachId'];
@@ -129,6 +179,20 @@ export class MessagingComponent implements OnInit, OnDestroy {
     } else {
       this.selectContact(item.raw);
     }
+  }
+
+  onContactSelect(contact: any) {
+    let type: 'coach-athlete' | 'nutritionist-athlete' = 'coach-athlete';
+    
+    if (this.roleService.currentRole === 'athlete') {
+      type = contact.role === 'nutritionist' ? 'nutritionist-athlete' : 'coach-athlete';
+    } else {
+      type = this.roleService.currentRole === 'nutritionist' ? 'nutritionist-athlete' : 'coach-athlete';
+    }
+    
+    this.startOrSelectConversation(contact.id, type);
+    this.activeTab = 'discussions';
+    this.searchText = '';
   }
 
   selectContact(contact: any) {

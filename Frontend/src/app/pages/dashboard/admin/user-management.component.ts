@@ -7,7 +7,7 @@ import { DashboardLayoutComponent } from '../../../components/dashboard-layout/d
 import { AdminService } from '../../../services/admin.service';
 import { ToastService } from '../../../services/toast.service';
 import { ConfirmService } from '../../../services/confirm.service';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-user-management',

@@ -1,0 +1,124 @@
+\chapter{Sprint 2 : Cœur Métier - Entraînement et Nutrition} 
+\minitoc
+\newpage
+
+\section{Introduction}
+Après avoir solidifié la base architecturale et sécurisé l'accès à la plateforme lors du Sprint 1, ce deuxième sprint est entièrement consacré au cœur de la valeur métier de "CoachingApp". Ce chapitre détaille la réalisation des modules de planification d'entraînement (Workout Builder) et de suivi nutritionnel. Nous aborderons la conception du modèle de données hiérarchique complexe nécessaire à la gestion des programmes, ainsi que les défis techniques inhérents au développement du lecteur de séance interactif (Workout Player) sur l'application mobile Flutter.
+
+\section{Objectifs et Planification du Sprint}
+
+\subsection{Backlog du Sprint 2}
+Les tâches sélectionnées pour ce sprint sont les suivantes :
+\begin{itemize}
+    \item \textbf{Tâche Backend 2.1 :} Modélisation et création des endpoints CRUD (Create, Read, Update, Delete) pour les entités \texttt{Program}, \texttt{ProgramDay}, \texttt{ProgramExercise} et \texttt{Exercise}.
+    \item \textbf{Tâche Backend 2.2 :} Implémentation du module Nutrition (Entités \texttt{DietPlan}, \texttt{Meal}, \texttt{MealLog}) et calcul mathématique des macronutriments.
+    \item \textbf{Tâche Frontend 2.1 (Coach) :} Développement de l'interface de création de programme avec ajout dynamique d'exercices et de jours d'entraînement.
+    \item \textbf{Tâche Frontend 2.2 (Athlète) :} Conception du \textit{Workout Player}, intégrant un chronomètre asynchrone et un système d'enregistrement de charge soulevée.
+    \item \textbf{Tâche Frontend 2.3 (Athlète) :} Développement du \textit{Nutrition Dashboard} intégrant des graphiques circulaires pour la répartition des macronutriments.
+\end{itemize}
+
+\section{Conception détaillée du Sprint 2}
+
+\subsection{Diagramme de cas d'utilisation (Sprint 2)}
+Ce diagramme met en évidence les interactions majeures de ce sprint : le coach construit l'entraînement et définit les objectifs caloriques, tandis que l'athlète exécute l'entraînement et enregistre ses repas.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{diagrams/use case sprint 2.png}
+\caption{Diagramme des cas d'utilisation - Sprint 2}
+\end{figure}
+
+\subsection{Diagramme de classes (Sprint 2)}
+Le modèle relationnel s'enrichit considérablement. L'entité centrale \texttt{Program} est le conteneur principal. Elle possède une relation compositionnelle (One-To-Many) vers \texttt{ProgramDay}. À son tour, \texttt{ProgramDay} possède plusieurs \texttt{ProgramExercise}. Chaque \texttt{ProgramExercise} fait référence à un \texttt{Exercise} générique de la bibliothèque globale (Many-To-One). Du côté de la nutrition, \texttt{DietPlan} est découpé de manière similaire en \texttt{DietDay} et \texttt{Meal}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=1\textwidth]{diagrams/classe sprint 2.png}
+\caption{Diagramme de classes - Sprint 2}
+\end{figure}
+
+\subsection{Diagramme de séquence : Assigner un programme}
+La création d'un programme complet implique de multiples insertions transactionnelles dans la base de données. Pour éviter qu'un programme à moitié créé ne soit sauvegardé en cas d'erreur réseau, l'API Node.js utilise les transactions (QueryRunner) de TypeORM. Le diagramme suivant illustre cette séquence de sauvegarde en cascade et l'envoi d'une notification push à l'athlète ciblé une fois le processus terminé.
+
+%[Note : Ajoutez l'image exportée depuis PlantUML dans le dossier diagrams/ avec ce nom]
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{diagrams/sequence sprint 2.png}
+\caption{Diagramme de séquence : Assigner un programme d'entraînement}
+\end{figure}
+
+\section{Réalisation technique : Module Entraînement}
+
+\subsection{Gestion des Programmes (Côté Coach)}
+L'interface de création de programme est le défi ergonomique de l'application. Elle permet au coach de construire visuellement un programme d'entraînement complexe.
+
+\subsubsection{Interface de création (UI/UX)}
+Sur l'écran, le coach dispose d'une vue en accordéon (ExpansionTile). Il peut cliquer sur "Ajouter un Jour". À l'intérieur de ce jour, il clique sur "Ajouter un Exercice". Un menu modal (BottomSheet) s'ouvre, interrogeant l'API pour récupérer la liste des exercices du catalogue (avec barre de recherche fonctionnelle). Une fois l'exercice sélectionné, des champs de texte apparaissent pour saisir le nombre de séries (sets), les répétitions cibles (reps), le poids indicatif et, élément crucial, le temps de repos (restTimer) en secondes.
+
+\subsubsection{Sauvegarde transactionnelle Backend}
+Le JSON généré par le frontend mobile est profond (nested JSON). 
+Pour l'enregistrer proprement dans PostgreSQL, nous utilisons l'option `cascade: true` de TypeORM, qui permet d'insérer le Programme, ses Jours et ses Exercices en une seule ligne de code côté service.
+
+\begin{lstlisting}[language=JavaScript, caption={Sauvegarde en cascade d'un programme (TypeORM)}, label={lst:cascade_save}]
+async createFullProgram(coachId, athleteId, programData) {
+  // programData contient l'arbre JSON complet envoyé par Flutter
+  const newProgram = this.programRepository.create({
+    ...programData,
+    coach: { id: coachId },
+    athlete: { id: athleteId }
+  });
+  
+  // TypeORM sauvegarde automatiquement ProgramDay et ProgramExercise 
+  // gràce à la configuration @OneToMany(cascade: true)
+  return await this.programRepository.save(newProgram);
+}
+\end{lstlisting}
+
+\subsection{Workout Player (Côté Athlète)}
+Le Workout Player est la fonctionnalité différenciante de CoachingApp. Il remplace le "papier et crayon" par une interface dynamique.
+
+\subsubsection{Logique de Chronométrage Asynchrone}
+Plutôt qu'une simple liste de contrôle, le Workout Player affiche un exercice à la fois, avec une grande vidéo ou image GIF de l'exécution.
+Lorsque l'athlète termine une série, il coche la case correspondante. Cela déclenche un Timer asynchrone en Dart (Flutter). 
+
+\begin{lstlisting}[language=Java, caption={Logique de Timer en Flutter (Dart)}, label={lst:dart_timer}]
+Timer? _restTimer;
+int _remainingSeconds = 0;
+
+void startRestTimer(int durationInSeconds) {
+  setState(() {
+    _remainingSeconds = durationInSeconds;
+    _isResting = true;
+  });
+
+  _restTimer = Timer.periodic(Duration(seconds: 1), (timer) {
+    if (_remainingSeconds > 0) {
+      setState(() { _remainingSeconds--; });
+    } else {
+      timer.cancel();
+      playBeepSound(); // Alerte sonore de fin de repos
+      setState(() { _isResting = false; });
+    }
+  });
+}
+\end{lstlisting}
+
+Ce chronomètre aide l'athlète à respecter l'intensité voulue par le coach. De plus, il peut modifier le "Poids soulevé" (Actual Weight) directement sur la série en cours, créant un \texttt{WorkoutLog} qui sera synchronisé avec le serveur, permettant au coach d'évaluer la surcharge progressive de son client.
+
+\section{Réalisation technique : Module Nutrition}
+La nutrition représente 50\% des résultats physiques. Nous avons donc intégré un système de suivi diététique poussé.
+
+\subsection{Architecture des Macros}
+Chaque aliment consommé possède 4 caractéristiques : Protéines (g), Glucides (g), Lipides (g) et Calories totales.
+Le modèle de données \texttt{DietPlan} impose une cible (ex: 2500 kcal, 150g Protéines). 
+Lorsque l'athlète ajoute un \texttt{MealLog} (Journal de repas), l'API Node.js recalcule instantanément le total consommé pour la journée en cours.
+
+\subsection{Tableau de bord visuel (Nutrition Dashboard)}
+Pour que ces données soient compréhensibles, nous avons utilisé la bibliothèque \texttt{fl\_chart} sous Flutter. Elle permet de générer des "Pie Charts" (graphiques circulaires) animés.
+\begin{itemize}
+    \item Un graphique principal montre les calories consommées par rapport aux calories totales allouées.
+    \item Une jauge de progression linéaire (LinearProgressIndicator) est affichée pour chaque macronutriment (Protéines, Glucides, Graisses). Si l'athlète dépasse l'objectif, la barre change de couleur (ex: du vert au rouge) pour l'alerter visuellement.
+\end{itemize}
+
+\section{Conclusion}
+Ce deuxième sprint a été le plus dense en termes de logique métier. Nous avons réussi à matérialiser la relation complexe entre un Coach créateur de contenu et un Athlète consommateur de ce contenu via une interface mobile performante. Le "Workout Player" assure un suivi sportif en temps réel sans précédent, et le tableau de bord nutritionnel offre une vue d'ensemble instantanée. Le troisième et dernier sprint viendra finaliser la plateforme en y intégrant des outils de communication temps réel, un dashboard web pour les administrateurs, et des composants d'Intelligence Artificielle innovants.

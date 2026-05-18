@@ -7,6 +7,7 @@ import { CoachService, CoachingRequest } from '../../../services/coach.service';
 import { ChatService } from '../../../services/chat.service';
 import { ToastService } from '../../../services/toast.service';
 import { ConfirmService } from '../../../services/confirm.service';
+import { environment } from '../../../../environments/environment';
 
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -26,6 +27,7 @@ export class AthletesComponent implements OnInit {
   isLoading = true;
   searchTerm = '';
   showInviteModal = false;
+  viewMode: 'grid' | 'list' = 'grid';
 
   constructor(
     public roleService: RoleService,
@@ -72,6 +74,14 @@ export class AthletesComponent implements OnInit {
     const name = athlete.user?.first_name || '';
     const last = athlete.user?.last_name || '';
     return (name.charAt(0) + last.charAt(0)).toUpperCase() || 'A';
+  }
+
+  getAvatarUrl(athlete: Athlete): string {
+    const photo = athlete.user?.photo_url || athlete.user?.avatar || athlete.profilePicture;
+    if (!photo) return '';
+    if (photo.startsWith('http')) return photo;
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    return photo.startsWith('/') ? `${baseUrl}${photo}` : `${baseUrl}/${photo}`;
   }
 
   openAssignModal(athlete: Athlete): void {

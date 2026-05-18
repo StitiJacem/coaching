@@ -12,6 +12,7 @@ export class SocketService {
 
     public static init(server: HttpServer) {
         this.io = new Server(server, {
+            path: "/api/socket.io",
             cors: {
                 origin: "*",
                 methods: ["GET", "POST"]

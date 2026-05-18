@@ -17,7 +17,7 @@ import { UserService } from '../../../services/user.service';
 import { RoleService } from '../../../services/role.service';
 import { GoalService } from '../../../services/goal.service';
 import { ToastService } from '../../../services/toast.service';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-profile-view',

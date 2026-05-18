@@ -28,6 +28,7 @@ export interface Athlete {
     last_name?: string;
     email: string;
     avatar?: string;
+    photo_url?: string;
   };
 }
 

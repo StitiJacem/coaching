@@ -13,7 +13,7 @@ import {
 import { AiService, FoodAnalysisResult } from '../../../services/ai.service';
 import { LucideAngularModule } from 'lucide-angular';
 import { ToastService } from '../../../services/toast.service';
-import { environment } from '../../../environments/environment';
+import { environment } from '../../../../environments/environment';
 
 @Component({
     selector: 'app-nutrition',

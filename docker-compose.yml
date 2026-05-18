@@ -49,7 +49,7 @@ services:
       DB_NAME: ${DB_NAME:-coaching_db}
       DB_PORT: 5432
       NODE_ENV: ${NODE_ENV:-development}
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key}
+      JWT_SECRET: ${JWT_SECRET:-gosport-secure-random-jwt-key-2026}
       EMAIL_SERVICE: ${EMAIL_SERVICE:-gmail}
       EMAIL_USER: ${EMAIL_USER}
       EMAIL_PASSWORD: ${EMAIL_PASSWORD}

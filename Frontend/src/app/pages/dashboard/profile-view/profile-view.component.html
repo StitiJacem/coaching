@@ -410,6 +410,27 @@
             </div>
           </div>
 
+          <!-- Données Biométriques -->
+          <div class="tile-card">
+            <span class="section-label">DONNÉES CORPORELLES</span>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <div class="info-box flex flex-col items-center justify-center gap-2">
+                <lucide-icon name="scale" class="w-6 h-6 text-slate-400"></lucide-icon>
+                <div class="text-center">
+                  <p class="text-[9px] text-slate-500 font-black uppercase">Poids</p>
+                  <p class="text-[13px] text-white font-black uppercase">{{ overview.athlete?.weight || '-' }} <span class="text-[9px] text-slate-500">KG</span></p>
+                </div>
+              </div>
+              <div class="info-box flex flex-col items-center justify-center gap-2">
+                <lucide-icon name="ruler" class="w-6 h-6 text-slate-400"></lucide-icon>
+                <div class="text-center">
+                  <p class="text-[9px] text-slate-500 font-black uppercase">Taille</p>
+                  <p class="text-[13px] text-white font-black uppercase">{{ overview.athlete?.height || '-' }} <span class="text-[9px] text-slate-500">CM</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Background & Equipment -->
           <div class="tile-card">
             <span class="section-label">PARCOURS & ÉQUIPEMENT</span>

@@ -1,0 +1,227 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="d1" name="Diagramme de Classes Global">
+    <mxGraphModel dx="1373" dy="703" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="User" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="User" vertex="1">
+          <mxGeometry height="188" width="200" x="385" as="geometry" />
+        </mxCell>
+        <mxCell id="cell2" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="cell3" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ email: String" vertex="1">
+          <mxGeometry height="22" width="200" y="52" as="geometry" />
+        </mxCell>
+        <mxCell id="cell4" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ password: String" vertex="1">
+          <mxGeometry height="22" width="200" y="74" as="geometry" />
+        </mxCell>
+        <mxCell id="cell6" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ createdAt: Date" vertex="1">
+          <mxGeometry height="22" width="200" y="118" as="geometry" />
+        </mxCell>
+        <mxCell id="cell7" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ login(): void" vertex="1">
+          <mxGeometry height="22" width="200" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="cell8" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ logout(): void" vertex="1">
+          <mxGeometry height="22" width="200" y="162" as="geometry" />
+        </mxCell>
+        <mxCell id="cell5" parent="User" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ role: Enum" vertex="1">
+          <mxGeometry height="22" width="200" y="96" as="geometry" />
+        </mxCell>
+        <mxCell id="Coach" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="Coach" vertex="1">
+          <mxGeometry height="144" width="200" x="70" y="14" as="geometry" />
+        </mxCell>
+        <mxCell id="cell9" parent="Coach" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ specialty: String" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell10" parent="Coach" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ bio: String" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell11" parent="Coach" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ experience: Int" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell12" parent="Coach" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ acceptRequest(): void" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="cell13" parent="Coach" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ createProgram(): void" vertex="1">
+          <mxGeometry height="22" width="200" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="Athlete" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="Athlete" vertex="1">
+          <mxGeometry height="144" width="200" x="760" y="22" as="geometry" />
+        </mxCell>
+        <mxCell id="cell14" parent="Athlete" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ weight: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell15" parent="Athlete" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ height: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell16" parent="Athlete" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ fitnessGoal: String" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell17" parent="Athlete" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ sendRequest(): void" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="cell18" parent="Athlete" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ logWorkout(): void" vertex="1">
+          <mxGeometry height="22" width="200" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="CoachingRequest" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="CoachingRequest" vertex="1">
+          <mxGeometry height="122" width="200" x="60" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="cell19" parent="CoachingRequest" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell20" parent="CoachingRequest" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ status: Enum" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell21" parent="CoachingRequest" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ message: String" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell22" parent="CoachingRequest" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ createdAt: Date" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="Program" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="Program" vertex="1">
+          <mxGeometry height="144" width="200" x="450" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="cell23" parent="Program" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell24" parent="Program" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ title: String" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell25" parent="Program" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ description: String" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell26" parent="Program" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ startDate: Date" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="cell27" parent="Program" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ endDate: Date" vertex="1">
+          <mxGeometry height="22" width="200" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="ProgramDay" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="ProgramDay" vertex="1">
+          <mxGeometry height="122" width="220" x="230" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="cell28" parent="ProgramDay" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" x="20" y="28" as="geometry" />
+        </mxCell>
+        <mxCell id="cell29" parent="ProgramDay" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ dayName: String" vertex="1">
+          <mxGeometry height="22" width="200" x="20" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="cell30" parent="ProgramDay" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ dayOrder: Int" vertex="1">
+          <mxGeometry height="22" width="200" x="20" y="72" as="geometry" />
+        </mxCell>
+        <mxCell id="cell31" parent="ProgramDay" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ isRestDay: Boolean" vertex="1">
+          <mxGeometry height="22" width="200" x="20" y="94" as="geometry" />
+        </mxCell>
+        <mxCell id="Exercise" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="Exercise" vertex="1">
+          <mxGeometry height="144" width="200" x="810" y="516" as="geometry" />
+        </mxCell>
+        <mxCell id="cell32" parent="Exercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell33" parent="Exercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ name: String" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell34" parent="Exercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ targetMuscle: String" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell35" parent="Exercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ videoUrl: String" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="cell36" parent="Exercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ category: String" vertex="1">
+          <mxGeometry height="22" width="200" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="ProgramExercise" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="ProgramExercise" vertex="1">
+          <mxGeometry height="122" width="200" x="510" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="cell37" parent="ProgramExercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell38" parent="ProgramExercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ sets: Int" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell39" parent="ProgramExercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ reps: Int" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell40" parent="ProgramExercise" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ restTime: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="NutritionLog" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="NutritionLog" vertex="1">
+          <mxGeometry height="166" width="200" x="750" y="279" as="geometry" />
+        </mxCell>
+        <mxCell id="cell41" parent="NutritionLog" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="34" as="geometry" />
+        </mxCell>
+        <mxCell id="cell42" parent="NutritionLog" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ date: Date" vertex="1">
+          <mxGeometry height="22" width="200" y="56" as="geometry" />
+        </mxCell>
+        <mxCell id="cell43" parent="NutritionLog" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ calories: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="78" as="geometry" />
+        </mxCell>
+        <mxCell id="cell44" parent="NutritionLog" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ proteins: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="cell45" parent="NutritionLog" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ carbs: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="122" as="geometry" />
+        </mxCell>
+        <mxCell id="cell46" parent="NutritionLog" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ fats: Float" vertex="1">
+          <mxGeometry height="22" width="200" y="144" as="geometry" />
+        </mxCell>
+        <mxCell id="Message" parent="1" style="swimlane;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" value="Message" vertex="1">
+          <mxGeometry height="122" width="200" x="20" y="490" as="geometry" />
+        </mxCell>
+        <mxCell id="cell47" parent="Message" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ id: UUID" vertex="1">
+          <mxGeometry height="22" width="200" y="32" as="geometry" />
+        </mxCell>
+        <mxCell id="cell48" parent="Message" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ content: String" vertex="1">
+          <mxGeometry height="22" width="200" y="54" as="geometry" />
+        </mxCell>
+        <mxCell id="cell49" parent="Message" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ sentAt: Date" vertex="1">
+          <mxGeometry height="22" width="200" y="76" as="geometry" />
+        </mxCell>
+        <mxCell id="cell50" parent="Message" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;fontSize=10;" value="+ isRead: Boolean" vertex="1">
+          <mxGeometry height="22" width="200" y="98" as="geometry" />
+        </mxCell>
+        <mxCell id="cell51" edge="1" parent="1" source="cell11" style="endArrow=block;endFill=0;endSize=12;html=1;exitX=1.019;exitY=0.091;exitDx=0;exitDy=0;strokeColor=#23445D;strokeWidth=2;exitPerimeter=0;" target="User" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell52" edge="1" parent="1" source="cell15" style="endArrow=block;endFill=0;endSize=12;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;strokeColor=#23445D;strokeWidth=2;" target="User" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell53" edge="1" parent="1" source="Athlete" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="CoachingRequest" value="envoie 0..*">
+          <mxGeometry relative="1" x="-0.2849" y="3" as="geometry">
+            <mxPoint as="offset" />
+            <Array as="points">
+              <mxPoint x="440" y="250" />
+              <mxPoint x="380" y="270" />
+              <mxPoint x="320" y="280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="cell54" edge="1" parent="1" source="Coach" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="CoachingRequest" value="reçoit 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell55" edge="1" parent="1" source="Coach" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="Program" value="crée 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell56" edge="1" parent="1" source="Athlete" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="Program" value="assigné à 0..1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell57" edge="1" parent="1" source="Program" style="endArrow=ERmanyToOne;startArrow=ERmandOne;html=1;strokeColor=#23445D;" target="ProgramDay" value="contient 1..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell58" edge="1" parent="1" source="ProgramDay" style="endArrow=ERmanyToOne;startArrow=ERmandOne;html=1;strokeColor=#23445D;" target="ProgramExercise" value="inclut 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell59" edge="1" parent="1" source="Exercise" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="ProgramExercise" value="référence 1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell60" edge="1" parent="1" source="Athlete" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="NutritionLog" value="enregistre 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="cell61" edge="1" parent="1" source="User" style="endArrow=open;endFill=0;html=1;strokeColor=#555;" target="Message" value="envoie 0..*">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

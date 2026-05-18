@@ -1,0 +1,61 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="d1" name="Sprint 3 UC">
+    <mxGraphModel dx="1288" dy="659" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1800" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="bnd" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#23445D;strokeWidth=2;verticalAlign=top;fontSize=12;fontStyle=1;" value="Sprint 3 — Messagerie, IA et Dashboard" vertex="1">
+          <mxGeometry height="650" width="740" x="200" y="10" as="geometry" />
+        </mxCell>
+        <mxCell id="adm" parent="1" style="shape=mxgraph.uml.actor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Admin" vertex="1">
+          <mxGeometry height="80" width="50" x="50" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="u" parent="1" style="shape=mxgraph.uml.actor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#f5f5f5;strokeColor=#666666;" value="Utilisateur (Coach, Athlète, Nut.)" vertex="1">
+          <mxGeometry height="80" width="60" x="1020" y="350" as="geometry" />
+        </mxCell>
+        <mxCell id="ad1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Dashboard Global" vertex="1">
+          <mxGeometry height="60" width="180" x="280" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ad2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Gérer Exercices" vertex="1">
+          <mxGeometry height="60" width="180" x="510" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="ad3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Gérer Utilisateurs" vertex="1">
+          <mxGeometry height="60" width="180" x="280" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="u1" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Envoyer Message" vertex="1">
+          <mxGeometry height="60" width="180" x="540" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="u2" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Recevoir Notification" vertex="1">
+          <mxGeometry height="60" width="180" x="390" y="320" as="geometry" />
+        </mxCell>
+        <mxCell id="u3" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Générer Conseil IA" vertex="1">
+          <mxGeometry height="60" width="180" x="410" y="450" as="geometry" />
+        </mxCell>
+        <mxCell id="u4" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" value="Exporter Rapports" vertex="1">
+          <mxGeometry height="60" width="180" x="630" y="550" as="geometry" />
+        </mxCell>
+        <mxCell id="n700" edge="1" parent="1" source="adm" style="endArrow=none;html=1;strokeColor=#444;" target="ad1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n701" edge="1" parent="1" source="adm" style="endArrow=none;html=1;strokeColor=#444;" target="ad2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n702" edge="1" parent="1" source="adm" style="endArrow=none;html=1;strokeColor=#444;" target="ad3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n703" edge="1" parent="1" source="u" style="endArrow=none;html=1;strokeColor=#444;" target="u1" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n704" edge="1" parent="1" source="u" style="endArrow=none;html=1;strokeColor=#444;" target="u2" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n705" edge="1" parent="1" source="u" style="endArrow=none;html=1;strokeColor=#444;" target="u3" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="n706" edge="1" parent="1" source="u" style="endArrow=none;html=1;strokeColor=#444;" target="u4" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

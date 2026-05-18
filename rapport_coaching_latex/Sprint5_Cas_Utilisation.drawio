@@ -1,0 +1,22 @@
+<mxfile version="21.6.8"><diagram id="d1" name="Sprint 5 - Cas d'Utilisation"><mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0"><root><mxCell id="0"/><mxCell id="1" parent="0"/>
+<mxCell id="b1" value="Sprint 5 — Visioconférence &amp; Agendas" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#23445D;strokeWidth=2;fontStyle=1;fontSize=11;verticalAlign=top;" vertex="1" parent="1"><mxGeometry x="200" y="20" width="720" height="540" as="geometry"/></mxCell>
+<mxCell id="a1" value="Coach" style="shape=mxgraph.uml.actor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="60" y="200" width="50" height="80" as="geometry"/></mxCell>
+<mxCell id="a2" value="Athlète" style="shape=mxgraph.uml.actor;verticalLabelPosition=bottom;verticalAlign=top;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1"><mxGeometry x="1010" y="200" width="50" height="80" as="geometry"/></mxCell>
+<mxCell id="uc1" value="Définir Disponibilités
+(Plages Horaires)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="280" y="60" width="190" height="60" as="geometry"/></mxCell>
+<mxCell id="uc2" value="Consulter Agenda
+du Coach" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="520" y="60" width="190" height="60" as="geometry"/></mxCell>
+<mxCell id="uc3" value="Réserver Session de
+Coaching (Rendez-vous)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="280" y="200" width="190" height="60" as="geometry"/></mxCell>
+<mxCell id="uc4" value="Accepter/Refuser
+Demande de Session" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="280" y="340" width="190" height="60" as="geometry"/></mxCell>
+<mxCell id="uc5" value="Démarrer Appel Vidéo
+(Jitsi WebRTC)" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="1"><mxGeometry x="520" y="340" width="190" height="60" as="geometry"/></mxCell>
+<mxCell id="c1200" value="" style="endArrow=none;html=1;strokeColor=#555;" edge="1" parent="1" source="a1" target="uc1"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="c1201" value="" style="endArrow=none;html=1;strokeColor=#555;" edge="1" parent="1" source="a1" target="uc4"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="c1202" value="" style="endArrow=none;html=1;strokeColor=#555;" edge="1" parent="1" source="a1" target="uc5"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="c1203" value="" style="endArrow=none;html=1;strokeColor=#555;" edge="1" parent="1" source="a2" target="uc2"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="c1204" value="" style="endArrow=none;html=1;strokeColor=#555;" edge="1" parent="1" source="a2" target="uc3"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="c1205" value="" style="endArrow=none;html=1;strokeColor=#555;" edge="1" parent="1" source="a2" target="uc5"><mxGeometry relative="1" as="geometry"/></mxCell>
+<mxCell id="c1206" value="&lt;&lt;include&gt;&gt;" style="endArrow=open;endFill=0;dashed=1;html=1;strokeColor=#555;" edge="1" parent="1" source="uc3" target="uc2"><mxGeometry relative="1" as="geometry"/></mxCell>
+</root></mxGraphModel></diagram></mxfile>

@@ -1,0 +1,45 @@
+@startuml
+skinparam maxMessageSize 150
+skinparam roundcorner 10
+
+actor "Coach" as coach
+participant "Frontend\n(Angular/Flutter)" as front
+participant "ProgramController\n(Node.js)" as api
+database "PostgreSQL" as db
+actor "Athlète" as athlete
+
+coach -> front : 1. Cliquer sur "Créer Programme"
+activate front
+front --> coach : 2. Afficher formulaire
+coach -> front : 3. Saisir détails (Titre, Dates, Athlète ciblé)
+coach -> front : 4. Ajouter Jours et Exercices (séries, reps)
+
+front -> api : 5. POST /api/programs {data}
+activate api
+
+api -> db : 6. INSERT INTO programs
+activate db
+db --> api : 7. programId
+deactivate db
+
+api -> db : 8. INSERT INTO program_days (xN)
+activate db
+db --> api : 9. OK
+deactivate db
+
+api -> db : 10. INSERT INTO program_exercises (xM)
+activate db
+db --> api : 11. OK
+deactivate db
+
+api --> front : 12. 201 Created {program_data}
+front --> coach : 13. Afficher succès "Programme Créé"
+deactivate front
+
+api -> athlete : 14. [Push Notification] "Nouveau Programme assigné"
+activate athlete
+athlete --> api : 15. Accusé de réception
+deactivate athlete
+deactivate api
+
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+skinparam maxMessageSize 150
+skinparam roundcorner 10
+
+actor "Athlète" as athlete
+participant "Application\n(Flutter)" as app
+participant "Google Fit /\nApple Health" as io
+participant "Node.js API\n(Backend)" as api
+database "PostgreSQL" as db
+
+athlete -> app : 1. Activer synchronisation IoT
+activate app
+app -> io : 2. Demander autorisations d'accès
+activate io
+io --> app : 3. Accord accordé par l'utilisateur
+deactivate io
+
+app -> io : 4. Lire métriques de la semaine (pas, calories, sommeil)
+activate io
+io --> app : 5. Données physiologiques brutes
+deactivate io
+
+app -> app : 6. Agréger les données par jour
+app -> api : 7. POST /api/metrics/sync {metrics_data}
+activate api
+
+api -> api : 8. Valider les données (Zod validation)
+api -> db : 9. INSERT INTO health_logs (steps, calories, sleep, date)
+activate db
+db --> api : 10. Confirmation d'enregistrement
+deactivate db
+
+api --> app : 11. 200 OK {status: "synced"}
+deactivate api
+
+app --> athlete : 12. Afficher graphiques mis à jour (fl_chart)
+deactivate app
+
+@enduml

@@ -1,0 +1,51 @@
+@startuml
+skinparam maxMessageSize 150
+skinparam roundcorner 10
+
+actor "Athlète" as athlete
+actor "Coach" as coach
+participant "Mobile App\n(Flutter)" as app
+participant "Web Dashboard\n(Angular)" as web
+participant "Node.js API\n(Backend)" as api
+database "PostgreSQL" as db
+
+athlete -> app : 1. Rechercher créneaux libres du coach
+activate app
+app -> api : 2. GET /api/agenda/slots?coachId=...
+activate api
+api -> db : 3. SELECT * FROM availability_slots WHERE coachId = ...
+activate db
+db --> api : 4. Liste des créneaux
+deactivate db
+api --> app : 5. 200 OK [slots]
+deactivate api
+app --> athlete : 6. Afficher le calendrier mobile
+
+athlete -> app : 7. Sélectionner un créneau et réserver
+app -> api : 8. POST /api/agenda/bookings {slotId}
+activate api
+api -> db : 9. INSERT INTO coaching_sessions (status: PENDING)
+activate db
+db --> api : 10. Session créée
+deactivate db
+api --> app : 11. 201 Created {session}
+deactivate api
+app --> athlete : 12. Afficher "Réservation en attente"
+deactivate app
+
+api -> web : 13. [WebSocket] Notify: Nouvelle demande de réservation
+activate web
+web --> coach : 14. Afficher notification de demande
+coach -> web : 15. Cliquer "Accepter la session"
+web -> api : 16. PUT /api/agenda/bookings/{sessionId}/confirm
+activate api
+api -> db : 17. UPDATE coaching_sessions SET status = CONFIRMED, roomName = ...
+activate db
+db --> api : 18. Succès
+deactivate db
+api --> web : 19. 200 OK {status: CONFIRMED}
+deactivate api
+web --> coach : 20. Session confirmée dans l'agenda
+deactivate web
+
+@enduml

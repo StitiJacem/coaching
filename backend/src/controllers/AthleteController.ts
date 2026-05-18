@@ -561,7 +561,7 @@ export class AthleteController {
                     email: athlete.user?.email,
                     sport: athlete.sport,
                     experienceLevel: athlete.experienceLevel,
-                    profilePicture: athlete.profilePicture,
+                    profilePicture: athlete.user?.photo_url || athlete.profilePicture,
                     weight: athlete.weight,
                     height: athlete.height,
                     preferredTrainingDays: athlete.preferredTrainingDays,

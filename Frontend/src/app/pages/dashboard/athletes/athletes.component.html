@@ -7,6 +7,21 @@
                 <h1 class="text-4xl font-display font-black text-white uppercase italic leading-none">Clients</h1>
             </div>
             <div class="flex items-center gap-3">
+                <!-- View Mode Toggle -->
+                <div class="flex items-center bg-gosport-surface border border-gosport-border rounded-xl p-1 gap-1 flex-shrink-0">
+                    <button (click)="viewMode = 'grid'" [class.bg-gosport-orange]="viewMode === 'grid'" [class.text-white]="viewMode === 'grid'" [class.text-slate-400]="viewMode !== 'grid'" class="p-2 rounded-lg transition-all" title="Vue en grille">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                    </button>
+                    <button (click)="viewMode = 'list'" [class.bg-gosport-orange]="viewMode === 'list'" [class.text-white]="viewMode === 'list'" [class.text-slate-400]="viewMode !== 'list'" class="p-2 rounded-lg transition-all" title="Vue en liste">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Search Input -->
                 <div class="relative">
                     <input type="text" [(ngModel)]="searchTerm" (input)="onSearch()" placeholder="Search clients..."
                         class="bg-gosport-surface border border-gosport-border rounded-xl px-10 py-2.5 text-white text-sm focus:outline-none focus:border-gosport-orange transition-colors w-56">
@@ -16,6 +31,8 @@
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
                 </div>
+
+                <!-- Add Client Button -->
                 <button (click)="onInvite()"
                     class="inline-flex items-center gap-2 font-bold uppercase tracking-wider rounded-xl px-5 py-2.5 text-sm bg-gosport-orange hover:bg-orange-600 text-white shadow-lg shadow-gosport-orange/25 transition-all active:scale-[0.98]">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -46,103 +63,205 @@
         </div>
 
 
-        <div *ngIf="!isLoading && athletes.length > 0"
-            class="bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden">
+        <!-- Grid View Mode -->
+        <div *ngIf="!isLoading && athletes.length > 0 && viewMode === 'grid'"
+            class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-[fadeIn_0.3s_ease-out]">
+            
+            <div *ngFor="let athlete of athletes"
+                class="bg-gosport-surface border border-gosport-border/80 hover:border-gosport-orange/50 rounded-2xl p-5 hover:shadow-[0_0_30px_rgba(249,115,22,0.12)] transition-all duration-300 group flex flex-col justify-between">
+                
+                <div>
+                    <!-- Card Top Section -->
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="relative group-hover:scale-105 transition-transform duration-300 flex-shrink-0">
+                                <img *ngIf="getAvatarUrl(athlete)" [src]="getAvatarUrl(athlete)" class="w-12 h-12 rounded-full object-cover border-2 border-gosport-orange/40 shadow-inner">
+                                <div *ngIf="!getAvatarUrl(athlete)" class="w-12 h-12 rounded-full bg-gradient-to-br from-gosport-orange to-orange-600 flex items-center justify-center text-white font-black text-base shadow-lg shadow-gosport-orange/20">
+                                    {{ getInitials(athlete) }}
+                                </div>
+                                <div class="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-gosport-surface flex items-center justify-center" title="Connecté">
+                                    <span class="w-1 h-1 rounded-full bg-white animate-pulse"></span>
+                                </div>
+                            </div>
+                            <div [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" class="cursor-pointer">
+                                <h3 class="font-display font-black text-white text-base group-hover:text-gosport-orange transition-colors leading-tight">
+                                    {{ athlete.user?.first_name }} {{ athlete.user?.last_name }}
+                                </h3>
+                                <p class="text-[10px] text-slate-500 mt-0.5">{{ athlete.user?.email }}</p>
+                            </div>
+                        </div>
+                        <span class="bg-gosport-orange/10 text-gosport-orange px-2.5 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border border-gosport-orange/15 flex-shrink-0 self-start">
+                            ADVANCED
+                        </span>
+                    </div>
 
-            <div
-                class="grid grid-cols-[2fr_1fr_1fr_1fr_120px] items-center px-6 py-3 border-b border-gosport-border bg-black/20">
+                    <!-- Card Body Details -->
+                    <div class="grid grid-cols-2 gap-4 py-3 border-y border-gosport-border/60 bg-black/10 rounded-xl px-4 my-4 text-xs">
+                        <div>
+                            <span class="text-slate-500 block uppercase font-bold text-[9px] tracking-wider mb-1">Sport / Objectif</span>
+                            <span class="text-white font-bold capitalize flex items-center gap-1.5">
+                                <svg class="w-3.5 h-3.5 text-gosport-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                {{ athlete.sport || 'Général' }}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-slate-500 block uppercase font-bold text-[9px] tracking-wider mb-1">Statut</span>
+                            <span class="text-emerald-400 font-bold flex items-center gap-1.5">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                                Connecté
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Tray at the Bottom -->
+                <div class="flex items-center justify-between gap-1.5 mt-3 pt-2">
+                    
+                    <!-- Assign Program -->
+                    <button *ngIf="roleService.currentRole !== 'nutritionist'" (click)="openAssignModal(athlete)" title="Assigner un programme"
+                        class="flex-1 py-2 px-1 text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-black/25 hover:bg-gosport-orange border border-gosport-border hover:border-gosport-orange rounded-xl transition-all duration-200 flex flex-col items-center gap-1 group/btn">
+                        <svg class="w-4 h-4 text-slate-500 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>Assigner</span>
+                    </button>
+
+                    <!-- Training Calendar -->
+                    <button *ngIf="roleService.currentRole !== 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'calendar']" title="Calendrier d'entraînement"
+                        class="flex-1 py-2 px-1 text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-black/25 hover:bg-cyan-500 border border-gosport-border hover:border-cyan-500 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 group/btn">
+                        <svg class="w-4 h-4 text-slate-500 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span>Calendrier</span>
+                    </button>
+
+                    <!-- Send Message -->
+                    <button [routerLink]="['/dashboard/messaging']" [queryParams]="{ athleteId: athlete.id }" title="Envoyer un message"
+                        class="flex-1 py-2 px-1 text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-black/25 hover:bg-emerald-500 border border-gosport-border hover:border-emerald-500 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 group/btn">
+                        <svg class="w-4 h-4 text-slate-500 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                        <span>Message</span>
+                    </button>
+
+                    <!-- Dietary Profile (Nutritionist only) -->
+                    <button *ngIf="roleService.currentRole === 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'dietary-profile']" title="Gérer le profil diététique"
+                        class="flex-1 py-2 px-1 text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-black/25 hover:bg-amber-500 border border-gosport-border hover:border-amber-500 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 group/btn">
+                        <svg class="w-4 h-4 text-slate-500 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <span>Nutrition</span>
+                    </button>
+
+                    <!-- View Profile -->
+                    <button [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" title="Voir le profil"
+                        class="flex-1 py-2 px-1 text-[9px] font-black uppercase tracking-wider text-slate-400 hover:text-white bg-black/25 hover:bg-indigo-500 border border-gosport-border hover:border-indigo-500 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 group/btn">
+                        <svg class="w-4 h-4 text-slate-500 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span>Profil</span>
+                    </button>
+
+                    <!-- Disconnect -->
+                    <button (click)="onDisconnect(athlete)" title="Résilier la connexion"
+                        class="flex-1 py-2 px-1 text-[9px] font-black uppercase tracking-wider text-red-400 hover:text-white bg-black/25 hover:bg-red-500 border border-gosport-border hover:border-red-500 rounded-xl transition-all duration-200 flex flex-col items-center gap-1 group/btn">
+                        <svg class="w-4 h-4 text-red-500/70 group-hover/btn:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Retirer</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+        <!-- List View Mode (Re-styled Table) -->
+        <div *ngIf="!isLoading && athletes.length > 0 && viewMode === 'list'"
+            class="bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden shadow-lg animate-[fadeIn_0.3s_ease-out]">
+            
+            <div class="grid grid-cols-[2fr_1fr_1fr_1fr_120px] items-center px-6 py-4 border-b border-gosport-border bg-black/35">
                 <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Client</span>
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sport / Goal</span>
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Level</span>
-                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sport / Objectif</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Niveau</span>
+                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Statut</span>
                 <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</span>
             </div>
-
 
             <div *ngFor="let athlete of athletes; let last = last"
                 class="grid grid-cols-[2fr_1fr_1fr_1fr_120px] items-center px-6 py-4 hover:bg-white/[0.02] transition-colors group"
                 [class.border-b]="!last" [class.border-gosport-border]="!last">
 
-
                 <div class="flex items-center gap-3">
-                    <div
-                        class="w-10 h-10 rounded-full bg-gradient-to-br from-gosport-orange to-orange-600 flex items-center justify-center text-sm font-black text-white flex-shrink-0 shadow-md shadow-gosport-orange/20">
-                        {{ getInitials(athlete) }}
+                    <div class="relative flex-shrink-0">
+                        <img *ngIf="getAvatarUrl(athlete)" [src]="getAvatarUrl(athlete)" class="w-10 h-10 rounded-full object-cover border-2 border-gosport-orange/40">
+                        <div *ngIf="!getAvatarUrl(athlete)" class="w-10 h-10 rounded-full bg-gradient-to-br from-gosport-orange to-orange-600 flex items-center justify-center text-white font-black text-sm shadow-md shadow-gosport-orange/20">
+                            {{ getInitials(athlete) }}
+                        </div>
+                        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-500 border-2 border-gosport-surface"></div>
                     </div>
                     <div [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" class="cursor-pointer">
                         <p class="font-bold text-white text-sm group-hover:text-gosport-orange transition-colors">
                             {{ athlete.user?.first_name }} {{ athlete.user?.last_name }}
                         </p>
-                        <p class="text-[10px] text-slate-500">{{ athlete.user?.email }}</p>
+                        <p class="text-[10px] text-slate-500 mt-0.5">{{ athlete.user?.email }}</p>
                     </div>
                 </div>
 
+                <span class="text-sm text-slate-300 capitalize">{{ athlete.sport || 'Général' }}</span>
 
-                <span class="text-sm text-slate-300 capitalize">{{ athlete.sport || 'General' }}</span>
-
-
-                <span class="text-sm">
-                    <span
-                        class="bg-gosport-orange/10 text-gosport-orange px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider">
+                <span>
+                    <span class="bg-gosport-orange/10 text-gosport-orange px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border border-gosport-orange/10">
                         Advanced
                     </span>
                 </span>
 
-
                 <div class="flex items-center gap-2">
-                    <div class="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></div>
-                    <span class="text-sm text-slate-300">Connected</span>
+                    <div class="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/50"></div>
+                    <span class="text-xs text-slate-300">Connected</span>
                 </div>
 
-
                 <div class="flex items-center justify-end gap-1">
-
-                    <button *ngIf="roleService.currentRole !== 'nutritionist'" (click)="openAssignModal(athlete)" title="Assign Program"
-                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                    <button *ngIf="roleService.currentRole !== 'nutritionist'" (click)="openAssignModal(athlete)" title="Assigner un programme"
+                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-xl transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </button>
 
-                    <button *ngIf="roleService.currentRole !== 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'calendar']" title="Training Calendar"
-                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                    <button *ngIf="roleService.currentRole !== 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'calendar']" title="Calendrier d'entraînement"
+                        class="p-2 text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-xl transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M3 6h2m0 0V4m0 2v2M19 6h2m0 0V4m0 2v2M7 6h10M5 12h14M5 18h14M7 18h0m10 0h0" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6h2m0 0V4m0 2v2M19 6h2m0 0V4m0 2v2M7 6h10M5 12h14M5 18h14M7 18h0m10 0h0" />
                         </svg>
                     </button>
 
-                    <button [routerLink]="['/dashboard/messaging']" [queryParams]="{ athleteId: athlete.id }"
-                        title="Send Message"
-                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                    <button [routerLink]="['/dashboard/messaging']" [queryParams]="{ athleteId: athlete.id }" title="Envoyer un message"
+                        class="p-2 text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-xl transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                         </svg>
                     </button>
 
-                    <button *ngIf="roleService.currentRole === 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'dietary-profile']" title="Manage Dietary Profile"
-                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                    <button *ngIf="roleService.currentRole === 'nutritionist'" [routerLink]="['/dashboard/athletes', athlete.id, 'dietary-profile']" title="Gérer le profil diététique"
+                        class="p-2 text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 rounded-xl transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                         </svg>
                     </button>
 
-                    <button [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" title="View Profile"
-                        class="p-2 text-slate-500 hover:text-gosport-orange hover:bg-gosport-orange/10 rounded-lg transition-all">
+                    <button [routerLink]="['/dashboard/profile-view', 'athlete', athlete.id]" title="Voir le profil"
+                        class="p-2 text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10 rounded-xl transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5.121 17.804A10.965 10.965 0 0112 15c2.3 0 4.433.707 6.199 1.915M15 11a3 3 0 11-6 0 3 3 0 016 0zM21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                         </svg>
                     </button>
 
-                    <button (click)="onDisconnect(athlete)" title="Disconnect"
-                        class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all">
+                    <button (click)="onDisconnect(athlete)" title="Résilier la connexion"
+                        class="p-2 text-slate-500 hover:text-red-400 hover:bg-red-500/10 rounded-xl transition-all">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                         </svg>
                     </button>
                 </div>

@@ -9,7 +9,8 @@ import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { CoachService } from '../../../services/coach.service';
 import { SocialAuthService } from '../../../services/social-auth.service';
 import { NutritionistService } from '../../../services/nutritionist.service';
-import { environment } from '../../../environments/environment';
+import { RoleService } from '../../../services/role.service';
+import { environment } from '../../../../environments/environment';
 
 @Component({
   selector: 'app-profile',
@@ -28,7 +29,8 @@ export class ProfileComponent implements OnInit {
   generalForm = {
     first_name: '',
     last_name: '',
-    email: ''
+    email: '',
+    phone: ''
   };
   
   securityForm = {
@@ -50,7 +52,8 @@ export class ProfileComponent implements OnInit {
     private athleteService: AthleteService,
     private coachService: CoachService,
     private nutritionistService: NutritionistService,
-    private socialAuthService: SocialAuthService
+    private socialAuthService: SocialAuthService,
+    private roleService: RoleService
   ) {}
 
   ngOnInit() {
@@ -62,7 +65,8 @@ export class ProfileComponent implements OnInit {
       this.generalForm = {
         first_name: this.user.first_name || '',
         last_name: this.user.last_name || '',
-        email: this.user.email || ''
+        email: this.user.email || '',
+        phone: this.user.phone || ''
       };
       // Build correct avatar URL from photo_url
       if (this.user.photo_url) {
@@ -92,8 +96,7 @@ export class ProfileComponent implements OnInit {
         };
       });
     } else if (this.role === 'nutritionist') {
-      this.nutritionistService.getAllNutritionists().subscribe((list: any[]) => {
-        const myProfile = list.find(n => n.userId === this.user.id);
+      this.nutritionistService.getMyProfile().subscribe((myProfile: any) => {
         if (myProfile) {
           this.profile = myProfile;
           this.coachForm = { // Nutritionists use the same form as coaches for bio/exp
@@ -180,6 +183,9 @@ export class ProfileComponent implements OnInit {
           current.photo_url = res.photoUrl;
           current.avatar = absoluteUrl;
           localStorage.setItem('user', JSON.stringify(current));
+          
+          // Refresh role service so sidebar/header avatar re-renders immediately
+          this.roleService.refreshRole();
           
           this.uploadingPhoto = false;
           this.showFeedback('success', 'Profile photo updated!');

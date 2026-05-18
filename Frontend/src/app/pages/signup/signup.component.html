@@ -1,158 +1,199 @@
-<div class="min-h-screen bg-galio-dark flex items-center justify-center p-4 relative overflow-hidden">
+<div class="min-h-screen bg-slate-950 flex items-center justify-center p-4 relative overflow-hidden">
 
+    <!-- Premium Animated Background glow circles -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-galio-orange/10 rounded-full blur-[120px]"></div>
-        <div class="absolute -bottom-[20%] -right-[10%] w-[50%] h-[50%] bg-galio-lime/10 rounded-full blur-[120px]">
-        </div>
-        <div
-            class="absolute inset-0 opacity-[0.03] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:24px_24px]">
-        </div>
+        <div class="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] bg-galio-orange/15 rounded-full blur-[140px] animate-pulse-slow"></div>
+        <div class="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] bg-galio-lime/15 rounded-full blur-[140px] animate-pulse-slow"></div>
+        <div class="absolute top-[30%] right-[20%] w-[30%] h-[30%] bg-purple-500/10 rounded-full blur-[120px]"></div>
+        <div class="absolute inset-0 opacity-[0.02] bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:20px_20px]"></div>
     </div>
 
-    <div class="w-full max-w-md relative z-10 animate-fade-in">
+    <div class="w-full max-w-lg relative z-10 animate-fade-in my-8">
 
-        <div class="text-center mb-8">
-            <div
-                class="inline-flex items-center justify-center w-16 h-16 bg-galio-orange rounded-2xl transform -skew-x-12 mb-6 shadow-lg shadow-galio-orange/20">
+        <!-- Logo and Header -->
+        <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-galio-orange to-red-600 rounded-2xl transform -skew-x-12 mb-4 shadow-xl shadow-galio-orange/30 hover:scale-105 transition-transform duration-300">
                 <span class="font-display font-bold text-4xl text-white transform skew-x-12">E</span>
             </div>
-            <h1 class="text-4xl font-display font-bold text-white mb-2 tracking-wide">CREATE ACCOUNT</h1>
-            <p class="text-slate-400">Join the elite performance platform</p>
+            <h1 class="text-4xl font-display font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400 mb-1 tracking-wider">REJOINDRE L'ÉLITE</h1>
+            <p class="text-slate-400 text-sm tracking-wide">Créez votre compte sur la plateforme de performance ultime</p>
         </div>
 
+        <!-- Main Glassmorphism Card -->
+        <div class="backdrop-blur-xl bg-slate-900/60 border border-slate-800/80 rounded-3xl p-8 shadow-[0_25px_60px_rgba(0,0,0,0.6)]">
+            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-5">
 
-        <div class="bg-galio-surface border border-galio-border rounded-2xl p-8 shadow-2xl">
-            <form [formGroup]="signupForm" (ngSubmit)="onSubmit()" class="space-y-6">
-
-                <div class="space-y-3">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Select Your
-                        Role</label>
+                <!-- Role Selection -->
+                <div class="space-y-2.5">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Choisissez Votre Rôle</label>
                     <div class="grid grid-cols-2 gap-3">
                         <button type="button" *ngFor="let role of roles" (click)="setRole(role.id)"
                             [ngClass]="signupForm.get('role')?.value === role.id
-                                ? 'bg-galio-orange border-galio-orange text-white shadow-lg shadow-galio-orange/20'
-                                : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500 hover:text-slate-200'"
-                            class="flex flex-col items-center justify-center p-4 rounded-xl border transition-all duration-200">
-                            <svg class="w-6 h-6 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                ? 'bg-gradient-to-r from-galio-orange to-orange-600 border-galio-orange text-white shadow-lg shadow-galio-orange/20 scale-[1.02]'
+                                : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200 hover:bg-slate-900/40'"
+                            class="flex flex-col items-center justify-center p-3.5 rounded-2xl border transition-all duration-300 transform active:scale-95">
+                            <svg class="w-5 h-5 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     [attr.d]="role.icon" />
                             </svg>
-                            <span class="text-xs font-bold uppercase tracking-wide">{{ role.label }}</span>
+                            <span class="text-[11px] font-bold uppercase tracking-wider">{{ role.label }}</span>
                         </button>
                     </div>
                 </div>
 
-
-                <div *ngIf="signupForm.get('role')?.value === 'coach'" class="space-y-3 animate-fade-in">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider">Your
-                        Specializations (Select multi)</label>
+                <!-- Specializations for Coach -->
+                <div *ngIf="signupForm.get('role')?.value === 'coach'" class="space-y-2.5 animate-fade-in">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest pl-1">Spécialisations (Sélection multiple)</label>
                     <div class="grid grid-cols-3 gap-2">
                         <button type="button" *ngFor="let spec of specializationsList"
                             (click)="toggleSpecialization(spec.id)" [ngClass]="selectedSpecializations.includes(spec.id)
-                                ? 'bg-galio-lime/20 border-galio-lime text-galio-lime shadow-lg shadow-galio-lime/10'
-                                : 'bg-slate-800 border-slate-700 text-slate-500 hover:border-slate-600'"
-                            class="flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-200">
-                            <span class="text-xl mb-1">{{ spec.icon }}</span>
-                            <span class="text-[10px] font-bold uppercase tracking-tight">{{ spec.label }}</span>
+                                ? 'bg-galio-lime/10 border-galio-lime text-galio-lime shadow-md shadow-galio-lime/5'
+                                : 'bg-slate-950/30 border-slate-800 text-slate-500 hover:border-slate-700 hover:text-slate-400'"
+                            class="flex flex-col items-center justify-center p-2 rounded-xl border transition-all duration-300">
+                            <span class="text-lg mb-0.5">{{ spec.icon }}</span>
+                            <span class="text-[9px] font-bold uppercase tracking-tight">{{ spec.label }}</span>
                         </button>
                     </div>
                 </div>
 
-
+                <!-- First & Last Name -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="w-full">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">First Name</label>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Prénom</label>
                         <input type="text" formControlName="first_name"
-                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-4 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
-                            placeholder="First Name" required>
+                            class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:bg-slate-950/70 transition-all duration-300"
+                            placeholder="Prénom" required>
                     </div>
                     <div class="w-full">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Last Name</label>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Nom</label>
                         <input type="text" formControlName="last_name"
-                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-4 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
-                            placeholder="Last Name" required>
+                            class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:bg-slate-950/70 transition-all duration-300"
+                            placeholder="Nom" required>
                     </div>
                 </div>
 
+                <!-- Gender & Age -->
                 <div class="grid grid-cols-2 gap-4">
                     <div class="w-full">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gender</label>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Genre</label>
                         <div class="flex gap-2">
                             <button type="button" (click)="setGender('male')"
-                                [ngClass]="signupForm.get('gender')?.value === 'male' ? 'bg-galio-orange border-galio-orange text-white' : 'bg-slate-800 border-slate-700 text-slate-400'"
-                                class="flex-1 py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all">
+                                [ngClass]="signupForm.get('gender')?.value === 'male' ? 'bg-gradient-to-r from-galio-orange to-orange-600 border-galio-orange text-white' : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-700'"
+                                class="flex-1 py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all duration-300">
                                 Homme
                             </button>
                             <button type="button" (click)="setGender('female')"
-                                [ngClass]="signupForm.get('gender')?.value === 'female' ? 'bg-galio-orange border-galio-orange text-white' : 'bg-slate-800 border-slate-700 text-slate-400'"
-                                class="flex-1 py-3 rounded-xl border text-xs font-bold uppercase tracking-wider transition-all">
+                                [ngClass]="signupForm.get('gender')?.value === 'female' ? 'bg-gradient-to-r from-galio-orange to-orange-600 border-galio-orange text-white' : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:border-slate-700'"
+                                class="flex-1 py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all duration-300">
                                 Femme
                             </button>
                         </div>
                     </div>
                     <div class="w-full">
-                        <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Age</label>
+                        <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Âge</label>
                         <input type="number" formControlName="age"
-                            class="w-full bg-galio-surface border border-galio-border rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
-                            placeholder="Age" required>
+                            class="w-full bg-slate-950/40 border border-slate-800 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:bg-slate-950/70 transition-all duration-300"
+                            placeholder="Âge" required>
                     </div>
                 </div>
 
-
+                <!-- Email -->
                 <div class="w-full">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email
-                        Address</label>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Adresse Email</label>
                     <div class="relative">
-                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                             </svg>
                         </div>
                         <input type="email" formControlName="email"
-                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
-                            placeholder="Email">
+                            class="w-full bg-slate-950/40 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:bg-slate-950/70 transition-all duration-300"
+                            placeholder="exemple@email.com" required>
                     </div>
                 </div>
 
-
+                <!-- Phone number with custom Elegant Dropdown -->
                 <div class="w-full">
-                    <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Password</label>
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Numéro de Téléphone</label>
+                    <div class="flex gap-2">
+                        <!-- Premium dropdown selection -->
+                        <div class="relative w-1/3 min-w-[100px]">
+                            <select formControlName="phone_prefix"
+                                class="w-full bg-slate-950/50 border border-slate-800 text-slate-200 rounded-xl pl-3 pr-8 py-3 text-sm focus:outline-none focus:border-galio-orange transition-all duration-300 appearance-none cursor-pointer">
+                                <option *ngFor="let item of countryCodes" [value]="item.code">
+                                    {{ item.flag }} {{ item.code }}
+                                </option>
+                            </select>
+                            <!-- elegant chevron arrow -->
+                            <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Phone number input -->
+                        <div class="relative flex-1">
+                            <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                                <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M3 5a2 2 0 012-2h3.28a1 1 0 01.94.725l.548 2.2a1 1 0 01-.321.988l-1.305.98a10.582 10.582 0 004.872 4.872l.98-1.305a1 1 0 01.988-.321l2.2.548a1 1 0 01.725.94V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                </svg>
+                            </div>
+                            <input type="tel" formControlName="phone_number"
+                                class="w-full bg-slate-950/40 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:bg-slate-950/70 transition-all duration-300"
+                                placeholder="ex: 55123456" required>
+                        </div>
+                    </div>
+                    <!-- Phone Validation Error Message -->
+                    <div *ngIf="signupForm.get('phone_number')?.touched && signupForm.get('phone_number')?.invalid" class="text-[10px] text-red-400 mt-1 pl-1">
+                        Veuillez entrer un numéro valide (7 à 15 chiffres, sans préfixe).
+                    </div>
+                </div>
+
+                <!-- Password -->
+                <div class="w-full">
+                    <label class="block text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-1.5 pl-1">Mot de Passe (8 caractères min.)</label>
                     <div class="relative">
-                        <div class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                            <svg class="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                         </div>
                         <input type="password" formControlName="password"
-                            class="w-full bg-galio-surface border border-galio-border rounded-xl pl-10 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:ring-1 focus:ring-galio-orange transition-colors duration-200"
-                            placeholder="Password">
+                            class="w-full bg-slate-950/40 border border-slate-800 rounded-xl pl-11 pr-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:border-galio-orange focus:bg-slate-950/70 transition-all duration-300"
+                            placeholder="••••••••" required>
+                    </div>
+                    <!-- Password length indicator -->
+                    <div *ngIf="signupForm.get('password')?.touched && signupForm.get('password')?.invalid" class="text-[10px] text-red-400 mt-1 pl-1">
+                        Le mot de passe doit comporter au moins 8 caractères.
                     </div>
                 </div>
 
-
+                <!-- Error Message -->
                 <div *ngIf="errorMessage"
-                    class="bg-galio-danger/10 border border-galio-danger/20 text-galio-danger text-center text-sm p-3 rounded-xl font-medium">
+                    class="bg-red-500/10 border border-red-500/20 text-red-400 text-center text-xs p-3 rounded-xl font-medium">
                     {{ errorMessage }}
                 </div>
 
-
+                <!-- Submit Button -->
                 <button type="submit" [disabled]="signupForm.invalid || !signupForm.get('role')?.value"
-                    class="w-full inline-flex items-center justify-center font-bold uppercase tracking-wider rounded-xl px-6 py-3 text-sm bg-galio-orange hover:bg-orange-600 text-white shadow-lg shadow-galio-orange/25 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-galio-dark focus:ring-galio-orange disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 active:scale-[0.98]">
-                    Create Account
+                    class="w-full relative overflow-hidden group inline-flex items-center justify-center font-bold uppercase tracking-widest rounded-xl px-6 py-3.5 text-sm bg-gradient-to-r from-galio-orange to-orange-600 hover:from-orange-600 hover:to-red-600 text-white shadow-lg shadow-galio-orange/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-slate-950 focus:ring-galio-orange disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:from-galio-orange disabled:hover:to-orange-600 transition-all duration-300 transform active:scale-[0.98]">
+                    <!-- Reflection sheen effect -->
+                    <span class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shine"></span>
+                    Créer Mon Compte
                 </button>
 
-
-                <p class="text-center text-sm text-slate-400 mt-6">
-                    Already have an account?
+                <!-- Footer Sign In redirect -->
+                <p class="text-center text-xs text-slate-400 mt-4">
+                    Vous avez déjà un compte ?
                     <a routerLink="/login"
-                        class="font-bold text-white hover:text-galio-orange transition-colors ml-1">Sign In</a>
+                        class="font-bold text-white hover:text-galio-orange hover:underline transition-colors ml-1">Se connecter</a>
                 </p>
             </form>
         </div>
 
-
-   
     </div>
 </div>

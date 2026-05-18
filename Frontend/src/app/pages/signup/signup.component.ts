@@ -15,6 +15,20 @@ export class SignupComponent implements OnInit {
   signupForm!: FormGroup;
   errorMessage = '';
 
+  countryCodes = [
+    { code: '+216', flag: '🇹🇳', name: 'Tunisie' },
+    { code: '+33', flag: '🇫🇷', name: 'France' },
+    { code: '+213', flag: '🇩🇿', name: 'Algérie' },
+    { code: '+212', flag: '🇲🇦', name: 'Maroc' },
+    { code: '+1', flag: '🇺🇸', name: 'USA/Canada' },
+    { code: '+32', flag: '🇧🇪', name: 'Belgique' },
+    { code: '+41', flag: '🇨🇭', name: 'Suisse' },
+    { code: '+44', flag: '🇬🇧', name: 'Royaume-Uni' },
+    { code: '+49', flag: '🇩🇪', name: 'Allemagne' },
+    { code: '+966', flag: '🇸🇦', name: 'Arabie Saoudite' },
+    { code: '+971', flag: '🇦🇪', name: 'Émirats Arabes Unis' }
+  ];
+
   roles = [
     {
       id: 'athlete',
@@ -57,10 +71,12 @@ export class SignupComponent implements OnInit {
       first_name: ['', [Validators.required]],
       last_name: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
+      password: ['', [Validators.required, Validators.minLength(8)]],
       role: ['', [Validators.required]],
       gender: ['', [Validators.required]],
-      age: ['', [Validators.required, Validators.min(13), Validators.max(100)]]
+      age: ['', [Validators.required, Validators.min(13), Validators.max(100)]],
+      phone_prefix: ['+216', [Validators.required]],
+      phone_number: ['', [Validators.required, Validators.pattern('^[0-9]{7,15}$')]]
     });
   }
 
@@ -89,6 +105,7 @@ export class SignupComponent implements OnInit {
 
     this.errorMessage = '';
     const formData = this.signupForm.value;
+    const fullPhone = `${formData.phone_prefix}${formData.phone_number}`;
 
     this.authService.signup({
       username: formData.email,
@@ -99,6 +116,7 @@ export class SignupComponent implements OnInit {
       role: formData.role,
       gender: formData.gender,
       age: formData.age,
+      phone: fullPhone,
       specializations: this.selectedSpecializations
     }).subscribe({
       next: () => {

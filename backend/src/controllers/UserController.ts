@@ -14,10 +14,11 @@ export class UserController {
                 return res.status(404).json({ message: "User not found" });
             }
 
-            const { first_name, last_name, email } = req.body;
+            const { first_name, last_name, email, phone } = req.body;
 
             if (first_name !== undefined) currentUser.first_name = first_name;
             if (last_name !== undefined) currentUser.last_name = last_name;
+            if (phone !== undefined) currentUser.phone = phone;
             
             if (email !== undefined && email !== currentUser.email) {
                 // Check if email already taken
