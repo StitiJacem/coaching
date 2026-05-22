@@ -17,14 +17,24 @@ class NutritionRepository {
     return response.data;
   }
 
-  Future<void> logMeal(Map<String, dynamic> mealData) async {
-    await _dio.post('/meal-logs', data: mealData);
+  Future<void> logMeal(int athleteId, Map<String, dynamic> mealData) async {
+    await _dio.post('/nutrition/athletes/$athleteId/log', data: mealData);
   }
 
-  Future<List<dynamic>> getMealLogs({String? date}) async {
-    final response = await _dio.get('/meal-logs', queryParameters: {
+  Future<List<dynamic>> getMealLogs(int athleteId, {String? date}) async {
+    final response = await _dio.get('/nutrition/athletes/$athleteId/logs-by-date', queryParameters: {
       if (date != null) 'date': date,
     });
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>> getNutritionSummary(int athleteId) async {
+    final response = await _dio.get('/nutrition/athletes/$athleteId/nutrition-summary');
+    return response.data;
+  }
+
+  Future<Map<String, dynamic>?> getActivePlan(int athleteId) async {
+    final response = await _dio.get('/nutrition/athletes/$athleteId/active-plan');
     return response.data;
   }
 }

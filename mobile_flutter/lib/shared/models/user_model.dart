@@ -12,6 +12,7 @@ class UserModel extends Equatable {
   final bool emailVerified;
   final bool onboardingCompleted;
   final String? profilePicture;
+  final int? athleteId;
 
   const UserModel({
     required this.id,
@@ -25,6 +26,7 @@ class UserModel extends Equatable {
     required this.emailVerified,
     required this.onboardingCompleted,
     this.profilePicture,
+    this.athleteId,
   });
 
   String get fullName {
@@ -49,6 +51,7 @@ class UserModel extends Equatable {
             (json['onboarding_completed'] as bool?) ??
             false,
         profilePicture: json['photo_url'] as String? ?? json['profilePicture'] as String?,
+        athleteId: json['athleteId'] as int?,
       );
 
   Map<String, dynamic> toJson() => {
@@ -63,6 +66,7 @@ class UserModel extends Equatable {
         'email_verified': emailVerified,
         'onboarding_completed': onboardingCompleted,
         'profilePicture': profilePicture,
+        'athleteId': athleteId,
       };
 
   UserModel copyWith({

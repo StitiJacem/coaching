@@ -39,6 +39,9 @@ router.get("/plans/:id", authenticateToken, (req, res) => dietController.getPlan
 // Save/rebuild full plan structure (days + meals)
 router.put("/plans/:planId/build", authenticateToken, (req, res) => dietController.saveFullPlan(req, res));
 
+// Delete a plan
+router.delete("/plans/:id", authenticateToken, (req, res) => dietController.deletePlan(req, res));
+
 // Get all plans for the authenticated nutritionist
 router.get("/my-plans", authenticateToken, (req, res) => dietController.getNutritionistPlans(req, res));
 
@@ -48,6 +51,9 @@ router.get("/athletes/:athleteId/active-plan", authenticateToken, (req, res) => 
 
 // Get compliance: plan targets vs today's MealLogs (?date=YYYY-MM-DD optional)
 router.get("/athletes/:athleteId/compliance", authenticateToken, (req, res) => dietController.getComplianceForAthlete(req, res));
+
+// Nutrition summary for dashboard widget (lightweight)
+router.get("/athletes/:athleteId/nutrition-summary", authenticateToken, (req, res) => dietController.getNutritionSummary(req, res));
 
 // Get MealLogs for a specific date (?date=YYYY-MM-DD optional, defaults to today)
 router.get("/athletes/:athleteId/logs-by-date", authenticateToken, (req, res) => dietController.getAthleteLogsByDate(req, res));

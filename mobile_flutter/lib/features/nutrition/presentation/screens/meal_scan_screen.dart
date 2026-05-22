@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/nutrition_repository.dart';
+import '../../../../shared/providers/auth_provider.dart';
 
 class MealScanScreen extends ConsumerStatefulWidget {
   const MealScanScreen({super.key});
@@ -55,9 +56,15 @@ class _MealScanScreenState extends ConsumerState<MealScanScreen> {
   Future<void> _saveMeal() async {
     if (_result == null) return;
 
+    final user = ref.read(currentUserProvider);
+    if (user?.athleteId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Athlete profile not found')));
+      return;
+    }
+
     setState(() => _analyzing = true);
     try {
-      await ref.read(nutritionRepositoryProvider).logMeal({
+      await ref.read(nutritionRepositoryProvider).logMeal(user!.athleteId!, {
         'foodName': (_result!['detectedFoods'] as List).join(', '),
         'calories': _result!['nutrition']['calories'],
         'protein': _result!['nutrition']['protein'],

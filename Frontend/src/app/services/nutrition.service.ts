@@ -102,6 +102,30 @@ export interface ClientCompliance {
     };
 }
 
+export interface DietaryProfile {
+    id?: string;
+    athleteId: number;
+    bmr?: number;
+    tdee?: number;
+    targetCalories?: number;
+    targetProtein?: number;
+    targetCarbs?: number;
+    targetFats?: number;
+    allergies?: string[];
+    dietaryPreferences?: string[];
+    notes?: string;
+}
+
+export interface NutritionSummary {
+    hasPlan: boolean;
+    planName: string | null;
+    actual: MacroTotals;
+    target: MacroTotals;
+    compliancePercent: number;
+    nextMeal: { mealType: string; timeOfDay: string; calories: number } | null;
+    mealsLogged: number;
+}
+
 // ─── Service ─────────────────────────────────────────────────────────────────
 
 @Injectable({
@@ -146,6 +170,12 @@ export class NutritionService {
 
     saveFullPlan(planId: string, name: string, days: DietDay[]): Observable<DietPlan> {
         return this.http.put<DietPlan>(`${this.apiUrl}/plans/${planId}/build`, { name, days }, {
+            headers: this.getHeaders()
+        });
+    }
+
+    deletePlan(planId: string): Observable<any> {
+        return this.http.delete(`${this.apiUrl}/plans/${planId}`, {
             headers: this.getHeaders()
         });
     }
@@ -251,6 +281,28 @@ export class NutritionService {
 
     respondToRequest(connectionId: string, status: 'accepted' | 'rejected'): Observable<any> {
         return this.http.patch<any>(`${this.apiUrl}/connection/${connectionId}`, { status }, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // ── Dietary Profile ───────────────────────────────────────────────────────
+
+    getAthleteDietaryProfile(athleteId: number): Observable<DietaryProfile> {
+        return this.http.get<DietaryProfile>(`${this.apiUrl}/athletes/${athleteId}/dietary-profile`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    updateAthleteDietaryProfile(athleteId: number, data: Partial<DietaryProfile>): Observable<DietaryProfile> {
+        return this.http.put<DietaryProfile>(`${this.apiUrl}/athletes/${athleteId}/dietary-profile`, data, {
+            headers: this.getHeaders()
+        });
+    }
+
+    // ── Dashboard Widget ──────────────────────────────────────────────────────
+
+    getNutritionSummary(athleteId: number): Observable<NutritionSummary> {
+        return this.http.get<NutritionSummary>(`${this.apiUrl}/athletes/${athleteId}/nutrition-summary`, {
             headers: this.getHeaders()
         });
     }

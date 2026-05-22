@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { ProgramService, Program } from '../../services/program.service';
 import { SessionService, Session } from '../../services/session.service';
 import { AthleteService, Athlete } from '../../services/athlete.service';
+import { NutritionService, NutritionSummary } from '../../services/nutrition.service';
 import { ConfirmService } from '../../services/confirm.service';
 import {
     startOfWeek,
@@ -81,6 +82,8 @@ export class DashboardComponent implements OnInit {
     ];
     onboardingProgress = 0;
 
+    nutritionSummary: NutritionSummary | null = null;
+
     constructor(
         public roleService: RoleService,
         private dashboardService: DashboardService,
@@ -91,7 +94,8 @@ export class DashboardComponent implements OnInit {
         private programService: ProgramService,
         private sessionService: SessionService,
         private athleteService: AthleteService,
-        private confirmService: ConfirmService
+        private confirmService: ConfirmService,
+        private nutritionService: NutritionService
     ) { }
 
     ngOnInit() {
@@ -143,6 +147,7 @@ export class DashboardComponent implements OnInit {
                         this.loadCoachData();
                         this.loadPendingPrograms(this.athleteId);
                         this.initializeWeeklySchedule(this.athleteId);
+                        this.loadNutritionSummary(this.athleteId);
                     }
                 },
                 error: (err: any) => console.error('Error loading athlete profile', err)
@@ -463,6 +468,18 @@ export class DashboardComponent implements OnInit {
     }
 
     onAddClient() { console.log('Add athlete clicked'); }
+
+    loadNutritionSummary(athleteId: number) {
+        this.nutritionService.getNutritionSummary(athleteId).subscribe({
+            next: (summary: NutritionSummary) => {
+                this.nutritionSummary = summary;
+            },
+            error: (err: any) => {
+                console.error('Error loading nutrition summary', err);
+                this.nutritionSummary = null;
+            }
+        });
+    }
 
     loadPendingPrograms(athleteId: number) {
         this.programService.getAll({

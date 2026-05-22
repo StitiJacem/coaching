@@ -5,11 +5,12 @@ import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { NutritionService, DietPlan, DietDay, Meal } from '../../../../services/nutrition.service';
 import { DashboardLayoutComponent } from '../../../../components/dashboard-layout/dashboard-layout.component';
 import { ToastService } from '../../../../services/toast.service';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
     selector: 'app-diet-builder',
     standalone: true,
-    imports: [CommonModule, FormsModule, DashboardLayoutComponent, RouterLink],
+    imports: [CommonModule, FormsModule, DashboardLayoutComponent, RouterLink, LucideAngularModule],
     templateUrl: './diet-builder.component.html',
     styleUrls: ['./diet-builder.component.css']
 })
@@ -23,6 +24,7 @@ export class DietBuilderComponent implements OnInit {
     };
 
     athleteId: number | null = null;
+    athleteProfile: any = null;
     nutritionistProfileId: string | null = null;
     activeDayIndex: number = 0;
 
@@ -50,6 +52,11 @@ export class DietBuilderComponent implements OnInit {
             if (params['athleteId']) {
                 this.athleteId = Number(params['athleteId']);
                 this.planData.athleteId = this.athleteId;
+                
+                this.nutritionService.getAthleteDietaryProfile(this.athleteId).subscribe({
+                    next: (profile) => this.athleteProfile = profile,
+                    error: () => console.log('No dietary profile found')
+                });
             }
         });
 

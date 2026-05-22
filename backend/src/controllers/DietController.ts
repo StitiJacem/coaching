@@ -9,6 +9,7 @@ import { MealLog } from "../entities/MealLog";
 import { NutritionConnection } from "../entities/NutritionConnection";
 import { NutritionistProfile } from "../entities/NutritionistProfile";
 import { Athlete } from "../entities/Athlete";
+import { Notification } from "../entities/Notification";
 import { Between, MoreThanOrEqual } from "typeorm";
 
 export class DietController {
@@ -21,6 +22,25 @@ export class DietController {
     private connectionRepo = AppDataSource.getRepository(NutritionConnection);
     private nutritionistRepo = AppDataSource.getRepository(NutritionistProfile);
     private athleteRepo = AppDataSource.getRepository(Athlete);
+    private notificationRepo = AppDataSource.getRepository(Notification);
+
+    private async notifyAthlete(athleteId: number, title: string, body: string, type: string, payload?: Record<string, unknown>) {
+        try {
+            const athlete = await this.athleteRepo.findOne({ where: { id: athleteId } });
+            if (!athlete) return;
+            const notification = this.notificationRepo.create({
+                userId: athlete.userId,
+                type,
+                title,
+                body,
+                payload,
+                read: false
+            });
+            await this.notificationRepo.save(notification);
+        } catch (e) {
+            console.error("Failed to send notification:", e);
+        }
+    }
 
     // --- DIET PLAN MANAGEMENT ---
 
@@ -144,9 +164,32 @@ export class DietController {
                 relations: ["days", "days.meals"]
             });
 
+            if (updatedPlan && updatedPlan.athleteId) {
+                await this.notifyAthlete(
+                    updatedPlan.athleteId,
+                    "Nouveau Plan Nutritionnel",
+                    `Votre nutritionniste vous a assigné un nouveau programme : ${updatedPlan.name}`,
+                    "nutrition_plan_assigned",
+                    { planId: updatedPlan.id, planName: updatedPlan.name }
+                );
+            }
+
             res.json(updatedPlan);
         } catch (error) {
             console.error("Full plan save error", error);
+            res.status(500).json({ message: "Server error" });
+        }
+    }
+
+    async deletePlan(req: Request, res: Response) {
+        try {
+            const planId = String(req.params.id);
+            const plan = await this.dietPlanRepo.findOne({ where: { id: planId } });
+            if (!plan) return res.status(404).json({ message: "Plan not found" });
+            await this.dietPlanRepo.remove(plan);
+            res.json({ message: "Plan deleted" });
+        } catch (error) {
+            console.error("Delete plan error", error);
             res.status(500).json({ message: "Server error" });
         }
     }
@@ -388,6 +431,76 @@ export class DietController {
             if (result.affected === 0) return res.status(404).json({ message: "Log not found" });
             res.json({ message: "Log deleted" });
         } catch (error) {
+            res.status(500).json({ message: "Server error" });
+        }
+    }
+
+    async getNutritionSummary(req: Request, res: Response) {
+        try {
+            const athleteId = Number(req.params.athleteId);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+
+            const activePlan = await this.dietPlanRepo.findOne({
+                where: { athleteId, isTemplate: false },
+                relations: ["days", "days.meals"],
+                order: { created_at: "DESC" }
+            });
+
+            const todayLogs = await this.mealLogRepo.find({
+                where: { athleteId, loggedAt: Between(today, tomorrow) }
+            });
+
+            const actual = todayLogs.reduce((acc, log) => ({
+                calories: acc.calories + (log.calories || 0),
+                protein: acc.protein + (log.protein || 0),
+                carbs: acc.carbs + (log.carbs || 0),
+                fats: acc.fats + (log.fats || 0)
+            }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+            let target = { calories: 0, protein: 0, carbs: 0, fats: 0 };
+            let nextMeal = null;
+            let planName = null;
+
+            if (activePlan && activePlan.days?.length) {
+                planName = activePlan.name;
+                let todayDay = activePlan.days[0];
+                if (activePlan.startDate) {
+                    const start = new Date(activePlan.startDate);
+                    start.setHours(0, 0, 0, 0);
+                    const diffDays = Math.floor((today.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                    const dayNumber = (diffDays % activePlan.days.length) + 1;
+                    todayDay = activePlan.days.find(d => d.day_number === dayNumber) || activePlan.days[0];
+                }
+
+                target = (todayDay?.meals || []).reduce((acc: any, meal: any) => ({
+                    calories: acc.calories + (meal.calories || 0),
+                    protein: acc.protein + (meal.protein || 0),
+                    carbs: acc.carbs + (meal.carbs || 0),
+                    fats: acc.fats + (meal.fats || 0)
+                }), { calories: 0, protein: 0, carbs: 0, fats: 0 });
+
+                const now = new Date();
+                const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+                const sortedMeals = (todayDay?.meals || []).sort((a: any, b: any) => (a.timeOfDay || '').localeCompare(b.timeOfDay || ''));
+                nextMeal = sortedMeals.find((m: any) => (m.timeOfDay || '23:59') > currentTime) || null;
+            }
+
+            const compliancePercent = target.calories > 0 ? Math.min(Math.round((actual.calories / target.calories) * 100), 200) : 0;
+
+            res.json({
+                hasPlan: !!activePlan,
+                planName,
+                actual,
+                target,
+                compliancePercent,
+                nextMeal: nextMeal ? { mealType: nextMeal.mealType, timeOfDay: nextMeal.timeOfDay, calories: nextMeal.calories } : null,
+                mealsLogged: todayLogs.length
+            });
+        } catch (error) {
+            console.error("Nutrition summary error", error);
             res.status(500).json({ message: "Server error" });
         }
     }

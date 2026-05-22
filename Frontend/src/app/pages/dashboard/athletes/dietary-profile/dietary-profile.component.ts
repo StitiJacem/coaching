@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { DietService, DietaryProfile } from '../../../../services/diet.service';
+import { NutritionService, DietaryProfile } from '../../../../services/nutrition.service';
 import { DashboardLayoutComponent } from '../../../../components/dashboard-layout/dashboard-layout.component';
 import { RoleService } from '../../../../services/role.service';
 import { ToastService } from '../../../../services/toast.service';
@@ -31,7 +31,7 @@ export class DietaryProfileComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private dietService: DietService,
+    private nutritionService: NutritionService,
     public roleService: RoleService,
     private toastService: ToastService
   ) {}
@@ -45,7 +45,7 @@ export class DietaryProfileComponent implements OnInit {
 
   loadProfile() {
     this.loading = true;
-    this.dietService.getAthleteDietaryProfile(this.athleteId).subscribe({
+    this.nutritionService.getAthleteDietaryProfile(this.athleteId).subscribe({
       next: (data: DietaryProfile) => {
         this.profile = data;
         if (data) {
@@ -85,7 +85,7 @@ export class DietaryProfileComponent implements OnInit {
       targetFats: this.fatsTarget || undefined
     };
 
-    this.dietService.updateAthleteDietaryProfile(this.athleteId, data).subscribe({
+    this.nutritionService.updateAthleteDietaryProfile(this.athleteId, data).subscribe({
       next: (res: DietaryProfile) => {
         this.profile = res;
         this.isCustomizing = false;

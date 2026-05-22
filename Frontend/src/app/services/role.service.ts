@@ -6,6 +6,7 @@ export type UserRole = 'coach' | 'athlete' | 'doctor' | 'nutritionist' | 'admin'
 
 export interface UserProfile {
     id: number;
+    entityId?: number;
     name: string;
     role: UserRole;
     roleLabel: string;
@@ -114,6 +115,7 @@ export class RoleService {
 
         return {
             id: user.id || 0,
+            entityId: this.entityId,
             name: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username || 'User',
             role: this.currentRole,
             roleLabel: this.currentRole.charAt(0).toUpperCase() + this.currentRole.slice(1),

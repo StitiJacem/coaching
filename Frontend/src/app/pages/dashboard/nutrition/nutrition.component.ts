@@ -220,6 +220,31 @@ export class NutritionComponent implements OnInit {
         });
     }
 
+    completeMeal(meal: any): void {
+        const athleteId = this.getAthleteId();
+        if (!athleteId) return;
+        
+        const logData = {
+            foodName: `Plan: ${meal.mealType}`,
+            calories: meal.calories || 0,
+            protein: meal.protein || 0,
+            carbs: meal.carbs || 0,
+            fats: meal.fats || 0,
+            mealType: meal.mealType
+        };
+
+        this.nutritionService.logMeal(athleteId, logData).subscribe({
+            next: (log: MealLog) => {
+                this.todayLogs = [log, ...this.todayLogs];
+                this.loadCompliance(athleteId);
+                this.toastService.showSuccess(`Repas enregistré (${meal.calories} kcal)`);
+            },
+            error: (err: any) => {
+                this.toastService.showError("Erreur d'enregistrement.");
+            }
+        });
+    }
+
     resetMealForm(): void {
         this.mealForm = { foodName: '', calories: 0, protein: 0, carbs: 0, fats: 0, mealType: 'snack', imagePath: undefined };
     }
@@ -319,16 +344,14 @@ export class NutritionComponent implements OnInit {
             const raw = localStorage.getItem('user');
             if (raw) {
                 const u = JSON.parse(raw);
-                // Try athleteId, then id (which might be the same in some contexts)
-                return u.athleteId || u.id || null;
+                return u.entityId || u.athleteId || null;
             }
         } catch (e) {
             console.error('Error getting athlete ID:', e);
         }
         
-        // Final fallback to roleService user ID
         const roleUser = this.roleService.user;
-        return roleUser && roleUser.id !== 0 ? roleUser.id : null;
+        return roleUser?.entityId || null;
     }
 
     getLocalISODate(): string {

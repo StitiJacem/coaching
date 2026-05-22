@@ -2,21 +2,63 @@
     <div class="builder-page">
 
         <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-        <header class="builder-header">
-            <div>
-                <a routerLink="/dashboard/nutrition" class="builder-back">← Retour Nutrition</a>
-                <h1 class="builder-title">Constructeur de Plan</h1>
-                <p class="builder-sub" *ngIf="athleteId">
-                    Athlète #{{ athleteId }}
-                </p>
+        <header class="builder-header relative">
+            <div class="flex-1">
+                <a routerLink="/dashboard/nutrition" class="builder-back group flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4">
+                    <lucide-icon name="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></lucide-icon>
+                    Retour Nutrition
+                </a>
+                <div class="flex items-end justify-between">
+                    <div>
+                        <h1 class="text-4xl font-display font-bold text-white tracking-tight mb-2">Constructeur de Protocoles</h1>
+                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2" *ngIf="athleteId">
+                            <span class="w-2 h-2 rounded-full bg-gosport-lime"></span>
+                            Athlete Context Active
+                        </p>
+                    </div>
+                </div>
             </div>
-            <div class="builder-header-actions">
-                <button class="btn-save" (click)="savePlan()" [disabled]="isSaving">
-                    <span *ngIf="!isSaving">💾 Sauvegarder</span>
-                    <span *ngIf="isSaving">Sauvegarde...</span>
+            <div class="builder-header-actions mt-6 md:mt-0">
+                <button class="px-8 py-4 rounded-xl bg-gosport-lime text-black font-display font-bold text-sm tracking-wide shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:scale-105 transition-all" (click)="savePlan()" [disabled]="isSaving">
+                    <span *ngIf="!isSaving" class="flex items-center gap-2"><lucide-icon name="save" class="w-4 h-4"></lucide-icon> Deploy Protocol</span>
+                    <span *ngIf="isSaving">Deploying...</span>
                 </button>
             </div>
         </header>
+        
+        <!-- Athlete Context Banner -->
+        <div *ngIf="athleteProfile" class="my-8 bg-gosport-surface border border-gosport-border rounded-3xl p-6 flex flex-wrap gap-6 items-center">
+            <div>
+                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Target Energy</p>
+                <p class="text-2xl font-display font-bold text-white">{{ athleteProfile.targetCalories || athleteProfile.tdee || '---' }} <span class="text-xs text-slate-500">kcal</span></p>
+            </div>
+            <div class="h-10 w-px bg-white/10 hidden md:block"></div>
+            <div class="flex gap-6">
+                <div>
+                    <p class="text-[10px] font-bold text-gosport-lime uppercase tracking-widest mb-1">Protein</p>
+                    <p class="text-lg font-bold text-white">{{ athleteProfile.targetProtein || '--' }}g</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-gosport-orange uppercase tracking-widest mb-1">Carbs</p>
+                    <p class="text-lg font-bold text-white">{{ athleteProfile.targetCarbs || '--' }}g</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-[#a855f7] uppercase tracking-widest mb-1">Fats</p>
+                    <p class="text-lg font-bold text-white">{{ athleteProfile.targetFats || '--' }}g</p>
+                </div>
+            </div>
+            <div class="h-10 w-px bg-white/10 hidden lg:block"></div>
+            <div class="flex-1 min-w-[200px]" *ngIf="athleteProfile.allergies?.length || athleteProfile.dietaryPreferences?.length">
+                <div *ngIf="athleteProfile.allergies?.length" class="mb-2">
+                    <span class="text-[10px] font-bold text-red-400 uppercase tracking-widest mr-2">Allergies:</span>
+                    <span class="text-sm text-slate-300 font-bold">{{ athleteProfile.allergies.join(', ') }}</span>
+                </div>
+                <div *ngIf="athleteProfile.dietaryPreferences?.length">
+                    <span class="text-[10px] font-bold text-blue-400 uppercase tracking-widest mr-2">Prefs:</span>
+                    <span class="text-sm text-slate-300 font-bold">{{ athleteProfile.dietaryPreferences.join(', ') }}</span>
+                </div>
+            </div>
+        </div>
 
 
         <!-- ══ PLAN CONFIG ══════════════════════════════════════════════════════ -->

@@ -83,28 +83,48 @@
                 <div class="athlete-columns anim-in stagger-2">
                     <div class="nutr-card">
                         <div class="nutr-card-header">
-                            <h3 class="nutr-card-title"><lucide-icon name="list-checks"></lucide-icon> Menu du Jour</h3>
-                            <span class="nutr-badge" *ngIf="todayDay">Jour {{ todayDay.day_number }}</span>
+                            <h3 class="nutr-card-title flex items-center gap-2"><lucide-icon name="list-checks" class="text-gosport-lime"></lucide-icon> Menu du Jour</h3>
+                            <span class="px-2 py-0.5 rounded-full bg-gosport-orange/20 text-gosport-orange text-[10px] font-black uppercase" *ngIf="todayDay">Jour {{ todayDay.day_number }}</span>
                         </div>
-                        <div *ngIf="todayDay?.isRestDay" class="rest-day-badge"><span>😴</span><p>Jour de Récupération — Focus sur l'hydratation.</p></div>
-                        <div *ngIf="todayDay && !todayDay.isRestDay && todayDay.meals?.length" class="meals-list">
-                            <div *ngFor="let meal of todayDay.meals" class="meal-item">
-                                <div class="meal-time-badge" [ngClass]="'meal-' + meal.mealType">
-                                    <span class="meal-type-label">{{ meal.mealType }}</span>
-                                    <span class="meal-time">{{ meal.timeOfDay }}</span>
-                                </div>
-                                <div class="meal-body">
-                                    <p class="meal-instructions">{{ meal.instructions }}</p>
-                                    <div class="meal-macros">
-                                        <span class="m-tag m-cal">{{ meal.calories }}kcal</span>
-                                        <span class="m-tag m-p">P: {{ meal.protein }}g</span>
-                                        <span class="m-tag m-c">G: {{ meal.carbs }}g</span>
-                                        <span class="m-tag m-f">L: {{ meal.fats }}g</span>
+                        <div *ngIf="todayDay?.isRestDay" class="p-6 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4">
+                            <span class="text-4xl">😴</span>
+                            <div>
+                                <p class="font-black text-white uppercase italic">Jour de Récupération</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Focus sur l'hydratation.</p>
+                            </div>
+                        </div>
+                        <div *ngIf="todayDay && !todayDay.isRestDay && todayDay.meals?.length" class="space-y-4">
+                            <div *ngFor="let meal of todayDay.meals" class="group relative overflow-hidden bg-white/5 border border-white/10 rounded-2xl p-5 hover:border-gosport-lime/30 transition-all">
+                                <div class="absolute top-0 right-0 w-32 h-32 bg-gosport-lime/5 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2 group-hover:bg-gosport-lime/10 transition-colors"></div>
+                                
+                                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-xl border border-white/10 bg-black/40 flex flex-col items-center justify-center text-white shrink-0">
+                                            <lucide-icon name="clock" class="w-3 h-3 text-slate-500 mb-0.5"></lucide-icon>
+                                            <span class="text-[10px] font-black tracking-widest">{{ meal.timeOfDay }}</span>
+                                        </div>
+                                        <div>
+                                            <span class="text-[10px] font-black uppercase text-gosport-lime tracking-widest mb-1 block">{{ meal.mealType }}</span>
+                                            <p class="text-white text-sm font-bold">{{ meal.instructions }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex items-center justify-between md:justify-end gap-6 border-t md:border-t-0 border-white/5 pt-4 md:pt-0">
+                                        <div class="flex gap-3">
+                                            <div class="text-center"><span class="block text-white font-black italic">{{ meal.calories }}</span><span class="text-[8px] uppercase font-bold text-slate-500">kcal</span></div>
+                                            <div class="text-center"><span class="block text-white font-black italic">{{ meal.protein }}</span><span class="text-[8px] uppercase font-bold text-slate-500">P</span></div>
+                                            <div class="text-center"><span class="block text-white font-black italic">{{ meal.carbs }}</span><span class="text-[8px] uppercase font-bold text-slate-500">G</span></div>
+                                            <div class="text-center"><span class="block text-white font-black italic">{{ meal.fats }}</span><span class="text-[8px] uppercase font-bold text-slate-500">L</span></div>
+                                        </div>
+                                        
+                                        <button (click)="completeMeal(meal)" class="w-10 h-10 rounded-xl bg-gosport-lime/10 text-gosport-lime hover:bg-gosport-lime hover:text-black flex items-center justify-center transition-all shadow-lg shrink-0" title="Marquer comme consommé">
+                                            <lucide-icon name="check" class="w-5 h-5"></lucide-icon>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div *ngIf="!todayDay || !todayDay.meals?.length" class="empty-mini py-20 opacity-30 text-center">No protocol assigned.</div>
+                        <div *ngIf="!todayDay || !todayDay.meals?.length" class="empty-mini py-20 opacity-30 text-center border-2 border-dashed border-white/10 rounded-3xl mt-4">No protocol assigned.</div>
                     </div>
 
                     <div class="nutr-card">
@@ -208,90 +228,163 @@
             </div>
         </div>
 
-        <!-- ══════════════════════════════════════════════════════════════════════
-             NUTRITIONIST VIEW
-        ══════════════════════════════════════════════════════════════════════ -->
         <div *ngIf="!isLoading && roleService.currentRole === 'nutritionist'" class="grid grid-cols-[350px_1fr] gap-8 anim-in">
             <!-- Sidebar: Roster -->
             <aside class="space-y-6">
-                <div class="nutr-card !p-8 h-[calc(100vh-250px)] overflow-y-auto">
-                    <div class="flex items-center justify-between mb-10">
-                        <h3 class="text-xl font-black text-white uppercase italic">Active Roster</h3>
-                        <span class="px-3 py-1 bg-white/10 rounded-full text-[10px] font-black text-white">{{ clients.length }}</span>
+                <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-6 h-[calc(100vh-200px)] flex flex-col">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 class="text-xl font-display font-bold text-white">Clients</h3>
+                            <p class="text-xs text-slate-500 mt-1">Active Roster</p>
+                        </div>
+                        <span class="w-8 h-8 rounded-full bg-gosport-lime/20 flex items-center justify-center text-xs font-bold text-gosport-lime">{{ clients.length }}</span>
                     </div>
-                    <div class="space-y-3">
+
+                    <div class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                         <button *ngFor="let client of clients" (click)="selectClient(client)"
-                            [class]="{ 'bg-white/10': selectedClient?.connectionId === client.connectionId, 'border-white/20': selectedClient?.connectionId === client.connectionId }"
-                            class="w-full flex items-center gap-4 p-5 rounded-3xl border border-transparent hover:bg-white/5 transition-all text-left">
-                            <div class="w-12 h-12 rounded-full bg-gosport-orange/20 flex items-center justify-center text-gosport-orange font-black text-lg">
-                                {{ getInitial(client) }}
+                            [class]="{ 'bg-white/5 border-gosport-lime/50': selectedClient?.connectionId === client.connectionId, 'border-transparent hover:bg-white/[0.02]': selectedClient?.connectionId !== client.connectionId }"
+                            class="w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group">
+                            
+                            <div class="relative">
+                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gosport-lime/20 to-gosport-lime/5 flex items-center justify-center text-gosport-lime font-display font-bold text-lg group-hover:scale-105 transition-transform">
+                                    {{ getInitial(client) }}
+                                </div>
+                                <div *ngIf="client.activePlan" class="absolute -bottom-1 -right-1 w-4 h-4 bg-black rounded-full flex items-center justify-center">
+                                    <div class="w-2.5 h-2.5 bg-gosport-lime rounded-full shadow-[0_0_8px_rgba(163,230,53,0.8)]"></div>
+                                </div>
                             </div>
-                            <div class="flex-1">
-                                <p class="font-black text-white uppercase italic text-sm">{{ getClientName(client) }}</p>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ client.athlete?.sport || 'General' }}</p>
+
+                            <div class="flex-1 overflow-hidden">
+                                <p class="font-bold text-white text-sm truncate">{{ getClientName(client) }}</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 truncate">{{ client.athlete?.sport || 'General' }}</p>
                             </div>
-                            <lucide-icon *ngIf="client.activePlan" name="check" class="text-green-500 w-4 h-4"></lucide-icon>
+                            
+                            <lucide-icon name="chevron-right" class="w-4 h-4 text-slate-600 transition-transform"
+                                [class.translate-x-1]="selectedClient?.connectionId === client.connectionId"
+                                [class.text-white]="selectedClient?.connectionId === client.connectionId"></lucide-icon>
                         </button>
+
+                        <div *ngIf="clients.length === 0" class="text-center py-20">
+                            <lucide-icon name="users" class="w-12 h-12 text-slate-700 mx-auto mb-4"></lucide-icon>
+                            <p class="text-slate-500 font-bold text-sm">No active clients</p>
+                        </div>
                     </div>
                 </div>
             </aside>
 
             <!-- Main Panel -->
             <main class="space-y-6">
-                <div *ngIf="!selectedClient" class="h-full flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-[3rem] opacity-30">
-                    <lucide-icon name="users" class="w-20 h-20 mb-8"></lucide-icon>
-                    <p class="font-black uppercase tracking-[0.3em] text-sm">Select an athlete to monitor</p>
+                <!-- Empty State -->
+                <div *ngIf="!selectedClient" class="h-[calc(100vh-200px)] flex flex-col items-center justify-center bg-gosport-surface border border-gosport-border rounded-3xl opacity-50 relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-gosport-lime/5 to-transparent"></div>
+                    <lucide-icon name="user-check" class="w-24 h-24 mb-8 text-slate-700 relative z-10"></lucide-icon>
+                    <p class="font-display font-bold text-white text-xl relative z-10">Select a Client</p>
+                    <p class="text-slate-500 text-sm mt-2 relative z-10">Click on a client from your roster to view their metrics.</p>
                 </div>
 
                 <div *ngIf="selectedClient" class="anim-in">
-                    <div class="nutr-card flex items-center justify-between mb-8">
-                        <div class="flex items-center gap-6">
-                            <div class="w-20 h-20 rounded-3xl bg-gosport-orange/20 flex items-center justify-center text-gosport-orange font-black text-3xl italic shadow-2xl">
+                    <!-- Client Header -->
+                    <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-8 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-gosport-lime/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
+                        
+                        <div class="flex items-center gap-6 relative z-10">
+                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-white font-display font-bold text-3xl shadow-xl">
                                 {{ getInitial(selectedClient) }}
                             </div>
                             <div>
-                                <h2 class="text-3xl font-black text-white uppercase italic leading-none">{{ getClientName(selectedClient) }}</h2>
-                                <p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">{{ selectedClient.athlete?.sport }} • Connection Active</p>
+                                <h2 class="text-3xl font-display font-bold text-white">{{ getClientName(selectedClient) }}</h2>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <span class="px-2 py-1 rounded bg-white/5 text-[10px] font-bold uppercase tracking-widest text-slate-400 border border-white/10">{{ selectedClient.athlete?.sport || 'General' }}</span>
+                                    <span class="flex items-center gap-1.5 text-xs text-gosport-lime font-bold">
+                                        <div class="w-1.5 h-1.5 bg-gosport-lime rounded-full"></div>
+                                        Connection Active
+                                    </span>
+                                </div>
                             </div>
                         </div>
-                        <button class="btn-primary py-4 px-8" (click)="goToDietBuilder(selectedClient)">
-                            {{ selectedClient.activePlan ? 'Engineer Protocol' : 'Launch Protocol' }}
+
+                        <button class="relative z-10 w-full md:w-auto px-8 py-4 rounded-xl bg-white text-black font-bold hover:bg-slate-200 transition-colors shadow-lg flex items-center justify-center gap-2" (click)="goToDietBuilder(selectedClient)">
+                            <lucide-icon [name]="selectedClient.activePlan ? 'edit-3' : 'plus'" class="w-4 h-4"></lucide-icon>
+                            {{ selectedClient.activePlan ? 'Manage Plan' : 'Create Nutrition Plan' }}
                         </button>
                     </div>
 
                     <!-- Client Metrics -->
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 mb-8" *ngIf="clientCompliance">
-                        <div class="macro-ring-card !p-8" *ngFor="let macro of [
-                            {key: 'calories', label: 'Energy', unit: 'kcal', cls: 'ring-calories'},
-                            {key: 'protein',  label: 'Protein', unit: 'g', cls: 'ring-protein'},
-                            {key: 'carbs',    label: 'Carbs',  unit: 'g', cls: 'ring-carbs'},
-                            {key: 'fats',     label: 'Fats',   unit: 'g', cls: 'ring-fats'}
-                        ]">
-                            <div class="ring-wrap !w-24 !h-24 mb-4">
-                                <svg viewBox="0 0 100 100" class="ring-svg">
-                                    <circle cx="50" cy="50" r="40" class="ring-bg"/>
-                                    <circle cx="50" cy="50" r="40" [class]="'ring-track ' + macro.cls"
-                                        [style.stroke-dasharray]="'251.2'"
-                                        [style.stroke-dashoffset]="getRingOffset(getComplianceValue('actual', macro.key), getComplianceValue('target', macro.key))"/>
-                                </svg>
-                                <div class="ring-center"><span class="text-lg font-black text-white italic">{{ getComplianceValue('percent', macro.key) }}%</span></div>
+                    <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-8 mb-6 relative" *ngIf="clientCompliance">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-display font-bold text-white">Daily Metrics</h3>
+                            <input type="date" [ngModel]="selectedClientDate" (ngModelChange)="onClientDateChange($event)" 
+                                   class="bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white font-bold text-xs focus:border-gosport-lime outline-none">
+                        </div>
+
+                        <div *ngIf="!clientCompliance.target?.calories" class="p-8 text-center bg-black/20 rounded-2xl border border-dashed border-white/10">
+                            <p class="text-slate-400 font-bold mb-4">No targets defined for this date.</p>
+                            <button class="text-xs font-bold text-gosport-lime hover:underline" (click)="goToDietBuilder(selectedClient)">Create a plan first</button>
+                        </div>
+
+                        <div *ngIf="clientCompliance.target?.calories" class="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-black/20 rounded-2xl p-6 border border-white/5" *ngFor="let macro of [
+                                {key: 'calories', label: 'Calories', targetUnit: 'kcal', fillClass: 'bg-white'},
+                                {key: 'protein',  label: 'Protein', targetUnit: 'g', fillClass: 'bg-gosport-lime'},
+                                {key: 'carbs',    label: 'Carbs',  targetUnit: 'g', fillClass: 'bg-gosport-orange'},
+                                {key: 'fats',     label: 'Fats',   targetUnit: 'g', fillClass: 'bg-[#a855f7]'}
+                            ]">
+                                <div class="flex justify-between items-start mb-4">
+                                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">{{ macro.label }}</span>
+                                    <span class="text-xs font-bold text-white">{{ getComplianceValue('percent', macro.key) }}%</span>
+                                </div>
+                                <div class="h-1.5 bg-white/10 rounded-full overflow-hidden mb-4">
+                                    <div class="h-full transition-all duration-1000" [ngClass]="macro.fillClass" [style.width.%]="getComplianceValue('percent', macro.key)"></div>
+                                </div>
+                                <p class="text-2xl font-display font-bold text-white">{{ getComplianceValue('actual', macro.key) }}</p>
+                                <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase">Target: {{ getComplianceValue('target', macro.key) }}{{ macro.targetUnit }}</p>
                             </div>
-                            <p class="text-[10px] font-black uppercase text-slate-500 tracking-widest">{{ macro.label }}</p>
                         </div>
                     </div>
 
                     <!-- Client Logs -->
-                    <div class="nutr-card">
-                        <h3 class="text-xl font-black text-white uppercase italic mb-8">Synchronized Intake Log</h3>
-                        <div class="space-y-3">
-                            <div *ngFor="let log of clientCompliance?.logs" class="log-item bg-white/5 border-transparent">
-                                <div class="flex-1">
-                                    <p class="font-black text-white uppercase text-sm italic">{{ log.foodName }}</p>
-                                    <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{{ log.loggedAt | date:'HH:mm' }} • {{ log.mealType }}</p>
-                                </div>
-                                <p class="font-black text-white italic text-lg">{{ log.calories }} kcal</p>
+                    <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-8">
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-display font-bold text-white flex items-center gap-2">
+                                <lucide-icon name="list" class="w-5 h-5 text-slate-400"></lucide-icon>
+                                Consumed Items
+                            </h3>
+                            <div class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-slate-400">
+                                Total: {{ clientCompliance?.logs?.length || 0 }} items
                             </div>
-                            <div *ngIf="!clientCompliance?.logs?.length" class="py-20 text-center opacity-20 italic">No logs detected for selected cycle.</div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div *ngFor="let log of clientCompliance?.logs" class="flex items-center justify-between p-4 rounded-2xl bg-black/20 border border-white/5 hover:border-white/10 transition-colors">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                                       <img *ngIf="log.imagePath" [src]="environment.apiUrl.replace('/api', '') + log.imagePath" class="w-full h-full object-cover">
+                                       <lucide-icon *ngIf="!log.imagePath" name="utensils" class="w-5 h-5 text-slate-600"></lucide-icon>
+                                    </div>
+                                    <div>
+                                        <p class="font-bold text-white text-sm">{{ log.foodName }}</p>
+                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{{ log.mealType }} • {{ log.loggedAt | date:'HH:mm' }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-4">
+                                     <div class="text-right hidden sm:block mr-4">
+                                        <div class="flex gap-2 text-[10px] font-bold text-slate-500 uppercase">
+                                            <span>P: <strong class="text-white">{{log.protein}}</strong></span>
+                                            <span>C: <strong class="text-white">{{log.carbs}}</strong></span>
+                                            <span>F: <strong class="text-white">{{log.fats}}</strong></span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white/5 px-4 py-2 rounded-xl border border-white/10">
+                                        <p class="font-display font-bold text-white">{{ log.calories }} <span class="text-[10px] text-slate-500 uppercase ml-0.5">kcal</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div *ngIf="!clientCompliance?.logs?.length" class="py-16 text-center bg-black/20 rounded-2xl border border-dashed border-white/10">
+                                <lucide-icon name="clipboard-x" class="w-10 h-10 text-slate-600 mx-auto mb-3"></lucide-icon>
+                                <p class="text-slate-400 font-bold text-sm mb-1">No logs available</p>
+                                <p class="text-slate-600 text-xs text-[10px] uppercase tracking-widest">Athlete hasn't tracked anything on this date.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
