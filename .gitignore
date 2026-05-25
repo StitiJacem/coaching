@@ -27,6 +27,20 @@ Thumbs.db
 # Logs
 logs/
 *.log
+*_output.txt
+*_errors.txt
+
+# Generated archives and report artifacts
+*.zip
+rapportfinal.pdf
+rapportfinal.zip
+rapport_coaching*.zip
+rapport_pfe__Copy.pdf
+
+# Scratch dependencies and temporary analysis files
+/scratch/node_modules/
+/scratch/package-lock.json
+/scratch/analysis_output.txt
 
 # Frontend specific
 /Frontend/node_modules/

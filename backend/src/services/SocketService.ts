@@ -14,7 +14,7 @@ export class SocketService {
         this.io = new Server(server, {
             path: "/api/socket.io",
             cors: {
-                origin: "*",
+                origin: process.env.FRONTEND_URL || 'http://localhost:4200',
                 methods: ["GET", "POST"]
             }
         });
@@ -69,8 +69,21 @@ export class SocketService {
 
             socket.on("send_message", async (data: { conversationId: string; senderId: number; content: string }) => {
                 try {
-                    const messageRepository = AppDataSource.getRepository(Message);
+                    if (Number(data.senderId) !== Number(userId)) {
+                        console.warn(`[Socket] User ${userId} attempted to spoof senderId ${data.senderId}`);
+                        return;
+                    }
                     const conversationRepository = AppDataSource.getRepository(Conversation);
+                    const conversation = await conversationRepository.findOne({
+                        where: { id: data.conversationId }
+                    });
+                    if (!conversation) return;
+                    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+                        console.warn(`[Socket] User ${userId} attempted to send message to unauthorized conversation ${data.conversationId}`);
+                        return;
+                    }
+
+                    const messageRepository = AppDataSource.getRepository(Message);
 
                     // Save message
                     const newMessage = messageRepository.create({
@@ -90,13 +103,8 @@ export class SocketService {
                     this.io.to(data.conversationId).emit("new_message", newMessage);
                     
                     // Also notify participants to update their conversation list (for last message preview)
-                    const conversation = await conversationRepository.findOne({
-                        where: { id: data.conversationId }
-                    });
-                    if (conversation) {
-                        this.io.to(`user_${conversation.participant1Id}`).emit("refresh_conversations");
-                        this.io.to(`user_${conversation.participant2Id}`).emit("refresh_conversations");
-                    }
+                    this.io.to(`user_${conversation.participant1Id}`).emit("refresh_conversations");
+                    this.io.to(`user_${conversation.participant2Id}`).emit("refresh_conversations");
                 } catch (error) {
                     console.error("[Socket] Error sending message:", error);
                 }
@@ -104,6 +112,16 @@ export class SocketService {
 
             socket.on("mark_read", async (data: { conversationId: string }) => {
                 try {
+                    const conversationRepository = AppDataSource.getRepository(Conversation);
+                    const conversation = await conversationRepository.findOne({
+                        where: { id: data.conversationId }
+                    });
+                    if (!conversation) return;
+                    if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+                        console.warn(`[Socket] User ${userId} attempted to mark_read on unauthorized conversation ${data.conversationId}`);
+                        return;
+                    }
+
                     const messageRepository = AppDataSource.getRepository(Message);
                     // Mark all messages as read where sender is NOT the current user
                     await messageRepository.createQueryBuilder()

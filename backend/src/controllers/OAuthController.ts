@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { OAuthService } from '../services/OAuthService';
 import jwt from 'jsonwebtoken';
 import { getJwtSecret } from '../utils/jwt.config';
+import { sanitizeUser } from '../utils/sanitizeUser';
 
 const oauthService = new OAuthService();
 
@@ -39,14 +40,7 @@ export class OAuthController {
 
             return res.json({
                 token,
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    role: user.role,
-                    profile_completed: user.profile_completed
-                }
+                user: sanitizeUser(user)
             });
         } catch (error: any) {
             console.error('Google auth error:', error);
@@ -87,14 +81,7 @@ export class OAuthController {
 
             return res.json({
                 token,
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    role: user.role,
-                    profile_completed: user.profile_completed
-                }
+                user: sanitizeUser(user)
             });
         } catch (error: any) {
             console.error('Facebook auth error:', error);
@@ -146,14 +133,7 @@ export class OAuthController {
 
             return res.json({
                 message: 'Profile completed successfully',
-                user: {
-                    id: user.id,
-                    email: user.email,
-                    first_name: user.first_name,
-                    last_name: user.last_name,
-                    role: user.role,
-                    profile_completed: user.profile_completed
-                }
+                user: sanitizeUser(user)
             });
         } catch (error: any) {
             console.error('Complete profile error:', error);

@@ -11,6 +11,7 @@ import { NutritionistProfile } from "../entities/NutritionistProfile";
 import { Athlete } from "../entities/Athlete";
 import { Notification } from "../entities/Notification";
 import { Between, MoreThanOrEqual } from "typeorm";
+import { canAccessAthlete } from "../utils/authorization";
 
 export class DietController {
     private dietPlanRepo = AppDataSource.getRepository(DietPlan);
@@ -110,6 +111,117 @@ export class DietController {
         }
     }
 
+    // Get only template plans for the authenticated nutritionist
+    async getNutritionistTemplates(req: Request, res: Response) {
+        try {
+            const userId = (req as any).user?.id;
+            const profile = await this.nutritionistRepo.findOne({ where: { userId } });
+            if (!profile) return res.status(404).json({ message: "Nutritionist profile not found" });
+
+            const templates = await this.dietPlanRepo.find({
+                where: { nutritionistProfileId: profile.id, isTemplate: true },
+                relations: ["days", "days.meals"],
+                order: { created_at: "DESC" }
+            });
+            res.json(templates);
+        } catch (error) {
+            console.error("Error fetching nutritionist templates", error);
+            res.status(500).json({ message: "Server error" });
+        }
+    }
+
+    // Assign a plan (template or existing) to multiple athletes by cloning it
+    async assignPlanToMultipleAthletes(req: Request, res: Response) {
+        try {
+            const planId = String(req.params.planId);
+            const { athleteIds, startDate } = req.body as { athleteIds: number[]; startDate?: string };
+
+            if (!Array.isArray(athleteIds) || athleteIds.length === 0) {
+                return res.status(400).json({ message: "athleteIds must be a non-empty array." });
+            }
+
+            // Load source plan with all days and meals
+            const sourcePlan = await this.dietPlanRepo.findOne({
+                where: { id: planId },
+                relations: ["days", "days.meals"]
+            });
+            if (!sourcePlan) return res.status(404).json({ message: "Source plan not found" });
+
+            const userId = (req as any).user?.id;
+            const nutritionistProfile = await this.nutritionistRepo.findOne({ where: { userId } });
+            if (!nutritionistProfile) {
+                return res.status(403).json({ message: "Nutritionist profile not found" });
+            }
+
+            const results: { athleteId: number; planId: string; status: string }[] = [];
+
+            for (const athleteId of athleteIds) {
+                // Check accepted connection
+                const connection = await this.connectionRepo.findOne({
+                    where: {
+                        nutritionistProfileId: nutritionistProfile.id,
+                        athleteId: Number(athleteId),
+                        status: "accepted"
+                    }
+                });
+
+                if (!connection) {
+                    results.push({ athleteId, planId: "", status: "no_connection" });
+                    continue;
+                }
+
+                // Clone the plan
+                const newPlan = this.dietPlanRepo.create({
+                    name: sourcePlan.name,
+                    description: sourcePlan.description,
+                    goal: sourcePlan.goal,
+                    isTemplate: false,
+                    nutritionistProfileId: nutritionistProfile.id,
+                    athleteId: Number(athleteId),
+                    startDate: startDate || sourcePlan.startDate
+                });
+                const savedPlan = await this.dietPlanRepo.save(newPlan);
+
+                // Clone days and meals
+                if (sourcePlan.days && sourcePlan.days.length > 0) {
+                    for (const day of sourcePlan.days) {
+                        const newDay = this.dietDayRepo.create({
+                            dietPlanId: savedPlan.id,
+                            day_number: day.day_number,
+                            title: day.title,
+                            isRestDay: day.isRestDay
+                        });
+                        const savedDay = await this.dietDayRepo.save(newDay);
+
+                        if (day.meals && day.meals.length > 0) {
+                            const mealsToSave = day.meals.map((m, index) =>
+                                this.mealRepo.create({
+                                    dietDayId: savedDay.id,
+                                    mealType: m.mealType,
+                                    timeOfDay: m.timeOfDay,
+                                    instructions: m.instructions,
+                                    calories: m.calories,
+                                    protein: m.protein,
+                                    carbs: m.carbs,
+                                    fats: m.fats,
+                                    order: index
+                                })
+                            );
+                            await this.mealRepo.save(mealsToSave);
+                        }
+                    }
+                }
+
+                results.push({ athleteId, planId: savedPlan.id, status: "assigned" });
+            }
+
+            res.status(201).json({ results });
+        } catch (error) {
+            console.error("Error assigning plan to multiple athletes", error);
+            res.status(500).json({ message: "Server error" });
+        }
+    }
+
     // Builder logic: receive full plan JSON and save structure
     async saveFullPlan(req: Request, res: Response) {
         try {
@@ -199,6 +311,10 @@ export class DietController {
     async getAthleteActivePlan(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
 
             const activePlan = await this.dietPlanRepo.findOne({
                 where: { athleteId, isTemplate: false },
@@ -218,6 +334,11 @@ export class DietController {
     async getComplianceForAthlete(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+            
             const dateParam = req.query.date as string | undefined;
 
             // Determine target date (default to today)
@@ -315,6 +436,11 @@ export class DietController {
     async getAthleteLogsByDate(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+            
             const dateParam = req.query.date as string | undefined;
 
             const targetDate = dateParam ? new Date(dateParam) : new Date();
@@ -340,6 +466,11 @@ export class DietController {
     async getAthleteDietaryProfile(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+            
             let profile = await this.dietaryProfileRepo.findOne({ where: { athleteId } });
 
             if (!profile) {
@@ -356,6 +487,11 @@ export class DietController {
     async updateAthleteDietaryProfile(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+            
             const updateData = req.body;
 
             let profile = await this.dietaryProfileRepo.findOneBy({ athleteId });
@@ -380,6 +516,11 @@ export class DietController {
     async logMeal(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+            
             const { foodName, calories, protein, carbs, fats, mealType, imagePath } = req.body;
 
             const logEntry = this.mealLogRepo.create({
@@ -404,6 +545,11 @@ export class DietController {
     async getTodayLogs(req: Request, res: Response) {
         try {
             const athleteId = Number(req.params.athleteId);
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+            
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             const tomorrow = new Date(today);
@@ -427,8 +573,15 @@ export class DietController {
     async deleteMealLog(req: Request, res: Response) {
         try {
             const logId = String(req.params.logId);
+            const log = await this.mealLogRepo.findOne({ where: { id: logId } });
+            if (!log) return res.status(404).json({ message: "Log not found" });
+
+            const user = (req as any).user;
+            if (!(await canAccessAthlete(user, log.athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+
             const result = await this.mealLogRepo.delete({ id: logId });
-            if (result.affected === 0) return res.status(404).json({ message: "Log not found" });
             res.json({ message: "Log deleted" });
         } catch (error) {
             res.status(500).json({ message: "Server error" });

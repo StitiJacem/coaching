@@ -76,7 +76,7 @@ const attStats = ['+ totalUsers : Int','+ totalCoaches : Int','+ totalAthletes :
 // =========================================================================
 function buildGlobalUC(){
   gid=100; let b='';
-  b+=v('bnd','Système CoachingApp',BND,250,20,1150,900);
+  b+=v('bnd','Système GOSPORT',BND,250,20,1150,900);
   b+=v('adm','Administrateur',ACT_ADM,60,100,50,80);
   b+=v('coa','Coach',ACT_C,60,350,50,80);
   b+=v('nut','Nutritionniste',ACT_N,60,650,50,80);

@@ -60,7 +60,7 @@ function makeGlobalUseCase() {
   gid = 2;
   let c = '';
   // System boundary
-  c += boundary('sys', 'Système CoachingApp', 220, 20, 700, 760);
+  c += boundary('sys', 'Système GOSPORT', 220, 20, 700, 760);
 
   // Actors
   c += cell('adm', 'Administrateur', ACTOR_STYLE, 30, 80, 50, 80);

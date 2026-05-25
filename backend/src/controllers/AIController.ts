@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { analyzeFoodImage } from "../services/AIService";
+import fs from 'fs';
+import path from 'path';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helper: derive a browser-friendly MIME type from a multer file
@@ -88,17 +90,13 @@ export class AIController {
       // ── Save the image permanently for logging ───────────────────────────────
       let imagePath = null;
       try {
-        const fs = require('fs');
-        const path = require('path');
         const filename = `meal-${Date.now()}-${Math.round(Math.random() * 1e9)}.jpg`;
         const uploadsDir = path.join(__dirname, "../../public/uploads");
         
-        if (!fs.existsSync(uploadsDir)) {
-          fs.mkdirSync(uploadsDir, { recursive: true });
-        }
+        await fs.promises.mkdir(uploadsDir, { recursive: true });
         
         const fullPath = path.join(uploadsDir, filename);
-        fs.writeFileSync(fullPath, imageBuffer);
+        await fs.promises.writeFile(fullPath, imageBuffer);
         imagePath = `/uploads/${filename}`;
         console.log(`[AIController][${requestId}] Image saved to: ${imagePath}`);
       } catch (saveErr: any) {

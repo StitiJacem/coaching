@@ -1,6 +1,6 @@
 \fancypagestyle{plain}{
   \fancyhf{}
-  \lfoot{CoachingApp}
+  \lfoot{GOSPORT}
   \rfoot{\thepage}
   \renewcommand{\headrulewidth}{0pt}
   \renewcommand{\footrulewidth}{0.4pt}
@@ -15,7 +15,7 @@ L'essor des technologies numériques a profondément transformé de nombreux sec
 \section{Contexte académique et Organisme d'accueil}
 Ce projet a été réalisé dans le cadre de notre stage de fin d'études, étape cruciale couronnant notre parcours universitaire. Ce stage a pour vocation principale de mettre en pratique l'ensemble des connaissances théoriques et techniques acquises durant notre formation académique. Il s'agit notamment de mobiliser nos compétences en développement d'applications mobiles, en conception d'architectures web distribuées, en gestion avancée de bases de données relationnelles, ainsi qu'en ingénierie logicielle globale.
 
-[À COMPLÉTER : Remplacer par la description de l'entreprise ou du laboratoire d'accueil. Exemple : Le stage s'est déroulé au sein de l'entreprise XYZ, spécialisée dans le développement de solutions logicielles...]
+Dans le cadre de ce projet académique, le travail a été mené autour de la conception et du développement de GOSPORT, une solution logicielle complète dédiée au coaching sportif et nutritionnel. L'environnement de réalisation a simulé un contexte professionnel: analyse du besoin, conception UML, développement web et mobile, intégration backend, validation fonctionnelle et préparation au déploiement.
 
 L'immersion dans un environnement professionnel structuré nous a permis de nous confronter aux exigences réelles du monde du travail, telles que le respect des délais (deadlines), la gestion du travail en équipe, et la communication avec les différentes parties prenantes (stakeholders). De plus, ce contexte nous a offert l'opportunité de développer une application complète, robuste et évolutive, répondant à un besoin précis et avéré du marché florissant de la santé et du fitness.
 
@@ -61,7 +61,7 @@ Nous avons sélectionné trois des plateformes les plus populaires chez les prof
 \begin{tabular}{|>{\centering\arraybackslash}p{4cm}|>{\centering\arraybackslash}p{3cm}|>{\centering\arraybackslash}p{3cm}|>{\centering\arraybackslash}p{3cm}|>{\centering\arraybackslash}p{3cm}|}
 \hline
 \rowcolor[HTML]{EFEFEF} 
-\textbf{Fonctionnalité / Application} & \textbf{TrueCoach} & \textbf{Trainerize} & \textbf{Méthode Artisanale (Excel + WhatsApp)} & \textbf{CoachingApp (Notre Solution)} \\ \hline
+\textbf{Fonctionnalité / Application} & \textbf{TrueCoach} & \textbf{Trainerize} & \textbf{Méthode Artisanale (Excel + WhatsApp)} & \textbf{GOSPORT (Notre Solution)} \\ \hline
 \textbf{Planification d'entraînement} & Excellente & Très bonne & Bonne (mais manuelle) & Excellente \\ \hline
 \textbf{Lecteur de séance interactif} & Basique & Bon & Inexistant & Très Avancé \\ \hline
 \textbf{Tracker nutritionnel intégré} & Faible & Moyen & Inexistant & Excellent \\ \hline
@@ -70,14 +70,14 @@ Nous avons sélectionné trois des plateformes les plus populaires chez les prof
 \textbf{Intégration d'Intelligence Artificielle} & Non & Faible & Non & Oui (Suggestions) \\ \hline
 \end{tabular}%
 }
-\caption{Comparaison des solutions existantes avec CoachingApp}
+\caption{Comparaison des solutions existantes avec GOSPORT}
 \end{table}
 
 \subsection{Bilan de l'étude de l'existant}
 Ces limitations justifient pleinement la nécessité de proposer une nouvelle approche. Le marché a besoin d'un outil \textit{all-in-one} (tout-en-un), plus flexible, abordable techniquement, et qui place l'ergonomie et l'expérience utilisateur (UX) au centre du développement.
 
-\section{Solution proposée : CoachingApp}
-Afin de pallier les limites des outils existants, la solution proposée consiste à développer une plateforme technologique complète, baptisée "CoachingApp", dédiée à l'optimisation de la relation Coach-Athlète. Cette solution est conçue autour d'une architecture moderne et est composée de deux volets clients complémentaires communiquant avec un cœur de système robuste :
+\section{Solution proposée : GOSPORT}
+Afin de pallier les limites des outils existants, la solution proposée consiste à développer une plateforme technologique complète, baptisée "GOSPORT", dédiée à l'optimisation de la relation Coach-Athlète. Cette solution est conçue autour d'une architecture moderne et est composée de deux volets clients complémentaires communiquant avec un cœur de système robuste :
 
 \begin{itemize}
     \item \textbf{L'Application Mobile (Flutter) :} Destinée principalement aux athlètes et aux coachs en déplacement. Elle est conçue pour être le compagnon de poche de l'utilisateur. Elle offre un accès immédiat aux programmes d'entraînement via un lecteur de séances immersif (Workout Player) qui gère les chronomètres de repos et valide les séries accomplies. Elle intègre également un journal de nutrition complet et une messagerie instantanée fluide. Le choix de Flutter garantit une expérience native et performante sur iOS et Android à partir d'un seul code source.
@@ -121,11 +121,11 @@ Afin d'assurer la transparence et le suivi, nous avons maintenu les artefacts su
 \subsection{Langage de modélisation}
 Conjointement à la méthodologie Scrum, la phase de conception technique a nécessité l'utilisation d'un langage standard pour visualiser l'architecture logicielle. Nous avons opté pour le \textbf{Langage de Modélisation Unifié (UML - Unified Modeling Language)}. 
 
-L'UML est la norme industrielle de facto pour la spécification, la construction, la visualisation et la documentation des artefacts d'un système logiciel. Il nous a permis de représenter de manière claire, univoque et standardisée les différents aspects de "CoachingApp" :
+L'UML est la norme industrielle de facto pour la spécification, la construction, la visualisation et la documentation des artefacts d'un système logiciel. Il nous a permis de représenter de manière claire, univoque et standardisée les différents aspects de "GOSPORT" :
 \begin{itemize}
     \item \textbf{Aspects dynamiques et fonctionnels :} Via les \textit{diagrammes de cas d'utilisation} (pour capturer les exigences fonctionnelles des différents acteurs) et les \textit{diagrammes de séquence} (pour illustrer les interactions chronologiques complexes, telles que le flux d'authentification ou l'assignation d'un programme).
     \item \textbf{Aspects statiques et structurels :} Via les \textit{diagrammes de classes}, constituant la véritable colonne vertébrale de notre application, modélisant les entités de notre domaine métier (Coach, Athlète, Programme, Exercice) et leurs multiplicités, servant de plan direct pour l'implémentation de la base de données relationnelle.
 \end{itemize}
 
 \section{Conclusion}
-Dans ce premier chapitre introductif, nous avons posé les jalons de notre projet de fin d'études. Nous avons mis en évidence les problématiques concrètes rencontrées par les professionnels du sport et proposé une solution numérique complète et ambitieuse : CoachingApp. Après avoir justifié la pertinence de notre solution face aux limites de la concurrence, nous avons détaillé l'adoption rigoureuse de la méthodologie Agile Scrum et du langage UML, garants de la réussite technique et organisationnelle du projet. Le chapitre suivant sera consacré à la phase vitale de l'analyse approfondie et à la spécification exhaustive des besoins fonctionnels et architecturaux du système.
+Dans ce premier chapitre introductif, nous avons posé les jalons de notre projet de fin d'études. Nous avons mis en évidence les problématiques concrètes rencontrées par les professionnels du sport et proposé une solution numérique complète et ambitieuse : GOSPORT. Après avoir justifié la pertinence de notre solution face aux limites de la concurrence, nous avons détaillé l'adoption rigoureuse de la méthodologie Agile Scrum et du langage UML, garants de la réussite technique et organisationnelle du projet. Le chapitre suivant sera consacré à la phase vitale de l'analyse approfondie et à la spécification exhaustive des besoins fonctionnels et architecturaux du système.

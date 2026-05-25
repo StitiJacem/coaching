@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Brackets, WhereExpressionBuilder } from "typeorm";
+import { Brackets } from "typeorm";
 import { AppDataSource } from "../orm/data-source";
 import { Conversation, ConversationType } from "../entities/Conversation";
 import { Message } from "../entities/Message";
@@ -145,6 +145,16 @@ export class ChatController {
         try {
             const { conversationId } = req.params;
             const userId = (req as any).user.id;
+            
+            const conversationRepo = AppDataSource.getRepository(Conversation);
+            const conversation = await conversationRepo.findOne({ where: { id: conversationId as string } });
+            if (!conversation) {
+                return res.status(404).json({ message: "Conversation not found" });
+            }
+            if (conversation.participant1Id !== userId && conversation.participant2Id !== userId) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+
             const messageRepo = AppDataSource.getRepository(Message);
 
             // Mark unread messages as read when opened by the recipient

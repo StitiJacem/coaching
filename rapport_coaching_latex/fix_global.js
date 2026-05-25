@@ -21,7 +21,7 @@ const ASC='endArrow=none;html=1;strokeColor=#444;';
 // =====================================================
 (function(){
 gid=10;let b='';
-b+=v('bnd','Système CoachingApp',BND,250,20,1150,1000);
+b+=v('bnd','Système GOSPORT',BND,250,20,1150,1000);
 
 // ACTORS
 b+=v('adm','Administrateur',ACT_ADM,60,100,50,80);
@@ -80,7 +80,7 @@ b+=ed('u_c1','u_c5','<<include>>',INC);
 b+=ed('u_a1','u_a2','<<extend>>',INC);
 b+=ed('u_n1','u_n4','<<include>>',INC);
 
-fs.writeFileSync('Global_Cas_Utilisation.drawio',wrap(b,'Global Use Case - CoachingApp'));
+fs.writeFileSync('Global_Cas_Utilisation.drawio',wrap(b,'Global Use Case - GOSPORT'));
 console.log('OK Global_Cas_Utilisation.drawio');
 })();
 
@@ -136,7 +136,7 @@ b+=ed('DietPlan','DietDay','contient 1..*',CMP);b+=ed('DietDay','Meal','comprend
 b+=ed('Athlete','WorkoutLog','enregistre 0..*',ASC2);
 b+=ed('User','Message','envoie/reçoit',ASC2);
 
-fs.writeFileSync('Global_Classes.drawio',wrap(b,'Global Classes - CoachingApp'));
+fs.writeFileSync('Global_Classes.drawio',wrap(b,'Global Classes - GOSPORT'));
 console.log('OK Global_Classes.drawio');
 })();
 

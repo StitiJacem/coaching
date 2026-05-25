@@ -33,8 +33,16 @@
                 <ng-container *ngIf="roleService.currentRole === 'nutritionist'">
                     <div class="tab-switcher">
                         <button (click)="activeTab = 'clients'" [class.active]="activeTab === 'clients'">Roster</button>
+                        <button (click)="activeTab = 'requests'; loadPendingRequests()" [class.active]="activeTab === 'requests'">
+                            Demandes
+                            <span *ngIf="pendingRequests.length > 0" class="req-badge">{{ pendingRequests.length }}</span>
+                        </button>
                         <button (click)="activeTab = 'insights'" [class.active]="activeTab === 'insights'">Insights</button>
                     </div>
+                    <button class="btn-plans" (click)="goToMyPlans()">
+                        <lucide-icon name="clipboard-list" class="w-4 h-4"></lucide-icon>
+                        Mes Plans
+                    </button>
                 </ng-container>
             </div>
         </header>
@@ -51,6 +59,140 @@
         <div *ngIf="!isLoading && roleService.currentRole === 'athlete'">
             <!-- Today View -->
             <div *ngIf="isTabActive('today')">
+                <section class="today-dashboard anim-in stagger-1">
+                    <div class="today-intake-hero">
+                        <div class="today-hero-copy">
+                            <span class="section-eyebrow">Aujourd'hui</span>
+                            <h2>Suivi nutritionnel</h2>
+                            <p>Comparez vos repas journalises au protocole du jour et gardez une vue claire sur les calories, les macros et les repas restants.</p>
+                            <div class="today-quick-actions">
+                                <button class="btn-primary" (click)="showLogModal = true">
+                                    <lucide-icon name="plus" class="w-4 h-4"></lucide-icon>
+                                    Ajouter un repas
+                                </button>
+                                <button class="btn-ai" (click)="showAiScanner = true">
+                                    <lucide-icon name="sparkles" class="w-4 h-4"></lucide-icon>
+                                    Scanner IA
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="today-calorie-card">
+                            <span class="kpi-label">Calories restantes</span>
+                            <strong>{{ getRemainingMacro('calories') }}</strong>
+                            <small>{{ getMacroValue('actual', 'calories') }} / {{ getMacroValue('target', 'calories') }} kcal consommes</small>
+                            <div class="today-calorie-progress">
+                                <span [style.width.%]="getPercent(getMacroValue('actual', 'calories'), getMacroValue('target', 'calories'))"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="today-macro-grid">
+                        <article class="today-macro-card" *ngFor="let macro of [
+                            {key: 'calories', label: 'Calories', unit: 'kcal', icon: 'flame', cls: 'calories'},
+                            {key: 'protein',  label: 'Proteines', unit: 'g', icon: 'dumbbell', cls: 'protein'},
+                            {key: 'carbs',    label: 'Glucides',  unit: 'g', icon: 'wheat', cls: 'carbs'},
+                            {key: 'fats',     label: 'Lipides',   unit: 'g', icon: 'droplets', cls: 'fats'}
+                        ]">
+                            <div class="today-macro-head">
+                                <span class="macro-icon" [ngClass]="macro.cls">
+                                    <lucide-icon [name]="macro.icon" class="w-4 h-4"></lucide-icon>
+                                </span>
+                                <div>
+                                    <span>{{ macro.label }}</span>
+                                    <strong>{{ getPercent(getMacroValue('actual', macro.key), getMacroValue('target', macro.key)) }}%</strong>
+                                </div>
+                            </div>
+                            <div class="progress-track">
+                                <span [ngClass]="macro.cls" [style.width.%]="getPercent(getMacroValue('actual', macro.key), getMacroValue('target', macro.key))"></span>
+                            </div>
+                            <div class="today-macro-values">
+                                <strong>{{ getMacroValue('actual', macro.key) }}{{ macro.unit }}</strong>
+                                <span>objectif {{ getMacroValue('target', macro.key) }}{{ macro.unit }}</span>
+                            </div>
+                            <p>{{ getRemainingMacro(macro.key) }}{{ macro.unit }} restants</p>
+                        </article>
+                    </div>
+                </section>
+
+                <div class="today-detail-grid anim-in stagger-2">
+                    <section class="today-panel">
+                        <div class="today-panel-header">
+                            <div>
+                                <span class="section-eyebrow">Protocole</span>
+                                <h3>Menu du jour</h3>
+                            </div>
+                            <span class="nutr-badge" *ngIf="todayDay">Jour {{ todayDay.day_number }}</span>
+                        </div>
+                        <div *ngIf="todayDay?.isRestDay" class="rest-day-badge"><lucide-icon name="moon" class="w-5 h-5"></lucide-icon><p>Jour de recuperation - focus sur l'hydratation.</p></div>
+                        <div *ngIf="todayDay && !todayDay.isRestDay && todayDay.meals?.length" class="today-meal-list">
+                            <article *ngFor="let meal of todayDay.meals" class="today-meal-card">
+                                <div class="meal-time-badge compact" [ngClass]="'meal-' + meal.mealType">
+                                    <span class="meal-time">{{ meal.timeOfDay || '--:--' }}</span>
+                                </div>
+                                <div class="meal-body">
+                                    <div class="meal-title-row">
+                                        <strong>{{ meal.mealType }}</strong>
+                                        <span>{{ meal.calories }} kcal</span>
+                                    </div>
+                                    <p class="meal-instructions">{{ meal.instructions }}</p>
+                                    <div class="meal-macros">
+                                        <span class="m-tag">P {{ meal.protein }}g</span>
+                                        <span class="m-tag">G {{ meal.carbs }}g</span>
+                                        <span class="m-tag">L {{ meal.fats }}g</span>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                        <div *ngIf="!todayDay || !todayDay.meals?.length" class="empty-state compact">
+                            <lucide-icon name="calendar-x"></lucide-icon>
+                            <p>Aucun protocole nutritionnel assigne pour aujourd'hui.</p>
+                        </div>
+                    </section>
+
+                    <section class="today-panel">
+                        <div class="today-panel-header">
+                            <div>
+                                <span class="section-eyebrow">Journal</span>
+                                <h3>Repas enregistres</h3>
+                            </div>
+                            <button class="btn-primary py-2 px-4" (click)="showLogModal = true">Ajouter</button>
+                        </div>
+                        <div class="today-log-summary" *ngIf="todayLogs.length > 0">
+                            <div>
+                                <span>Total consomme</span>
+                                <strong>{{ computeTotals(todayLogs).calories }} kcal</strong>
+                            </div>
+                            <div>
+                                <span>Repas</span>
+                                <strong>{{ todayLogs.length }}</strong>
+                            </div>
+                        </div>
+                        <div class="today-log-list" *ngIf="todayLogs.length > 0">
+                            <article *ngFor="let log of todayLogs" class="today-log-row">
+                                <div class="log-thumb">
+                                    <img *ngIf="log.imagePath" [src]="environment.apiUrl.replace('/api', '') + log.imagePath">
+                                    <lucide-icon *ngIf="!log.imagePath" name="utensils" class="w-5 h-5"></lucide-icon>
+                                </div>
+                                <div>
+                                    <strong>{{ log.foodName }}</strong>
+                                    <span>{{ log.loggedAt | date:'HH:mm' }} - {{ log.mealType }}</span>
+                                </div>
+                                <div class="log-calories">
+                                    <strong>{{ log.calories }} kcal</strong>
+                                    <button (click)="deleteLog(log.id!)" title="Supprimer">
+                                        <lucide-icon name="trash-2" class="w-4 h-4"></lucide-icon>
+                                    </button>
+                                </div>
+                            </article>
+                        </div>
+                        <div *ngIf="todayLogs.length === 0" class="empty-state compact">
+                            <lucide-icon name="notebook-tabs"></lucide-icon>
+                            <p>Aucun repas journalise. Ajoutez un repas ou utilisez le scanner IA.</p>
+                        </div>
+                    </section>
+                </div>
+
                 <section class="macro-rings-section anim-in stagger-1">
                     <div class="macro-rings-grid">
                         <div class="macro-ring-card" *ngFor="let macro of [
@@ -164,21 +306,77 @@
                     <p class="text-slate-400 mb-10 px-6">Connect with a specialist to receive your scientific nutrition protocol.</p>
                     <button class="btn-primary mx-auto" routerLink="/dashboard/discovery">Find A Specialist</button>
                 </div>
-                <div *ngIf="activePlan">
-                    <div class="nutr-card mb-8">
-                        <h2 class="text-4xl font-black text-white uppercase italic tracking-tighter">{{ activePlan.name }}</h2>
-                        <p class="text-slate-400 mt-4 leading-relaxed max-w-3xl">{{ activePlan.description }}</p>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div *ngFor="let day of activePlan.days" class="nutr-card p-6" [class.border-gosport-orange]="todayDay?.id === day.id">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-slate-500">Day {{ day.day_number }}</span>
-                            <h4 class="text-lg font-black text-white uppercase italic my-4 truncate">{{ day.title || 'Standard' }}</h4>
-                            <div class="mt-auto pt-6 border-t border-white/5 flex justify-between items-center">
-                                <span class="text-[10px] font-black uppercase text-slate-500">Intake</span>
-                                <span class="text-xl font-black text-white italic">{{ getDayTotalCalories(day) }} kcal</span>
+                <div *ngIf="activePlan" class="plan-agenda">
+                    <section class="plan-agenda-hero">
+                        <div>
+                            <span class="section-eyebrow">Agenda nutrition</span>
+                            <h2>{{ activePlan.name }}</h2>
+                            <p>{{ activePlan.description || 'Planning nutritionnel personnalise pour suivre vos repas jour par jour.' }}</p>
+                        </div>
+                        <div class="plan-hero-stats">
+                            <div>
+                                <span>Cycle</span>
+                                <strong>{{ activePlan.days.length }} jours</strong>
+                            </div>
+                            <div>
+                                <span>Moyenne</span>
+                                <strong>{{ getAverageDailyCalories(activePlan) }} kcal</strong>
+                            </div>
+                            <div>
+                                <span>Repas</span>
+                                <strong>{{ getPlanMealCount(activePlan) }}</strong>
                             </div>
                         </div>
-                    </div>
+                    </section>
+
+                    <section class="agenda-timeline">
+                        <article *ngFor="let day of activePlan.days" class="agenda-day-card" [class.today]="todayDay?.id === day.id">
+                            <div class="agenda-day-top">
+                                <div>
+                                    <span class="agenda-day-number">Jour {{ day.day_number }}</span>
+                                    <h3>{{ day.title || 'Jour standard' }}</h3>
+                                </div>
+                                <span class="today-pill" *ngIf="todayDay?.id === day.id">Aujourd'hui</span>
+                            </div>
+
+                            <div class="agenda-calories">
+                                <span>Apport cible</span>
+                                <strong>{{ getDayTotalCalories(day) }} kcal</strong>
+                            </div>
+
+                            <div class="agenda-macros">
+                                <div>
+                                    <span>Prot.</span>
+                                    <strong>{{ getDayTotalMacro(day, 'protein') }}g</strong>
+                                </div>
+                                <div>
+                                    <span>Gluc.</span>
+                                    <strong>{{ getDayTotalMacro(day, 'carbs') }}g</strong>
+                                </div>
+                                <div>
+                                    <span>Lip.</span>
+                                    <strong>{{ getDayTotalMacro(day, 'fats') }}g</strong>
+                                </div>
+                            </div>
+
+                            <div class="agenda-meals" *ngIf="!day.isRestDay && day.meals?.length">
+                                <div *ngFor="let meal of day.meals | slice:0:3" class="agenda-meal-row">
+                                    <span class="meal-dot" [ngClass]="'meal-' + meal.mealType"></span>
+                                    <div>
+                                        <strong>{{ meal.timeOfDay || '--:--' }}</strong>
+                                        <span>{{ meal.mealType }}</span>
+                                    </div>
+                                    <p>{{ meal.instructions }}</p>
+                                </div>
+                                <span class="more-meals" *ngIf="day.meals.length > 3">+ {{ day.meals.length - 3 }} autres repas</span>
+                            </div>
+
+                            <div *ngIf="day.isRestDay" class="agenda-rest">
+                                <lucide-icon name="moon" class="w-4 h-4"></lucide-icon>
+                                Jour de recuperation
+                            </div>
+                        </article>
+                    </section>
                 </div>
             </div>
 
@@ -228,167 +426,183 @@
             </div>
         </div>
 
-        <div *ngIf="!isLoading && roleService.currentRole === 'nutritionist'" class="grid grid-cols-[350px_1fr] gap-8 anim-in">
-            <!-- Sidebar: Roster -->
-            <aside class="space-y-6">
-                <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-6 h-[calc(100vh-200px)] flex flex-col">
-                    <div class="flex items-center justify-between mb-8">
+        <!-- ══════════════════════════════════════════════════════════════════════
+             NUTRITIONIST VIEW
+        ══════════════════════════════════════════════════════════════════════ -->
+        <div *ngIf="!isLoading && roleService.currentRole === 'nutritionist' && activeTab === 'clients'" class="nutritionist-dashboard anim-in">
+            <section class="nutritionist-kpis">
+                <div class="nutritionist-kpi">
+                    <span class="kpi-label">Athletes suivis</span>
+                    <strong>{{ clients.length }}</strong>
+                    <small>roster actif</small>
+                </div>
+                <div class="nutritionist-kpi">
+                    <span class="kpi-label">Plans actifs</span>
+                    <strong>{{ getActivePlanCount() }}</strong>
+                    <small>protocoles en cours</small>
+                </div>
+                <div class="nutritionist-kpi">
+                    <span class="kpi-label">Demandes</span>
+                    <strong>{{ pendingRequests.length }}</strong>
+                    <small>en attente</small>
+                </div>
+                <div class="nutritionist-kpi">
+                    <span class="kpi-label">Date analyse</span>
+                    <input type="date" [ngModel]="selectedClientDate" (ngModelChange)="onClientDateChange($event)">
+                </div>
+            </section>
+
+            <section class="nutritionist-workspace">
+                <aside class="roster-panel">
+                    <div class="panel-heading">
                         <div>
-                            <h3 class="text-xl font-display font-bold text-white">Clients</h3>
-                            <p class="text-xs text-slate-500 mt-1">Active Roster</p>
+                            <span>Roster</span>
+                            <h3>Patients nutrition</h3>
                         </div>
-                        <span class="w-8 h-8 rounded-full bg-gosport-lime/20 flex items-center justify-center text-xs font-bold text-gosport-lime">{{ clients.length }}</span>
+                        <span class="count-pill">{{ clients.length }}</span>
                     </div>
 
-                    <div class="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
+                    <div class="roster-list" *ngIf="clients.length > 0">
                         <button *ngFor="let client of clients" (click)="selectClient(client)"
-                            [class]="{ 'bg-white/5 border-gosport-lime/50': selectedClient?.connectionId === client.connectionId, 'border-transparent hover:bg-white/[0.02]': selectedClient?.connectionId !== client.connectionId }"
-                            class="w-full flex items-center gap-4 p-4 rounded-2xl border transition-all text-left group">
-                            
-                            <div class="relative">
-                                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gosport-lime/20 to-gosport-lime/5 flex items-center justify-center text-gosport-lime font-display font-bold text-lg group-hover:scale-105 transition-transform">
-                                    {{ getInitial(client) }}
-                                </div>
-                                <div *ngIf="client.activePlan" class="absolute -bottom-1 -right-1 w-4 h-4 bg-black rounded-full flex items-center justify-center">
-                                    <div class="w-2.5 h-2.5 bg-gosport-lime rounded-full shadow-[0_0_8px_rgba(163,230,53,0.8)]"></div>
-                                </div>
+                            class="roster-item"
+                            [class.active]="selectedClient?.connectionId === client.connectionId">
+                            <div class="client-avatar">{{ getInitial(client) }}</div>
+                            <div class="client-meta">
+                                <strong>{{ getClientName(client) }}</strong>
+                                <span>{{ client.athlete?.sport || 'Programme general' }}</span>
                             </div>
-
-                            <div class="flex-1 overflow-hidden">
-                                <p class="font-bold text-white text-sm truncate">{{ getClientName(client) }}</p>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1 truncate">{{ client.athlete?.sport || 'General' }}</p>
-                            </div>
-                            
-                            <lucide-icon name="chevron-right" class="w-4 h-4 text-slate-600 transition-transform"
-                                [class.translate-x-1]="selectedClient?.connectionId === client.connectionId"
-                                [class.text-white]="selectedClient?.connectionId === client.connectionId"></lucide-icon>
-                        </button>
-
-                        <div *ngIf="clients.length === 0" class="text-center py-20">
-                            <lucide-icon name="users" class="w-12 h-12 text-slate-700 mx-auto mb-4"></lucide-icon>
-                            <p class="text-slate-500 font-bold text-sm">No active clients</p>
-                        </div>
-                    </div>
-                </div>
-            </aside>
-
-            <!-- Main Panel -->
-            <main class="space-y-6">
-                <!-- Empty State -->
-                <div *ngIf="!selectedClient" class="h-[calc(100vh-200px)] flex flex-col items-center justify-center bg-gosport-surface border border-gosport-border rounded-3xl opacity-50 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-br from-gosport-lime/5 to-transparent"></div>
-                    <lucide-icon name="user-check" class="w-24 h-24 mb-8 text-slate-700 relative z-10"></lucide-icon>
-                    <p class="font-display font-bold text-white text-xl relative z-10">Select a Client</p>
-                    <p class="text-slate-500 text-sm mt-2 relative z-10">Click on a client from your roster to view their metrics.</p>
-                </div>
-
-                <div *ngIf="selectedClient" class="anim-in">
-                    <!-- Client Header -->
-                    <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-8 mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-gosport-lime/10 rounded-full blur-3xl transform translate-x-1/2 -translate-y-1/2"></div>
-                        
-                        <div class="flex items-center gap-6 relative z-10">
-                            <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/10 flex items-center justify-center text-white font-display font-bold text-3xl shadow-xl">
-                                {{ getInitial(selectedClient) }}
-                            </div>
-                            <div>
-                                <h2 class="text-3xl font-display font-bold text-white">{{ getClientName(selectedClient) }}</h2>
-                                <div class="flex items-center gap-3 mt-2">
-                                    <span class="px-2 py-1 rounded bg-white/5 text-[10px] font-bold uppercase tracking-widest text-slate-400 border border-white/10">{{ selectedClient.athlete?.sport || 'General' }}</span>
-                                    <span class="flex items-center gap-1.5 text-xs text-gosport-lime font-bold">
-                                        <div class="w-1.5 h-1.5 bg-gosport-lime rounded-full"></div>
-                                        Connection Active
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button class="relative z-10 w-full md:w-auto px-8 py-4 rounded-xl bg-white text-black font-bold hover:bg-slate-200 transition-colors shadow-lg flex items-center justify-center gap-2" (click)="goToDietBuilder(selectedClient)">
-                            <lucide-icon [name]="selectedClient.activePlan ? 'edit-3' : 'plus'" class="w-4 h-4"></lucide-icon>
-                            {{ selectedClient.activePlan ? 'Manage Plan' : 'Create Nutrition Plan' }}
+                            <span class="status-dot" [class.has-plan]="client.activePlan"></span>
                         </button>
                     </div>
 
-                    <!-- Client Metrics -->
-                    <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-8 mb-6 relative" *ngIf="clientCompliance">
-                        <div class="flex items-center justify-between mb-8">
-                            <h3 class="text-xl font-display font-bold text-white">Daily Metrics</h3>
-                            <input type="date" [ngModel]="selectedClientDate" (ngModelChange)="onClientDateChange($event)" 
-                                   class="bg-black/50 border border-white/10 rounded-xl px-4 py-2 text-white font-bold text-xs focus:border-gosport-lime outline-none">
+                    <div *ngIf="clients.length === 0" class="empty-state compact">
+                        <lucide-icon name="user-plus"></lucide-icon>
+                        <p>Aucun athlete connecte pour le moment.</p>
+                    </div>
+                </aside>
+
+                <main class="client-panel">
+                    <div *ngIf="!selectedClient" class="empty-state large">
+                        <lucide-icon name="users"></lucide-icon>
+                        <h3>Selectionnez un athlete</h3>
+                        <p>Le suivi nutritionnel, les objectifs macro et les repas journaliers apparaitront ici.</p>
+                    </div>
+
+                    <div *ngIf="selectedClient" class="client-detail anim-in">
+                        <div class="client-hero">
+                            <div class="client-title-row">
+                                <div class="client-avatar large">{{ getInitial(selectedClient) }}</div>
+                                <div>
+                                    <span class="section-eyebrow">Dossier athlete</span>
+                                    <h2>{{ getClientName(selectedClient) }}</h2>
+                                    <p>{{ selectedClient.athlete?.sport || 'Preparation generale' }} - Connexion active</p>
+                                </div>
+                            </div>
+                            <button class="btn-primary nutritionist-action" (click)="goToDietBuilder(selectedClient)">
+                                <lucide-icon name="file-pen-line" class="w-4 h-4"></lucide-icon>
+                                {{ selectedClient.activePlan ? 'Modifier le plan' : 'Creer un plan' }}
+                            </button>
                         </div>
 
-                        <div *ngIf="!clientCompliance.target?.calories" class="p-8 text-center bg-black/20 rounded-2xl border border-dashed border-white/10">
-                            <p class="text-slate-400 font-bold mb-4">No targets defined for this date.</p>
-                            <button class="text-xs font-bold text-gosport-lime hover:underline" (click)="goToDietBuilder(selectedClient)">Create a plan first</button>
+                        <div *ngIf="isLoadingClient" class="client-loading">
+                            <div class="loader-ring"></div>
+                            <span>Chargement du suivi...</span>
                         </div>
 
-                        <div *ngIf="clientCompliance.target?.calories" class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div class="bg-black/20 rounded-2xl p-6 border border-white/5" *ngFor="let macro of [
-                                {key: 'calories', label: 'Calories', targetUnit: 'kcal', fillClass: 'bg-white'},
-                                {key: 'protein',  label: 'Protein', targetUnit: 'g', fillClass: 'bg-gosport-lime'},
-                                {key: 'carbs',    label: 'Carbs',  targetUnit: 'g', fillClass: 'bg-gosport-orange'},
-                                {key: 'fats',     label: 'Fats',   targetUnit: 'g', fillClass: 'bg-[#a855f7]'}
+                        <div class="macro-summary-grid" *ngIf="clientCompliance && !isLoadingClient">
+                            <article class="macro-summary-card" *ngFor="let macro of [
+                                {key: 'calories', label: 'Calories', unit: 'kcal', cls: 'calories'},
+                                {key: 'protein',  label: 'Proteines', unit: 'g', cls: 'protein'},
+                                {key: 'carbs',    label: 'Glucides',  unit: 'g', cls: 'carbs'},
+                                {key: 'fats',     label: 'Lipides',   unit: 'g', cls: 'fats'}
                             ]">
-                                <div class="flex justify-between items-start mb-4">
-                                    <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">{{ macro.label }}</span>
-                                    <span class="text-xs font-bold text-white">{{ getComplianceValue('percent', macro.key) }}%</span>
+                                <div class="macro-card-top">
+                                    <span class="macro-dot" [ngClass]="macro.cls"></span>
+                                    <span>{{ macro.label }}</span>
+                                    <strong>{{ getComplianceValue('percent', macro.key) }}%</strong>
                                 </div>
-                                <div class="h-1.5 bg-white/10 rounded-full overflow-hidden mb-4">
-                                    <div class="h-full transition-all duration-1000" [ngClass]="macro.fillClass" [style.width.%]="getComplianceValue('percent', macro.key)"></div>
+                                <div class="progress-track">
+                                    <span [ngClass]="macro.cls" [style.width.%]="getComplianceValue('percent', macro.key)"></span>
                                 </div>
-                                <p class="text-2xl font-display font-bold text-white">{{ getComplianceValue('actual', macro.key) }}</p>
-                                <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase">Target: {{ getComplianceValue('target', macro.key) }}{{ macro.targetUnit }}</p>
+                                <div class="macro-values">
+                                    <strong>{{ getComplianceValue('actual', macro.key) }}</strong>
+                                    <span>/ {{ getComplianceValue('target', macro.key) }} {{ macro.unit }}</span>
+                                </div>
+                            </article>
+                        </div>
+
+                        <div class="intake-panel">
+                            <div class="panel-heading">
+                                <div>
+                                    <span>Journal alimentaire</span>
+                                    <h3>Repas synchronises</h3>
+                                </div>
+                                <span class="count-pill">{{ clientCompliance?.logs?.length || 0 }} entrees</span>
+                            </div>
+
+                            <div class="log-table" *ngIf="clientCompliance?.logs?.length">
+                                <div class="log-row log-head">
+                                    <span>Repas</span>
+                                    <span>Horaire</span>
+                                    <span>Type</span>
+                                    <span class="align-right">Calories</span>
+                                </div>
+                                <div *ngFor="let log of clientCompliance?.logs" class="log-row">
+                                    <strong>{{ log.foodName }}</strong>
+                                    <span>{{ log.loggedAt | date:'HH:mm' }}</span>
+                                    <span>{{ log.mealType }}</span>
+                                    <strong class="align-right">{{ log.calories }} kcal</strong>
+                                </div>
+                            </div>
+
+                            <div *ngIf="!clientCompliance?.logs?.length && !isLoadingClient" class="empty-state compact">
+                                <lucide-icon name="clipboard-list"></lucide-icon>
+                                <p>Aucun repas enregistre pour cette date.</p>
                             </div>
                         </div>
                     </div>
+                </main>
+            </section>
+        </div>
 
-                    <!-- Client Logs -->
-                    <div class="bg-gosport-surface border border-gosport-border rounded-3xl p-8">
-                        <div class="flex items-center justify-between mb-8">
-                            <h3 class="text-xl font-display font-bold text-white flex items-center gap-2">
-                                <lucide-icon name="list" class="w-5 h-5 text-slate-400"></lucide-icon>
-                                Consumed Items
-                            </h3>
-                            <div class="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-xs font-bold text-slate-400">
-                                Total: {{ clientCompliance?.logs?.length || 0 }} items
-                            </div>
+        <!-- ══ NUTRITIONIST: REQUESTS TAB ══════════════════════════════════════ -->
+        <div *ngIf="!isLoading && roleService.currentRole === 'nutritionist' && activeTab === 'requests'" class="anim-in">
+            <div class="nutr-card">
+                <div class="flex items-center justify-between mb-8">
+                    <h3 class="text-2xl font-black text-white uppercase italic tracking-tighter">Demandes de Connexion</h3>
+                    <span class="px-3 py-1 bg-white/10 rounded-full text-[10px] font-black text-white">{{ pendingRequests.length }} en attente</span>
+                </div>
+
+                <div *ngIf="isLoadingRequests" class="py-20 text-center">
+                    <div class="loader-ring mx-auto"></div>
+                </div>
+
+                <div *ngIf="!isLoadingRequests && pendingRequests.length === 0" class="py-24 text-center opacity-20">
+                    <p class="text-3xl mb-4">✅</p>
+                    <p class="font-black uppercase tracking-widest text-sm">Aucune demande en attente</p>
+                </div>
+
+                <div class="space-y-4" *ngIf="!isLoadingRequests">
+                    <div *ngFor="let req of pendingRequests" class="request-card flex items-center gap-5 p-5 bg-white/5 border border-white/10 rounded-3xl">
+                        <div class="w-14 h-14 rounded-2xl bg-gosport-orange/20 flex items-center justify-center text-gosport-orange font-black text-xl italic flex-shrink-0">
+                            {{ getRequestAthleteInitial(req) }}
                         </div>
-
-                        <div class="space-y-3">
-                            <div *ngFor="let log of clientCompliance?.logs" class="flex items-center justify-between p-4 rounded-2xl bg-black/20 border border-white/5 hover:border-white/10 transition-colors">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-xl bg-white/5 border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-                                       <img *ngIf="log.imagePath" [src]="environment.apiUrl.replace('/api', '') + log.imagePath" class="w-full h-full object-cover">
-                                       <lucide-icon *ngIf="!log.imagePath" name="utensils" class="w-5 h-5 text-slate-600"></lucide-icon>
-                                    </div>
-                                    <div>
-                                        <p class="font-bold text-white text-sm">{{ log.foodName }}</p>
-                                        <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">{{ log.mealType }} • {{ log.loggedAt | date:'HH:mm' }}</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center gap-4">
-                                     <div class="text-right hidden sm:block mr-4">
-                                        <div class="flex gap-2 text-[10px] font-bold text-slate-500 uppercase">
-                                            <span>P: <strong class="text-white">{{log.protein}}</strong></span>
-                                            <span>C: <strong class="text-white">{{log.carbs}}</strong></span>
-                                            <span>F: <strong class="text-white">{{log.fats}}</strong></span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white/5 px-4 py-2 rounded-xl border border-white/10">
-                                        <p class="font-display font-bold text-white">{{ log.calories }} <span class="text-[10px] text-slate-500 uppercase ml-0.5">kcal</span></p>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div *ngIf="!clientCompliance?.logs?.length" class="py-16 text-center bg-black/20 rounded-2xl border border-dashed border-white/10">
-                                <lucide-icon name="clipboard-x" class="w-10 h-10 text-slate-600 mx-auto mb-3"></lucide-icon>
-                                <p class="text-slate-400 font-bold text-sm mb-1">No logs available</p>
-                                <p class="text-slate-600 text-xs text-[10px] uppercase tracking-widest">Athlete hasn't tracked anything on this date.</p>
-                            </div>
+                        <div class="flex-1">
+                            <p class="font-black text-white uppercase italic">{{ getRequestAthleteName(req) }}</p>
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Demande reçue • {{ req.created_at | date:'dd/MM/yyyy' }}</p>
+                            <p *ngIf="req.message" class="text-sm text-slate-400 mt-2 italic">"{{ req.message }}"</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button (click)="respondToRequest(req.id, 'rejected')" class="px-5 py-3 rounded-2xl bg-white/5 border border-white/10 text-slate-400 font-black text-xs uppercase tracking-widest hover:bg-red-500/10 hover:border-red-500/30 hover:text-red-400 transition-all">
+                                Refuser
+                            </button>
+                            <button (click)="respondToRequest(req.id, 'accepted')" class="px-5 py-3 rounded-2xl bg-gosport-orange text-white font-black text-xs uppercase tracking-widest hover:opacity-90 transition-all">
+                                Accepter
+                            </button>
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
 
     </div>

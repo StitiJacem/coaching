@@ -9,6 +9,8 @@ import { CoachSpecialization } from '../entities/CoachSpecialization';
 import { Athlete } from '../entities/Athlete';
 import { NutritionistProfile } from '../entities/NutritionistProfile';
 import { EmailService } from '../utils/EmailService';
+import { sanitizeUser } from '../utils/sanitizeUser';
+import crypto from 'crypto';
 
 export class AuthService {
     private userRepository: UserRepository;
@@ -25,7 +27,7 @@ export class AuthService {
         }
 
         const hashedPassword = await bcrypt.hash(userData.password!, 10);
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationCode = crypto.randomInt(100000, 1000000).toString();
 
         const user = new User({
             ...userData,
@@ -75,36 +77,25 @@ export class AuthService {
     async login(email: string, password: string): Promise<{ user: any, token: string }> {
         const normalizedEmail = String(email || '').trim();
 
-        console.log(`[AuthService] Attempting login for: ${normalizedEmail}`);
-
         const user = await this.userRepository.findByEmail(normalizedEmail);
         
         if (!user) {
-            console.warn(`[AuthService] Login failed: User not found (${normalizedEmail})`);
             throw new Error('Invalid credentials');
         }
 
-        console.log(`[AuthService] Found user in DB: ${user.email} (ID: ${user.id})`);
-
         if (!user.is_verified) {
-            console.warn(`[AuthService] Login failed: Email not verified (${normalizedEmail})`);
             throw new Error('Please verify your email before logging in');
         }
 
         if (!user.password) {
-            console.warn(`[AuthService] Login failed: Social-only account (${normalizedEmail})`);
             throw new Error('This account uses Social Login. Please sign in with Google.');
         }
 
-        console.log(`[AuthService] Comparing password for ${normalizedEmail}...`);
         const isMatch = await bcrypt.compare(password, user.password);
         
         if (!isMatch) {
-            console.warn(`[AuthService] Login failed: Password mismatch for ${normalizedEmail}`);
             throw new Error('Invalid credentials');
         }
-
-        console.log(`[AuthService] Login SUCCESS for ${normalizedEmail}`);
 
         const token = jwt.sign(
             { id: user.id, email: user.email, role: user.role },
@@ -124,11 +115,11 @@ export class AuthService {
             if (nutriProfile) nutritionistProfileId = nutriProfile.id;
         }
 
-        const enrichedUser = {
+        const enrichedUser = sanitizeUser({
             ...user,
             athleteId,
             nutritionistProfileId
-        };
+        });
 
         return { user: enrichedUser, token };
     }
@@ -163,11 +154,11 @@ export class AuthService {
             throw new Error('User not found');
         }
 
-        const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const verificationCode = crypto.randomInt(100000, 1000000).toString();
         user.verification_code = verificationCode;
         user.code_expires_at = new Date(Date.now() + 3600000);
 
-        await this.userRepository.create(user);
+        await this.userRepository.save(user);
 
         const greetingName = user.first_name || user.username || 'Sportif';
         await EmailService.sendVerificationEmail(user.email, verificationCode, greetingName);
@@ -177,14 +168,14 @@ export class AuthService {
         const normalizedEmail = String(email || '').trim();
         const user = await this.userRepository.findByEmail(normalizedEmail);
         if (!user) {
-            throw new Error('User not found');
+            return;
         }
 
-        const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+        const resetCode = crypto.randomInt(100000, 1000000).toString();
         user.verification_code = resetCode;
         user.code_expires_at = new Date(Date.now() + 3600000); 
 
-        await this.userRepository.create(user);
+        await this.userRepository.save(user);
 
         const greetingName = user.first_name || user.username || 'Sportif';
         await EmailService.sendPasswordResetEmail(user.email, resetCode, greetingName);
@@ -193,7 +184,7 @@ export class AuthService {
     async resetPassword(data: any): Promise<void> {
         try {
             const { email, code, password, newPassword } = data;
-            const finalPassword = password || newPassword;
+            const finalPassword = newPassword || password;
             const normalizedEmail = String(email || '').trim();
             
             const user = await this.userRepository.findByEmail(normalizedEmail);
@@ -220,7 +211,7 @@ export class AuthService {
             user.verification_code = null;
             user.code_expires_at = null;
 
-            await this.userRepository.create(user);
+            await this.userRepository.save(user);
         } catch (error: any) {
             console.error(`[ResetPassword] Error: ${error.message}`);
             throw error;

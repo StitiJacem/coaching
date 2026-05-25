@@ -81,7 +81,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/reset-password',
         builder: (context, state) =>
-            ResetPasswordScreen(token: state.uri.queryParameters['token'] ?? ''),
+            ResetPasswordScreen(email: state.uri.queryParameters['email'] ?? ''),
       ),
       GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
 

@@ -22,12 +22,14 @@ const startServer = async () => {
         await AppDataSource.initialize();
         console.log("Data Source has been initialized!");
 
-        console.log("Running database seeder...");
-        try {
-            await seedDatabase();
-            console.log("Database seeding completed.");
-        } catch (seedError) {
-            console.error("Seeding failed (non-fatal):", seedError);
+        if (process.env.SEED_DB === "true" && process.env.NODE_ENV !== "production") {
+            console.log("Running database seeder...");
+            try {
+                await seedDatabase();
+                console.log("Database seeding completed.");
+            } catch (seedError) {
+                console.error("Seeding failed (non-fatal):", seedError);
+            }
         }
 
         const port = normalizePort(process.env.PORT || '3000');

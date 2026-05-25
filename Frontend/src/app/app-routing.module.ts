@@ -29,6 +29,7 @@ import { DietaryProfileComponent } from './pages/dashboard/athletes/dietary-prof
 import { DietBuilderComponent } from './pages/dashboard/programs/diet-builder/diet-builder.component';
 import { AdminDashboardComponent } from './pages/dashboard/admin/admin-dashboard.component';
 import { UserManagementComponent } from './pages/dashboard/admin/user-management.component';
+import { NutritionistPlansComponent } from './pages/dashboard/nutrition/nutritionist-plans/nutritionist-plans.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -53,6 +54,7 @@ const routes: Routes = [
   { path: 'dashboard/athletes/:id/overview', component: AthleteOverviewComponent, canActivate: [authGuard] },
   { path: 'dashboard/athletes/:id/dietary-profile', component: DietaryProfileComponent, canActivate: [authGuard] },
   { path: 'dashboard/diet-builder', component: DietBuilderComponent, canActivate: [authGuard] },
+  { path: 'dashboard/nutrition-plans', component: NutritionistPlansComponent, canActivate: [authGuard] },
   { path: 'dashboard/athletes/:id/calendar', component: TrainingCalendarComponent, canActivate: [authGuard] },
   { path: 'dashboard/program-preview/:id', component: TrainingCalendarComponent, canActivate: [authGuard] },
   { path: 'dashboard/master-planner', component: TrainingCalendarComponent, canActivate: [authGuard] },

@@ -63,6 +63,10 @@ export class NutritionComponent implements OnInit {
     clientPlan: DietPlan | null = null;
     isLoadingClient = false;
 
+    // Pending connection requests
+    pendingRequests: any[] = [];
+    isLoadingRequests = false;
+
     constructor(
         public roleService: RoleService,
         private nutritionService: NutritionService,
@@ -96,6 +100,12 @@ export class NutritionComponent implements OnInit {
     getPercentValue(key: string): number {
         const p = this.compliance?.percent;
         return p ? (p as any)[key] || 0 : 0;
+    }
+
+    getRemainingMacro(key: string): number {
+        const target = this.getMacroValue('target', key);
+        const actual = this.getMacroValue('actual', key);
+        return Math.max(target - actual, 0);
     }
 
     getComplianceValue(type: 'actual' | 'target' | 'percent', key: string): number {
@@ -285,7 +295,10 @@ export class NutritionComponent implements OnInit {
         this.nutritionService.getMyProfile().subscribe({
             next: (profile: any) => {
                 this.nutritionistProfile = profile;
-                if (profile?.id) this.loadClients(profile.id);
+                if (profile?.id) {
+                    this.loadClients(profile.id);
+                    this.loadPendingRequests();
+                }
             },
             error: () => { this.isLoading = false; }
         });
@@ -298,6 +311,32 @@ export class NutritionComponent implements OnInit {
                 this.isLoading = false;
             },
             error: () => { this.isLoading = false; }
+        });
+    }
+
+    loadPendingRequests(): void {
+        this.isLoadingRequests = true;
+        this.nutritionService.getMyRequests().subscribe({
+            next: (requests: any[]) => {
+                this.pendingRequests = requests;
+                this.isLoadingRequests = false;
+            },
+            error: () => { this.isLoadingRequests = false; }
+        });
+    }
+
+    respondToRequest(connectionId: string, status: 'accepted' | 'rejected'): void {
+        this.nutritionService.respondToRequest(connectionId, status).subscribe({
+            next: () => {
+                this.pendingRequests = this.pendingRequests.filter(r => r.id !== connectionId);
+                if (status === 'accepted') {
+                    this.toastService.showSuccess('Connexion acceptée ! L\'athlète a été ajouté à votre roster.');
+                    if (this.nutritionistProfile?.id) this.loadClients(this.nutritionistProfile.id);
+                } else {
+                    this.toastService.showWarning('Demande refusée.');
+                }
+            },
+            error: () => this.toastService.showError('Erreur lors de la réponse à la demande.')
         });
     }
 
@@ -315,7 +354,7 @@ export class NutritionComponent implements OnInit {
 
         this.isLoadingClient = true;
         this.nutritionService.getClientCompliance(
-            this.nutritionistProfile.id, 
+            this.nutritionistProfile.id,
             this.selectedClient.athlete.id,
             this.selectedClientDate
         ).subscribe({
@@ -335,6 +374,18 @@ export class NutritionComponent implements OnInit {
     goToDietBuilder(client?: any): void {
         const athleteId = client?.athlete?.id || '';
         this.router.navigate(['/dashboard/diet-builder'], { queryParams: { athleteId } });
+    }
+
+    goToMyPlans(): void {
+        this.router.navigate(['/dashboard/nutrition-plans']);
+    }
+
+    getRequestAthleteInitial(req: any): string {
+        return req?.athlete?.user?.first_name?.charAt(0)?.toUpperCase() || 'A';
+    }
+
+    getRequestAthleteName(req: any): string {
+        return `${req?.athlete?.user?.first_name || ''} ${req?.athlete?.user?.last_name || ''}`.trim() || 'Athlète';
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -386,12 +437,31 @@ export class NutritionComponent implements OnInit {
         return day.meals.reduce((acc: number, m: any) => acc + (Number(m.calories) || 0), 0);
     }
 
+    getDayTotalMacro(day: any, key: 'protein' | 'carbs' | 'fats'): number {
+        if (!day?.meals?.length) return 0;
+        return day.meals.reduce((acc: number, meal: any) => acc + (Number(meal[key]) || 0), 0);
+    }
+
+    getPlanMealCount(plan: DietPlan): number {
+        return plan.days?.reduce((acc: number, day: DietDay) => acc + (day.meals?.length || 0), 0) || 0;
+    }
+
+    getAverageDailyCalories(plan: DietPlan): number {
+        if (!plan.days?.length) return 0;
+        const total = plan.days.reduce((acc: number, day: DietDay) => acc + this.getDayTotalCalories(day), 0);
+        return Math.round(total / plan.days.length);
+    }
+
     getClientName(client: any): string {
         return `${client?.athlete?.user?.first_name || ''} ${client?.athlete?.user?.last_name || ''}`.trim() || 'Athlète';
     }
 
     getInitial(client: any): string {
         return client?.athlete?.user?.first_name?.charAt(0)?.toUpperCase() || 'A';
+    }
+
+    getActivePlanCount(): number {
+        return this.clients.filter(client => !!client.activePlan).length;
     }
 
     // ── AI Methods ────────────────────────────────────────────────────────────

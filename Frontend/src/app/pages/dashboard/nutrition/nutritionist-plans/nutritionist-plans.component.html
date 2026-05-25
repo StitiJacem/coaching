@@ -1,0 +1,195 @@
+<app-dashboard-layout>
+    <div class="plans-page">
+
+        <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
+        <header class="plans-header">
+            <div>
+                <a routerLink="/dashboard/nutrition" class="plans-back">← Retour Nutrition</a>
+                <h1 class="plans-title">Mes Plans Nutritionnels</h1>
+            </div>
+            <div class="plans-header-actions">
+                <button class="btn-template" (click)="goToNewTemplate()">📋 Nouveau Template</button>
+                <button class="btn-primary-plan" (click)="goToNewPlan()">+ Nouveau Plan</button>
+            </div>
+        </header>
+
+        <!-- ══ LOADING ═════════════════════════════════════════════════════════ -->
+        <div *ngIf="isLoading" class="plans-loading">
+            <div class="plans-spinner"></div>
+            <p>Chargement des plans...</p>
+        </div>
+
+        <!-- ══ TABS ════════════════════════════════════════════════════════════ -->
+        <div *ngIf="!isLoading" class="plans-tabs-wrap">
+            <nav class="plans-tab-nav">
+                <button (click)="activeTab = 'templates'" [class.active]="activeTab === 'templates'" class="plans-tab">
+                    📋 Templates
+                    <span class="tab-count">{{ templates.length }}</span>
+                </button>
+                <button (click)="activeTab = 'assigned'" [class.active]="activeTab === 'assigned'" class="plans-tab">
+                    👥 Plans Assignés
+                    <span class="tab-count">{{ assignedPlans.length }}</span>
+                </button>
+            </nav>
+
+            <!-- ── TEMPLATES TAB ──────────────────────────────────────────── -->
+            <div *ngIf="activeTab === 'templates'" class="plans-grid">
+
+                <div *ngIf="templates.length === 0" class="plans-empty">
+                    <p class="plans-empty-icon">📋</p>
+                    <h3>Aucun template</h3>
+                    <p>Créez un template réutilisable pour l'assigner à plusieurs athlètes.</p>
+                    <button class="btn-template" (click)="goToNewTemplate()">Créer un Template</button>
+                </div>
+
+                <div *ngFor="let plan of templates" class="plan-card">
+                    <div class="plan-card-header">
+                        <span class="plan-badge template-badge">📋 Template</span>
+                        <span class="plan-goal-badge" [ngClass]="getGoalClass(plan.goal)">
+                            {{ getGoalLabel(plan.goal) }}
+                        </span>
+                    </div>
+                    <h3 class="plan-name">{{ plan.name }}</h3>
+                    <p class="plan-desc" *ngIf="plan.description">{{ plan.description }}</p>
+
+                    <div class="plan-stats">
+                        <div class="plan-stat">
+                            <span class="plan-stat-val">{{ getPlanDaysCount(plan) }}</span>
+                            <span class="plan-stat-label">Jours</span>
+                        </div>
+                        <div class="plan-stat">
+                            <span class="plan-stat-val">{{ getPlanTotalCalories(plan) }}</span>
+                            <span class="plan-stat-label">kcal/j moy.</span>
+                        </div>
+                    </div>
+
+                    <div class="plan-card-footer">
+                        <button class="btn-assign-plan" (click)="openAssignModal(plan)">
+                            👥 Assigner
+                        </button>
+                        <a [routerLink]="['/dashboard/diet-builder']" [queryParams]="{planId: plan.id}"
+                            class="btn-edit-plan">Modifier</a>
+                    </div>
+                </div>
+
+                <!-- Add template card -->
+                <button class="plan-add-card" (click)="goToNewTemplate()">
+                    <span class="plan-add-icon">+</span>
+                    <span class="plan-add-label">Nouveau Template</span>
+                </button>
+            </div>
+
+            <!-- ── ASSIGNED PLANS TAB ─────────────────────────────────────── -->
+            <div *ngIf="activeTab === 'assigned'" class="plans-grid">
+
+                <div *ngIf="assignedPlans.length === 0" class="plans-empty">
+                    <p class="plans-empty-icon">🏃</p>
+                    <h3>Aucun plan assigné</h3>
+                    <p>Assignez un template à vos athlètes ou créez un plan direct.</p>
+                    <button class="btn-primary-plan" (click)="goToNewPlan()">Créer un Plan</button>
+                </div>
+
+                <!-- Grouped by athlete name -->
+                <div *ngFor="let plan of assignedPlans" class="plan-card">
+                    <div class="plan-card-header">
+                        <span class="plan-badge athlete-badge">🏃 Assigné</span>
+                        <span class="plan-goal-badge" [ngClass]="getGoalClass(plan.goal)">
+                            {{ getGoalLabel(plan.goal) }}
+                        </span>
+                    </div>
+
+                    <div class="plan-athlete-row">
+                        <div class="plan-athlete-avatar">
+                            {{ getAthleteNameFromPlan(plan).charAt(0).toUpperCase() }}
+                        </div>
+                        <span class="plan-athlete-name">{{ getAthleteNameFromPlan(plan) }}</span>
+                    </div>
+
+                    <h3 class="plan-name">{{ plan.name }}</h3>
+
+                    <div class="plan-stats">
+                        <div class="plan-stat">
+                            <span class="plan-stat-val">{{ getPlanDaysCount(plan) }}</span>
+                            <span class="plan-stat-label">Jours</span>
+                        </div>
+                        <div class="plan-stat">
+                            <span class="plan-stat-val">{{ getPlanTotalCalories(plan) }}</span>
+                            <span class="plan-stat-label">kcal/j moy.</span>
+                        </div>
+                        <div class="plan-stat" *ngIf="plan.startDate">
+                            <span class="plan-stat-val">{{ plan.startDate | date:'dd/MM' }}</span>
+                            <span class="plan-stat-label">Début</span>
+                        </div>
+                    </div>
+
+                    <div class="plan-card-footer">
+                        <span class="plan-active-tag">✓ Actif</span>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══ ASSIGN MODAL ════════════════════════════════════════════════════════ -->
+    <div *ngIf="showAssignModal" class="modal-overlay" (click)="showAssignModal = false">
+        <div class="assign-modal" (click)="$event.stopPropagation()">
+            <div class="assign-modal-header">
+                <h2 class="assign-modal-title">👥 Assigner le Plan</h2>
+                <button class="modal-close" (click)="showAssignModal = false">✕</button>
+            </div>
+
+            <p class="assign-modal-sub">
+                Sélectionnez les athlètes à qui assigner <strong>{{ selectedPlan?.name }}</strong>.
+                Une copie indépendante sera créée pour chacun.
+            </p>
+
+            <div class="assign-date-row">
+                <label class="form-label">Date de début du plan</label>
+                <input type="date" [(ngModel)]="assignStartDate" name="assignStartDate" class="form-input assign-date-input">
+            </div>
+
+            <div class="assign-athletes-list" *ngIf="!assignResults.length">
+                <div *ngIf="clients.length === 0" class="assign-empty">
+                    Aucun client actif. Acceptez des demandes de connexion pour constituer votre roster.
+                </div>
+                <button *ngFor="let client of clients" class="assign-athlete-row"
+                    [class.selected]="isAthleteSelected(client.athlete?.id)"
+                    (click)="toggleAthleteSelection(client.athlete?.id)">
+                    <div class="assign-athlete-avatar">{{ getClientInitial(client) }}</div>
+                    <div class="assign-athlete-info">
+                        <p class="assign-athlete-name">{{ getClientName(client) }}</p>
+                        <p class="assign-athlete-sub">{{ client.activePlan ? '📋 Plan actif' : 'Aucun plan' }}</p>
+                    </div>
+                    <div class="assign-check" [class.checked]="isAthleteSelected(client.athlete?.id)">
+                        <span *ngIf="isAthleteSelected(client.athlete?.id)">✓</span>
+                    </div>
+                </button>
+            </div>
+
+            <div class="assign-results" *ngIf="assignResults.length > 0">
+                <h3 class="assign-results-title">Résultats</h3>
+                <div *ngFor="let r of assignResults" class="assign-result-row">
+                    <span class="assign-result-name">{{ r.name }}</span>
+                    <span class="assign-result-status" [class.success]="r.status === 'assigned'" [class.failed]="r.status === 'no_connection'">
+                        {{ r.status === 'assigned' ? '✓ Assigné' : '✗ Pas de connexion' }}
+                    </span>
+                </div>
+            </div>
+
+            <div class="assign-modal-footer">
+                <button class="btn-cancel" (click)="showAssignModal = false">
+                    {{ assignResults.length ? 'Fermer' : 'Annuler' }}
+                </button>
+                <button *ngIf="!assignResults.length" class="btn-save"
+                    [disabled]="selectedAthleteIds.length === 0 || isAssigning"
+                    (click)="executeAssign()">
+                    <span *ngIf="!isAssigning">Assigner ({{ selectedAthleteIds.length }})</span>
+                    <span *ngIf="isAssigning">Assignation...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+</app-dashboard-layout>

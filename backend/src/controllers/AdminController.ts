@@ -4,6 +4,7 @@ import { User } from "../entities/User";
 import { CoachProfile } from "../entities/Coach";
 import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
+import { sanitizeUser } from "../utils/sanitizeUser";
 
 export class AdminController {
     static getAllUsers = async (req: Request, res: Response) => {
@@ -29,10 +30,7 @@ export class AdminController {
             const users = await queryBuilder.getMany();
             
             // Remove sensitive data
-            const sanitizedUsers = users.map(u => {
-                const { password, verification_code, ...rest } = u;
-                return rest;
-            });
+            const sanitizedUsers = users.map(u => sanitizeUser(u));
 
             res.json(sanitizedUsers);
         } catch (error) {
@@ -54,7 +52,7 @@ export class AdminController {
             user.role = newRole;
             await userRepo.save(user);
 
-            res.json({ message: `User role updated to ${newRole}`, user });
+            res.json({ message: `User role updated to ${newRole}`, user: sanitizeUser(user) });
         } catch (error) {
             console.error("Error updating user role:", error);
             res.status(500).json({ message: "Error updating user role" });

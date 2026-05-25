@@ -471,8 +471,11 @@ export class ProgramController {
                 return res.status(404).json({ message: "Program not found" });
             }
 
-            if (!(await canAccessAthlete(user, program.athleteId!))) {
-                return res.status(403).json({ message: "Access denied: You do not have permission to delete this program" });
+            const coachOwnsProgram = user.role === 'coach' && program.coachId === user.id;
+            if (!coachOwnsProgram) {
+                if (!program.athleteId || !(await canAccessAthlete(user, program.athleteId))) {
+                    return res.status(403).json({ message: "Access denied: You do not have permission to delete this program" });
+                }
             }
 
             await programRepo.remove(program);

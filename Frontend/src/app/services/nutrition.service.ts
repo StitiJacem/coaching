@@ -186,6 +186,20 @@ export class NutritionService {
         });
     }
 
+    getNutritionistTemplates(): Observable<DietPlan[]> {
+        return this.http.get<DietPlan[]>(`${this.apiUrl}/templates`, {
+            headers: this.getHeaders()
+        });
+    }
+
+    assignPlanToAthletes(planId: string, athleteIds: number[], startDate?: string): Observable<{ results: { athleteId: number; planId: string; status: string }[] }> {
+        return this.http.post<{ results: { athleteId: number; planId: string; status: string }[] }>(
+            `${this.apiUrl}/plans/${planId}/assign`,
+            { athleteIds, startDate },
+            { headers: this.getHeaders() }
+        );
+    }
+
     // ── Athlete Endpoints ─────────────────────────────────────────────────────
 
     getAthleteActivePlan(athleteId: number): Observable<DietPlan | null> {

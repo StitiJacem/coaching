@@ -21,6 +21,10 @@ export class UserRepository {
         return await this.repository.save(user);
     }
 
+    async save(user: User): Promise<User> {
+        return await this.repository.save(user);
+    }
+
     async updateVerification(userId: number, isVerified: boolean): Promise<void> {
         await this.repository.update(userId, {
             is_verified: isVerified,

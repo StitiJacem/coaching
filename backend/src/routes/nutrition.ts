@@ -45,6 +45,12 @@ router.delete("/plans/:id", authenticateToken, (req, res) => dietController.dele
 // Get all plans for the authenticated nutritionist
 router.get("/my-plans", authenticateToken, (req, res) => dietController.getNutritionistPlans(req, res));
 
+// Get only template plans for the authenticated nutritionist
+router.get("/templates", authenticateToken, (req, res) => dietController.getNutritionistTemplates(req, res));
+
+// Assign a plan (template) to multiple athletes by cloning
+router.post("/plans/:planId/assign", authenticateToken, (req, res) => dietController.assignPlanToMultipleAthletes(req, res));
+
 // ── Athlete Endpoints ─────────────────────────────────────────────────────────
 // Get athlete's active diet plan (with days + meals)
 router.get("/athletes/:athleteId/active-plan", authenticateToken, (req, res) => dietController.getAthleteActivePlan(req, res));

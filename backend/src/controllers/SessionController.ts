@@ -4,12 +4,18 @@ import { Session } from "../entities/Session";
 import { WorkoutLog } from "../entities/WorkoutLog";
 import { Athlete } from "../entities/Athlete";
 import { BodyMetric } from "../entities/BodyMetric";
+import { canAccessAthlete } from "../utils/authorization";
 
 export class SessionController {
     static async createSession(req: Request, res: Response) {
         try {
             const { athleteId, date, time, type, status, title, notes, duration, workoutData, programId } = req.body;
             const coachId = (req as any).user?.id;
+            const user = (req as any).user;
+            
+            if (!(await canAccessAthlete(user, athleteId))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
 
             const sessionRepository = AppDataSource.getRepository(Session);
             const workoutLogRepository = AppDataSource.getRepository(WorkoutLog);
@@ -64,13 +70,25 @@ export class SessionController {
 
             const qb = sessionRepository.createQueryBuilder("session");
             
-            if (athleteId) qb.andWhere("session.athleteId = :athleteId", { athleteId: Number(athleteId) });
+            if (athleteId) {
+                if (!(await canAccessAthlete(user, Number(athleteId)))) {
+                    return res.status(403).json({ message: "Access denied" });
+                }
+                qb.andWhere("session.athleteId = :athleteId", { athleteId: Number(athleteId) });
+            }
             if (programId) qb.andWhere("session.programId = :programId", { programId: Number(programId) });
             if (date) qb.andWhere("CAST(session.date AS DATE) = :date", { date: new Date(date as string).toISOString().split('T')[0] });
 
             // If the user is an athlete, don't show drafts. Coaches see everything.
             if (user?.role === 'athlete') {
                 qb.andWhere("session.status != 'draft'");
+                const athleteRepo = AppDataSource.getRepository(Athlete);
+                const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
+                if (athlete) {
+                    qb.andWhere("session.athleteId = :myAthleteId", { myAthleteId: athlete.id });
+                }
+            } else if (user?.role === 'coach' && !athleteId) {
+                qb.andWhere("session.coachId = :coachId", { coachId: user.id });
             }
 
             qb.orderBy("session.date", "ASC").addOrderBy("session.time", "ASC");
@@ -93,6 +111,11 @@ export class SessionController {
             if (!session) {
                 return res.status(404).json({ message: "Session not found" });
             }
+            
+            const user = (req as any).user;
+            if (session.athleteId && !(await canAccessAthlete(user, session.athleteId as number))) {
+                return res.status(403).json({ message: "Access denied" });
+            }
 
             res.json(session);
         } catch (error) {
@@ -110,6 +133,11 @@ export class SessionController {
             const session = await sessionRepository.findOne({ where: { id: Number(id) } });
             if (!session) {
                 return res.status(404).json({ message: "Session not found" });
+            }
+            
+            const user = (req as any).user;
+            if (session.athleteId && !(await canAccessAthlete(user, session.athleteId as number))) {
+                return res.status(403).json({ message: "Access denied" });
             }
 
             if (updateData.date) {
@@ -143,6 +171,11 @@ export class SessionController {
             const session = await sessionRepository.findOne({ where: { id: Number(id) } });
             if (!session) {
                 return res.status(404).json({ message: "Session not found" });
+            }
+            
+            const user = (req as any).user;
+            if (session.athleteId && !(await canAccessAthlete(user, session.athleteId as number))) {
+                return res.status(403).json({ message: "Access denied" });
             }
 
             await sessionRepository.remove(session);

@@ -14,10 +14,7 @@ export class DashboardController {
     static getStats = async (req: Request, res: Response) => {
         try {
 
-            const role: string =
-                typeof req.query.role === "string"
-                    ? req.query.role
-                    : "coach";
+            const role: string = (req as any).user.role;
 
             let stats: any = {};
 

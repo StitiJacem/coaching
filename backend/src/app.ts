@@ -1,6 +1,7 @@
 import "reflect-metadata";
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 import path from 'path';
@@ -22,24 +23,32 @@ import aiRoutes from './routes/ai';
 import chatRoutes from './routes/chat';
 import adminRoutes from './routes/admin';
 import sessionRoutes from './routes/sessions';
-import stripeRoutes from './routes/stripe';
+import { apiRateLimiter } from './middleware/rateLimiter';
 
 const app = express();
 
-app.use(logger('dev'));
-app.use(cors());
+app.disable('x-powered-by');
+app.set('trust proxy', 1);
 
-// Webhooks must be parsed as raw body
-const rawParser = require('express').raw({ type: 'application/json' });
-app.use('/api/stripe/webhook', rawParser);
-app.use('/api/stripe', stripeRoutes);
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
+app.use(logger(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    credentials: true
+}));
 
-const expressModule = require('express');
-app.use(expressModule.json());
-app.use(expressModule.urlencoded({ extended: false }));
+app.use(express.json({ limit: process.env.JSON_BODY_LIMIT || '1mb' }));
+app.use(express.urlencoded({ extended: false, limit: process.env.URLENCODED_BODY_LIMIT || '1mb' }));
 app.use(cookieParser());
-app.use(expressModule.static(path.join(__dirname, '../public')));
-app.use('/uploads', expressModule.static(path.join(__dirname, '../public/uploads')));
+app.use(express.static(path.join(__dirname, '../public')));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads'), {
+    maxAge: process.env.NODE_ENV === 'production' ? '7d' : 0,
+    immutable: process.env.NODE_ENV === 'production'
+}));
+
+app.use('/api', apiRateLimiter());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
@@ -51,6 +60,7 @@ app.use('/api/workout-logs', workoutLogRoutes);
 app.use('/api/coaches', coachRoutes);
 app.use('/api/coaching-requests', coachingRequestRoutes);
 app.use('/api/notifications', notificationRoutes);
+
 app.use('/api/reports', reportRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/diet', dietRoutes);
@@ -59,5 +69,16 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/sessions', sessionRoutes);
+
+// Global Error Handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+    console.error("Global Error Handler:", err);
+    if (res.headersSent) {
+        return next(err);
+    }
+    const status = err.status || 500;
+    const message = err.message || "Internal Server Error";
+    res.status(status).json({ message });
+});
 
 export default app;

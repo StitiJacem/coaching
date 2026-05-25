@@ -8,8 +8,8 @@ import '../widgets/auth_text_field.dart';
 import '../widgets/auth_header.dart';
 
 class ResetPasswordScreen extends ConsumerStatefulWidget {
-  final String token;
-  const ResetPasswordScreen({super.key, required this.token});
+  final String email;
+  const ResetPasswordScreen({super.key, required this.email});
 
   @override
   ConsumerState<ResetPasswordScreen> createState() =>
@@ -19,11 +19,12 @@ class ResetPasswordScreen extends ConsumerStatefulWidget {
 class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
+  final _codeCtrl = TextEditingController();
   bool _isLoading = false;
   bool _visible = false;
 
   Future<void> _submit() async {
-    if (_passwordCtrl.text.isEmpty) return;
+    if (_codeCtrl.text.trim().isEmpty || _passwordCtrl.text.isEmpty) return;
     if (_passwordCtrl.text != _confirmCtrl.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -37,7 +38,10 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     try {
       final repo = ref.read(authRepositoryProvider);
       await repo.resetPassword(
-          token: widget.token, newPassword: _passwordCtrl.text);
+        email: widget.email,
+        code: _codeCtrl.text.trim(),
+        newPassword: _passwordCtrl.text,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -75,9 +79,17 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
               const SizedBox(height: 32),
               const AuthHeader(
                 title: 'New password',
-                subtitle: 'Choose a strong password for your account',
+                subtitle: 'Enter the 6-digit code and choose a strong password',
               ),
               const SizedBox(height: 40),
+              AuthTextField(
+                controller: _codeCtrl,
+                label: 'Verification code',
+                hint: '000000',
+                keyboardType: TextInputType.number,
+                prefixIcon: Icons.pin_outlined,
+              ),
+              const SizedBox(height: 16),
               AuthTextField(
                 controller: _passwordCtrl,
                 label: 'New password',
@@ -116,5 +128,13 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _codeCtrl.dispose();
+    _passwordCtrl.dispose();
+    _confirmCtrl.dispose();
+    super.dispose();
   }
 }

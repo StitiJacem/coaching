@@ -1,34 +1,33 @@
 \chapter*{Introduction Générale}
 \addcontentsline{toc}{chapter}{Introduction Générale}
 
-\section*{Contexte et Motivation}
-À l'ère de la transformation numérique, les outils technologiques redéfinissent en profondeur la majorité des secteurs d'activité humaine. Le domaine du sport, de la santé et du bien-être, historiquement ancré dans des pratiques présentielles et manuelles, connaît une véritable révolution digitale. Les professionnels de la préparation physique, les nutritionnistes et les coachs personnels sont confrontés à une clientèle de plus en plus exigeante, qui réclame un suivi personnalisé, des retours en temps réel, et une approche scientifique basée sur la donnée pour atteindre ses objectifs.
+\section*{Contexte et motivation}
+La transformation numérique touche aujourd'hui tous les domaines liés au sport, à la santé et au bien-être. Les coachs, nutritionnistes et athlètes utilisent quotidiennement des outils variés pour planifier les entraînements, suivre les repas, mesurer les progrès et communiquer. Toutefois, ces outils sont souvent séparés : tableurs pour les programmes, applications nutritionnelles indépendantes, messageries grand public et fichiers partagés.
 
-Cependant, la gestion de cette relation "Coach-Athlète" souffre d'un manque criant de standardisation technologique. Aujourd'hui, un professionnel du sport s'appuie généralement sur un empilement chaotique d'outils génériques : des tableurs complexes pour la planification des macro-cycles d'entraînement, des applications tierces pour le suivi calorique, et des messageries grand public pour la communication quotidienne. Cette fragmentation entraîne inévitablement des pertes d'informations, une augmentation drastique de la charge mentale et administrative pour le coach, et une détérioration de l'expérience utilisateur pour l'athlète, qui se retrouve livré à lui-même lors de ses séances en salle.
+Cette fragmentation complique le suivi professionnel. Le coach perd du temps à consolider les informations, l'athlète manque d'un accompagnement interactif pendant ses séances, et les données de progression restent dispersées. À partir de ce constat, notre projet propose une solution centralisée permettant de réunir l'entraînement, la nutrition, la mise en relation et la communication dans une même plateforme.
 
-Face à ces constats, notre projet de fin d'études se donne pour ambition de répondre à une question centrale : \textbf{Comment concevoir, modéliser et développer une solution logicielle unifiée, moderne et évolutive, capable de digitaliser l'intégralité du cycle de vie du coaching sportif professionnel ?}
+\section*{Objectif du projet}
+Le projet \textbf{GOSPORT} vise à concevoir et développer une plateforme de coaching sportif et nutritionnel composée d'une application web, d'une application mobile et d'un backend sécurisé. La solution permet aux athlètes de rechercher des professionnels, suivre des programmes d'entraînement, enregistrer leurs repas et échanger avec leurs coachs. Elle permet également aux coachs et nutritionnistes de gérer leurs profils, leurs demandes, leurs programmes et leurs suivis clients.
 
-\section*{Objectifs du Projet}
-Pour répondre à cette problématique, nous avons conceptualisé "CoachingApp", un écosystème logiciel composé de trois éléments fondamentaux :
-\begin{enumerate}
-    \item \textbf{Une application mobile (Front-end Athlète/Coach) :} Pensée pour la mobilité, elle permet à l'athlète de suivre ses séances de manière interactive grâce à un lecteur d'entraînement chronométré (Workout Player), de logger son alimentation, et de communiquer avec son mentor.
-    \item \textbf{Un tableau de bord web (Front-end Admin) :} Dédié à la gestion de la plateforme, à la création de catalogues d'exercices standardisés et à l'analyse des métriques d'usage.
-    \item \textbf{Un serveur centralisé (Back-end) :} Le cœur du système, exposant une API RESTful sécurisée, gérant les bases de données relationnelles complexes, et permettant une communication en temps réel et des suggestions basées sur l'Intelligence Artificielle.
-\end{enumerate}
+\section*{Démarche adoptée}
+La démarche de réalisation suit une approche agile basée sur Scrum. Le travail est découpé en sprints afin de livrer progressivement des fonctionnalités exploitables. Chaque sprint est présenté selon la même structure que le rapport de référence : introduction, spécification et analyse des besoins, backlog, diagrammes UML, descriptions détaillées des cas d'utilisation, diagrammes de séquence, réalisation et conclusion.
 
-\section*{Plan du Rapport}
-Le présent rapport de projet de fin d'études détaille la démarche scientifique, technique et méthodologique adoptée pour mener à bien cette mission. Il est structuré en six chapitres cohérents, suivant la progression logique du cycle de vie du développement logiciel :
+\section*{Plan du rapport}
+Ce rapport est organisé comme suit :
 
-\textbf{Le premier chapitre} dressera le contexte général du projet. Nous y exposerons la problématique détaillée, une étude comparative rigoureuse des solutions concurrentes existantes, ainsi que le cadre méthodologique (Agile Scrum) qui a régi notre gestion de projet.
+\textbf{Le premier chapitre} présente le contexte général du projet, la problématique, l'étude de l'existant, la solution proposée, la méthodologie Scrum et le langage UML.
 
-\textbf{Le deuxième chapitre} sera consacré à l'analyse et à la spécification des besoins. Nous y définirons les acteurs du système à travers un dictionnaire de cas d'utilisation approfondi. Nous justifierons également, de manière technique, les choix architecturaux et technologiques retenus (Flutter, Angular, Node.js, PostgreSQL).
+\textbf{Le deuxième chapitre} détaille l'analyse et la spécification des besoins : acteurs, besoins fonctionnels et non fonctionnels, Product Backlog, diagrammes globaux et architecture générale.
 
-\textbf{Le troisième chapitre} inaugurera la phase de réalisation en décrivant les accomplissements du Sprint 1. Il couvrira la mise en place de la base de données relationnelle, des mécanismes de sécurité et de l'authentification (JWT), ainsi que le processus de mise en relation entre coachs et athlètes.
+\textbf{Le troisième chapitre} présente le Sprint 1 consacré au socle technique, à l'authentification sécurisée et à l'onboarding des utilisateurs.
 
-\textbf{Le quatrième chapitre} abordera le Sprint 2, qui constitue le cœur métier de l'application. Nous y détaillerons les algorithmes complexes régissant la création des programmes d'entraînement hiérarchisés, le fonctionnement asynchrone du lecteur de séance mobile (Workout Player), ainsi que le module de calcul nutritionnel.
+\textbf{Le quatrième chapitre} décrit le Sprint 2 relatif à la découverte des professionnels et à la mise en relation entre athlètes, coachs et nutritionnistes.
 
-\textbf{Le cinquième chapitre} exposera la réalisation du Sprint 3. Il se concentrera sur l'intégration des fonctionnalités de communication en temps réel (WebSockets), le développement du tableau de bord administrateur (Angular), et l'intégration innovante d'une API d'Intelligence Artificielle (Gemini) comme assistant virtuel.
+\textbf{Le cinquième chapitre} expose le Sprint 3, dédié au catalogue d'exercices, au Workout Builder et au Workout Player.
 
-\textbf{Enfin, le sixième chapitre} détaillera la phase cruciale de l'ingénierie logicielle : la stratégie d'Assurance Qualité (Tests unitaires et d'intégration), le renforcement de la sécurité de l'API (protection OWASP), et les procédures de déploiement (DevOps) vers l'environnement de production en nuage (Cloud).
+\textbf{Le sixième chapitre} présente le Sprint 4 portant sur la gestion nutritionnelle, les plans alimentaires et le suivi des objectifs de santé.
 
-Ce rapport s'achèvera par une conclusion générale qui dressera le bilan de nos travaux, analysera les défis surmontés et proposera des perspectives d'évolution futures pour la plateforme CoachingApp.
+\textbf{Le septième chapitre} décrit le Sprint 5 consacré à la messagerie instantanée, au copilote IA et aux agendas.
+
+
+Enfin, une conclusion générale présente le bilan du projet et les perspectives d'amélioration.

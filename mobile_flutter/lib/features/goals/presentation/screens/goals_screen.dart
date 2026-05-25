@@ -47,7 +47,8 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
         _primaryObjective = resp['primaryObjective'] ?? '';
         _targetMetric = resp['targetMetric'] ?? '';
         _metricCtrl.text = _targetMetric;
-        _deadline = resp['deadline']?.toString().substring(0, 10) ?? '';
+        final deadline = resp['deadline']?.toString() ?? '';
+        _deadline = deadline.length > 10 ? deadline.substring(0, 10) : deadline;
         _timePerSession = resp['timePerSession'] ?? '';
         _experienceLevel = resp['experienceLevel'] ?? '';
         _equipment = resp['equipment'] ?? '';

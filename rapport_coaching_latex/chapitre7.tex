@@ -1,116 +1,173 @@
-\chapter{Sprint 5 : Visioconférence Intégrée et Gestion des Agendas} 
+\chapter{Sprint 5 : Messagerie Instantanée, Copilote IA et Agendas}
 \minitoc
 \newpage
 
 \section{Introduction}
-Bien que la messagerie instantanée asynchrone (développée lors du Sprint 3) assure un contact continu, la relation coach-athlète atteint sa plénitude lors d'échanges directs et synchrones. Qu'il s'agisse d'un bilan mensuel de progression, d'une consultation nutritionnelle poussée, ou même d'une séance d'entraînement corrigée en temps réel à distance, la visioconférence est un outil devenu indispensable pour les professionnels de la préparation physique.
+La communication est la dimension humaine indispensable au coaching de qualité. Ce cinquième sprint introduit les fonctionnalités de communication et d'intelligence artificielle : une messagerie instantanée bidirectionnelle fonctionnant en temps réel grâce aux WebSockets, un assistant IA basé sur l'API Google Gemini, et un système de réservation de sessions de visioconférence avec intégration Jitsi Meet.
 
-Ce cinquième et dernier sprint fonctionnel aborde le défi de la communication audiovisuelle en temps réel et de l'organisation du temps de travail. Il s'agit de concevoir un module complet permettant au coach de définir ses créneaux de disponibilité sur son application Web (Angular), à l'athlète de planifier et réserver ces séances sur son application mobile (Flutter), et à ces deux acteurs d'initier une session d'appel vidéo sécurisée et fluide directement intégrée au sein de CoachingApp.
+\section{Backlog du Sprint 5}
 
-\section{Objectifs et Planification du Sprint 5}
-\subsection{Backlog du Sprint 5}
-Les exigences fonctionnelles retenues pour ce sprint de clôture fonctionnelle sont les suivantes :
-\begin{itemize}
-    \item \textbf{Tâche Backend 5.1 :} Concevoir les schémas de données PostgreSQL pour la gestion des créneaux de disponibilité (\texttt{AvailabilitySlot}) et des sessions réservées (\texttt{CoachingSession}).
-    \item \textbf{Tâche Web (Angular) 5.1 :} Développer une interface d'agenda de type "Calendar View" interactive permettant au coach d'ajouter, modifier et bloquer ses plages horaires de travail hebdomadaires.
-    \item \textbf{Tâche Client (Flutter) 5.1 :} Créer le module de réservation mobile permettant à l'athlète de parcourir l'agenda de son coach attitré, de sélectionner un créneau libre et de soumettre sa demande de réservation.
-    \item \textbf{Tâche Fullstack 5.2 :} Intégrer la passerelle de visioconférence WebRTC sécurisée en s'interfaçant avec le SDK open-source \textbf{Jitsi Meet} afin d'instancier des salons d'appel vidéo à la volée.
-\end{itemize}
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|p{5cm}|p{6.5cm}|c|}
+\hline
+\rowcolor[HTML]{DAE8FC}
+\textbf{ID} & \textbf{Acteur} & \textbf{User Story} & \textbf{Tâche Technique} & \textbf{Priorité} \\ \hline
+5.1 & Tous & Envoyer et recevoir des messages en temps réel & Socket.io, événements send/receive, entité Message & Must \\ \hline
+5.2 & Tous & Consulter la liste de ses contacts (coachs/athlètes) & Chargement des contacts autorisés & Must \\ \hline
+5.3 & Tous & Voir l'historique d'une conversation & Chargement de l’historique conversationnel & Must \\ \hline
+5.4 & Coach/Athlète & Poser une question au copilote IA & Intégration Gemini API & Should \\ \hline
+5.5 & Coach & Créer une session de visioconférence & Génération lien Jitsi & Should \\ \hline
+5.6 & Athlète & Consulter ses sessions réservées & Consultation des sessions réservées & Should \\ \hline
+5.7 & Tous & Recevoir des notifications non lues & Système de badges et notifications & Could \\ \hline
+\end{tabular}%
+}
+\caption{Backlog du Sprint 5 -- Messagerie, IA et Agendas}
+\end{table}
 
-\section{Conception détaillée du Sprint 5}
-\subsection{Diagramme de séquence : Planification et Lancement de Visioconférence}
-Le diagramme de séquence ci-dessous illustre le flux complexe d'interactions asynchrones et synchrones lors de la réservation d'un créneau et de l'accès au salon vidéo chiffré.
+\section{Conception et Modélisation}
 
+\subsection{Diagramme de Cas d'Utilisation}
 \begin{figure}[H]
 \centering
-\includegraphics[width=0.9\textwidth]{diagrams/sequence sprint 5.png}
-\caption{Diagramme de séquence : Réservation et Visioconférence - Sprint 5}
+\includegraphics[width=0.88\textwidth]{Sprint5_Cas_Utilisation.png}
+\caption{Diagramme de cas d'utilisation -- Sprint 5}
 \end{figure}
 
-\subsection{Modélisation Relationnelle (Base de données)}
-Pour supporter ce flux, deux entités majeures ont été introduites :
-\begin{itemize}
-    \item \textbf{AvailabilitySlot (Créneau de disponibilité) :} Défini par une heure de début, une heure de fin et un jour de la semaine. Il appartient au coach.
-    \item \textbf{CoachingSession (Session réservée) :} Matérialise le rendez-vous validé. Elle lie un \texttt{Athlete} et un \texttt{Coach}, contient un statut (\texttt{PENDING}, \texttt{CONFIRMED}, \texttt{CANCELLED}) et stocke un lien de salon unique et éphémère (\texttt{roomName}) généré cryptographiquement pour sécuriser l'accès WebRTC.
-\end{itemize}
+\subsection{Diagramme de Classes -- Sprint 5}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{Sprint5_Classes.png}
+\caption{Diagramme de classes -- Messagerie et Sessions}
+\end{figure}
 
-\section{Réalisation technique : La Communication Vidéo en Direct}
-\subsection{Implémentation de l'Agenda Interactif (Angular)}
-Côté Web, le coach gère son emploi du temps de manière très visuelle. Nous avons implémenté un service Angular gérant les appels API pour enregistrer les créneaux récurrents. L'utilisation d'Angular Reactive Forms permet de s'assurer de la cohérence des horaires (ex: l'heure de fin doit être strictement supérieure à l'heure de début).
+\subsection{Diagramme de Séquence : Messagerie Instantanée}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{Sprint5_Sequence_Message.png}
+\caption{Diagramme de séquence -- Flux de messagerie WebSocket}
+\end{figure}
 
-\begin{lstlisting}[language=TypeScript, caption={Service de gestion des disponibilités côté Coach (Angular)}, label={lst:angular_availabilities}]
-import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+\section{Architecture Technique}
 
-@Injectable({
-  providedIn: 'root'
-})
-export class AgendaService {
-  private apiUrl = `${environment.apiUrl}/agenda`;
+\subsection{Architecture WebSocket avec Socket.io}
+Le module de messagerie repose sur une architecture événementielle bidirectionnelle (\textit{event-driven}) implémentée avec \textbf{Socket.io}. Contrairement aux requêtes HTTP classiques (requête-réponse), les WebSockets maintiennent une connexion permanente (\textit{persistent connection}) entre le client et le serveur, permettant des échanges en temps réel sans polling.
 
-  constructor(private http: HttpClient) { }
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabular}{|l|l|p{7cm}|}
+\hline
+\rowcolor[HTML]{D5E8D4}
+\textbf{Événement} & \textbf{Direction} & \textbf{Description} \\ \hline
+\texttt{connection} & Client $\rightarrow$ Serveur & Connexion initiale du client avec son JWT \\ \hline
+\texttt{join\_room} & Client $\rightarrow$ Serveur & Rejoindre la salle de conversation privée \\ \hline
+\texttt{send\_message} & Client $\rightarrow$ Serveur & Envoyer un message (persisté en BDD) \\ \hline
+\texttt{new\_message} & Serveur $\rightarrow$ Client & Notification d'un nouveau message reçu \\ \hline
+\texttt{typing} & Client $\rightarrow$ Serveur & Indicateur de frappe en cours \\ \hline
+\texttt{stop\_typing} & Client $\rightarrow$ Serveur & Arrêt de la frappe \\ \hline
+\texttt{disconnect} & Client $\rightarrow$ Serveur & Déconnexion du client \\ \hline
+\end{tabular}
+\caption{Événements Socket.io -- Module de messagerie}
+\end{table}
 
-  // Recuperer tous les creneaux de disponibilite du coach connecte
-  getAvailabilitySlots(): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/slots`);
-  }
+\subsection{Service SocketService Backend}
+\begin{lstlisting}[language=JavaScript,
+    caption=Extrait SocketService.ts -- Gestion des événements]
+export class SocketService {
+  private connectedClients = new Map<number, Socket>();
 
-  // Creer une nouvelle plage horaire
-  createAvailabilitySlot(slotData: { dayOfWeek: number, startTime: string, endTime: string }): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/slots`, slotData);
-  }
+  init(server: http.Server) {
+    const io = new Server(server, {
+      cors: { origin: process.env.FRONTEND_URL }
+    });
 
-  // Supprimer un creneau libre
-  deleteAvailabilitySlot(slotId: string): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/slots/${slotId}`);
-  }
-}
-\end{lstlisting}
+    io.on('connection', (socket) => {
+      const userId = extractUserIdFromSocket(socket);
+      this.connectedClients.set(userId, socket);
 
-\subsection{Intégration du SDK Jitsi Meet (Flutter Client)}
-Pour offrir une expérience de visioconférence fluide sur mobile sans avoir à gérer l'infrastructure lourde de serveurs de relais WebRTC (serveurs STUN/TURN), nous avons intégré le SDK open-source \textbf{Jitsi Meet}. Lorsque la session commence, le client Flutter instancie un lecteur vidéo immersif plein écran. L'appel est hautement sécurisé car le serveur Node.js génère un token JWT signé que Jitsi utilise pour authentifier les seuls participants autorisés (le coach et son athlète).
+      socket.on('send_message', async (data) => {
+        const message = await this.saveMessage(data);
 
-\begin{lstlisting}[language=dart, caption={Intégration et lancement de l'appel vidéo en Flutter}, label={lst:flutter_jitsi}]
-import 'package:jitsi_meet_flutter_sdk/jitsi_meet_flutter_sdk.dart';
+        // Envoie au destinataire s'il est connecte
+        const recipientSocket =
+          this.connectedClients.get(data.recipientId);
+        if (recipientSocket)
+          recipientSocket.emit('new_message', message);
+      });
 
-class VideoSessionManager {
-  final JitsiMeet _jitsiMeet = JitsiMeet();
-
-  void joinCoachingSession({
-    required String roomName,
-    required String userName,
-    required String userEmail,
-    required String userAvatar,
-  }) {
-    // Configurer les options du salon de visioconference
-    var options = JitsiMeetConferenceOptions(
-      room: roomName,
-      configOverrides: {
-        "startWithAudioMuted": false,
-        "startWithVideoMuted": false,
-        "welcomePageEnabled": false,
-      },
-      featureFlags: {
-        "invite.enabled": false, // Securite : Empecher l'invitation d'exterieurs
-        "chat.enabled": true,
-        "pip.enabled": true, // Picture-in-Picture
-      },
-      userInfo: JitsiMeetUserInfo(
-        displayName: userName,
-        email: userEmail,
-        avatar: userAvatar,
-      ),
-    );
-
-    // Lancement de l'activite plein ecran native WebRTC
-    _jitsiMeet.join(options);
+      socket.on('disconnect', () => {
+        this.connectedClients.delete(userId);
+      });
+    });
   }
 }
 \end{lstlisting}
 
-\section{Conclusion}
-L'achèvement du Sprint 5 vient parachever la construction fonctionnelle de CoachingApp. En connectant l'agenda interactif web aux rendez-vous vidéo mobiles temps réel, la plateforme transcende son rôle initial de carnet de suivi pour devenir un véritable cabinet de consultation virtuel complet. L'intégration de protocoles WebRTC chiffrés et de salons vidéo à la volée garantit des interactions fluides et professionnelles de niveau industriel.
+\subsection{Intégration du Copilote IA -- Google Gemini}
+L'\texttt{AIService} encapsule les appels à l'API Google Gemini (\texttt{gemini-pro}). Il enrichit le prompt utilisateur avec un contexte sportif (objectifs de l'athlète, programme actif) pour obtenir des réponses contextualisées et pertinentes.
 
-Désormais, l'ensemble des 5 sprints planifiés de notre méthodologie Agile Scrum a été livré avec succès. Dans le chapitre suivant (Chapitre 8), nous aborderons la phase essentielle de qualification globale de l'écosystème : les tests unitaires et d'intégration, l'audit de sécurité, et les pipelines de déploiement Cloud (DevOps) qui permettront de propulser CoachingApp en production.
+\begin{lstlisting}[language=JavaScript,
+    caption=Extrait AIController.ts -- Appel à l'API Gemini]
+export const askAI = async (req: Request, res: Response) => {
+  const { question, athleteContext } = req.body;
+
+  const systemContext = `Tu es un assistant coach sportif expert.
+  Profil de l'athlete : ${JSON.stringify(athleteContext)}.
+  Reponds en francais, de facon concise et pratique.`;
+
+  const result = await geminiModel.generateContent(
+    systemContext + '\n\nQuestion: ' + question
+  );
+  const answer = result.response.text();
+
+  return res.json({ answer });
+};
+\end{lstlisting}
+
+\subsection{Génération des Liens de Visioconférence Jitsi}
+Chaque session de coaching créée génère automatiquement un lien de réunion unique sur \textbf{Jitsi Meet}. Jitsi est une solution de visioconférence open-source qui ne nécessite aucune installation côté client et supporte jusqu'à plusieurs dizaines de participants.
+
+Le lien est généré côté serveur en combinant un identifiant unique (UUID v4) avec le domaine public de Jitsi :
+
+\begin{lstlisting}[language=JavaScript,
+    caption=Génération du lien Jitsi dans SessionController.ts]
+export const createSession = async (req, res) => {
+  const { coachId, athleteId, scheduledAt } = req.body;
+  const roomId = uuidv4().replace(/-/g, '').substring(0, 16);
+  const meetingLink =
+    `https://meet.jit.si/GOSPORT-${roomId}`;
+
+  const session = sessionRepo.create({
+    coachId, athleteId, scheduledAt, meetingLink,
+    status: SessionStatus.SCHEDULED
+  });
+  await sessionRepo.save(session);
+
+  return res.status(201).json(session);
+};
+\end{lstlisting}
+
+\section{Tests et Validation}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|p{5.5cm}|l|l|}
+\hline
+\rowcolor[HTML]{FFF2CC}
+\textbf{Scénario de test} & \textbf{Résultat attendu} & \textbf{Statut} \\ \hline
+Connexion WebSocket avec JWT valide & Socket connecté & \checkmark Conforme \\ \hline
+Envoi message à destinataire connecté & Réception temps réel & \checkmark Conforme \\ \hline
+Envoi message à destinataire hors ligne & Message persisté en BDD & \checkmark Conforme \\ \hline
+Prompt IA simple & Réponse cohérente Gemini & \checkmark Conforme \\ \hline
+Prompt IA avec contexte athlète & Réponse contextualisée & \checkmark Conforme \\ \hline
+Création session avec lien Jitsi & 201 + lien HTTPS valide & \checkmark Conforme \\ \hline
+\end{tabular}
+\caption{Résultats des tests -- Sprint 5}
+\end{table}
+
+\section{Bilan du Sprint 5}
+Les trois piliers de ce sprint -- messagerie WebSocket, copilote IA et gestion des agendas -- transforment GOSPORT en une plateforme de communication vivante et intelligente. La messagerie en temps réel élimine le recours à WhatsApp pour le suivi, l'IA apporte une valeur ajoutée différenciante, et les sessions de visioconférence intégrées ferment la boucle de la relation coach-athlète à distance.

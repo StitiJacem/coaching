@@ -34,12 +34,6 @@ export class CoachProfile {
     @Column({ type: "decimal", precision: 10, scale: 2, default: 80.00 })
     monthlyPrice!: number;
 
-    @Column({ nullable: true })
-    stripeAccountId?: string;
-
-    @Column({ default: false })
-    stripeOnboardingComplete!: boolean;
-
     @OneToMany(() => CoachSpecialization, (specialization) => specialization.coachProfile, { cascade: true })
     specializations!: CoachSpecialization[];
 

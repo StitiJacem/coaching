@@ -63,7 +63,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const AuthHeader(
                   title: 'Reset password',
                   subtitle:
-                      "Enter your email and we'll send you a reset link",
+                      "Enter your email and we'll send you a reset code",
                 ),
                 const SizedBox(height: 40),
                 AuthTextField(
@@ -80,7 +80,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                             color: AppColors.primary))
                     : ElevatedButton(
                         onPressed: _submit,
-                        child: const Text('Send Reset Link'),
+                        child: const Text('Send Reset Code'),
                       ),
               ] else ...[
                 // Success state
@@ -101,12 +101,14 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 const AuthHeader(
                   title: 'Check your inbox',
                   subtitle:
-                      'We sent a password reset link. Follow the instructions in the email.',
+                      'If the email exists, we sent a password reset code.',
                 ),
                 const SizedBox(height: 40),
                 ElevatedButton(
-                  onPressed: () => context.go('/login'),
-                  child: const Text('Back to Sign In'),
+                  onPressed: () => context.go(
+                    '/reset-password?email=${Uri.encodeComponent(_emailCtrl.text.trim())}',
+                  ),
+                  child: const Text('Enter Reset Code'),
                 ),
               ],
             ],

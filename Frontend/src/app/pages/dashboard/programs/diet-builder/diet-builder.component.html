@@ -2,26 +2,21 @@
     <div class="builder-page">
 
         <!-- ══ HEADER ══════════════════════════════════════════════════════════ -->
-        <header class="builder-header relative">
-            <div class="flex-1">
-                <a routerLink="/dashboard/nutrition" class="builder-back group flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4">
-                    <lucide-icon name="arrow-left" class="w-4 h-4 group-hover:-translate-x-1 transition-transform"></lucide-icon>
-                    Retour Nutrition
-                </a>
-                <div class="flex items-end justify-between">
-                    <div>
-                        <h1 class="text-4xl font-display font-bold text-white tracking-tight mb-2">Constructeur de Protocoles</h1>
-                        <p class="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2" *ngIf="athleteId">
-                            <span class="w-2 h-2 rounded-full bg-gosport-lime"></span>
-                            Athlete Context Active
-                        </p>
-                    </div>
-                </div>
+        <header class="builder-header">
+            <div>
+                <a routerLink="/dashboard/nutrition" class="builder-back">← Retour Nutrition</a>
+                <h1 class="builder-title">Constructeur de Plan</h1>
+                <p class="builder-sub" *ngIf="planMode === 'athlete' && athleteId">Athlète #{{ athleteId }}</p>
+                <span class="builder-mode-badge" *ngIf="planMode === 'template'">📋 Mode Template</span>
             </div>
-            <div class="builder-header-actions mt-6 md:mt-0">
-                <button class="px-8 py-4 rounded-xl bg-gosport-lime text-black font-display font-bold text-sm tracking-wide shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:scale-105 transition-all" (click)="savePlan()" [disabled]="isSaving">
-                    <span *ngIf="!isSaving" class="flex items-center gap-2"><lucide-icon name="save" class="w-4 h-4"></lucide-icon> Deploy Protocol</span>
-                    <span *ngIf="isSaving">Deploying...</span>
+            <div class="builder-header-actions">
+                <!-- Assign button (visible after save in template mode) -->
+                <button *ngIf="planMode === 'template' && planData.id" class="btn-assign" (click)="openAssignModal()">
+                    <span>👥 Assigner aux athlètes</span>
+                </button>
+                <button class="btn-save" (click)="savePlan()" [disabled]="isSaving">
+                    <span *ngIf="!isSaving">💾 {{ planMode === 'template' ? 'Sauvegarder Template' : 'Sauvegarder' }}</span>
+                    <span *ngIf="isSaving">Sauvegarde...</span>
                 </button>
             </div>
         </header>
@@ -60,6 +55,26 @@
             </div>
         </div>
 
+        <!-- ══ MODE TOGGLE ═════════════════════════════════════════════════════ -->
+        <section class="mode-toggle-section">
+            <div class="mode-toggle-row">
+                <label class="mode-label">Type de plan :</label>
+                <div class="mode-switch-group">
+                    <button class="mode-btn" [class.active]="planMode === 'athlete'" (click)="planMode = 'athlete'; onModeChange()">
+                        🏃 Plan pour un athlète
+                    </button>
+                    <button class="mode-btn" [class.active]="planMode === 'template'" (click)="planMode = 'template'; onModeChange()">
+                        📋 Template réutilisable
+                    </button>
+                </div>
+            </div>
+            <p class="mode-hint" *ngIf="planMode === 'template'">
+                Le template sera sauvegardé sans athlète assigné. Vous pourrez ensuite l'assigner à plusieurs athlètes à la fois.
+            </p>
+            <p class="mode-hint" *ngIf="planMode === 'athlete' && athleteId">
+                Ce plan sera directement assigné à l'athlète sélectionné depuis le roster.
+            </p>
+        </section>
 
         <!-- ══ PLAN CONFIG ══════════════════════════════════════════════════════ -->
         <section class="plan-config-card">
@@ -75,10 +90,9 @@
                         <option *ngFor="let g of goals" [value]="g.value">{{ g.label }}</option>
                     </select>
                 </div>
-                <div class="form-group">
+                <div class="form-group" *ngIf="planMode === 'athlete'">
                     <label class="form-label">Date de début</label>
-                    <input type="date" [(ngModel)]="planData.startDate" name="startDate"
-                        class="form-input">
+                    <input type="date" [(ngModel)]="planData.startDate" name="startDate" class="form-input">
                 </div>
             </div>
             <div class="form-group" style="margin-top: 0.75rem;">
@@ -128,11 +142,32 @@
                         <span class="total-f">L: {{ dayFats(activeDayIndex) }}g</span>
                     </div>
                     <div class="day-editor-actions">
+                        <button class="btn-copy-day" (click)="toggleCopyDayDropdown()">
+                            📋 Dupliquer ce jour
+                        </button>
                         <button class="btn-danger-sm"
                             *ngIf="planData.days.length > 1"
                             (click)="removeDay(activeDayIndex)">
                             Supprimer ce jour
                         </button>
+                    </div>
+                </div>
+
+                <!-- Copy Day Popover -->
+                <div *ngIf="showCopyDayDropdown" class="copy-day-popover anim-in">
+                    <div class="copy-popover-header">
+                        <p class="copy-popover-title">Copier ce jour (J{{ planData.days[activeDayIndex].day_number }}) vers :</p>
+                        <button class="close-popover" (click)="showCopyDayDropdown = false">✕</button>
+                    </div>
+                    <div class="copy-popover-grid">
+                        <label *ngFor="let day of planData.days; let i = index" class="copy-day-checkbox" [class.disabled]="i === activeDayIndex">
+                            <input type="checkbox" [checked]="isDaySelectedForCopy(i)" (change)="toggleDaySelectionForCopy(i)" [disabled]="i === activeDayIndex">
+                            <span>Jour {{ day.day_number }}</span>
+                        </label>
+                    </div>
+                    <div class="copy-popover-actions">
+                        <button class="btn-copy-cancel" (click)="showCopyDayDropdown = false">Annuler</button>
+                        <button class="btn-copy-apply" (click)="applyCopyDay()">Appliquer la copie</button>
                     </div>
                 </div>
 
@@ -195,9 +230,25 @@
                             </div>
                         </div>
 
+                        <!-- Quick Presets -->
+                        <div class="presets-container">
+                            <span class="presets-label">⚡ Ajout rapide (repas types) :</span>
+                            <div class="presets-buttons">
+                                <button type="button" (click)="addPresetMeal('breakfast')" class="preset-btn type-breakfast">
+                                    🌅 Petit-Déjeuner (600 kcal)
+                                </button>
+                                <button type="button" (click)="addPresetMeal('lunch')" class="preset-btn type-lunch">
+                                    🌞 Repas principal (720 kcal)
+                                </button>
+                                <button type="button" (click)="addPresetMeal('snack')" class="preset-btn type-snack">
+                                    🍎 Collation (350 kcal)
+                                </button>
+                            </div>
+                        </div>
+
                         <!-- Add Meal Button -->
                         <button class="add-meal-btn" (click)="addMeal(activeDayIndex)">
-                            + Ajouter un repas
+                            + Ajouter un repas personnalisé
                         </button>
 
                         <!-- Empty day warning -->
@@ -216,14 +267,87 @@
                 <span>{{ planData.days.length }} jours</span>
                 <span>·</span>
                 <span>{{ getTotalMeals() }} repas</span>
-                <span *ngIf="athleteId">·</span>
-                <span *ngIf="athleteId" class="save-bar-athlete">Athlète #{{ athleteId }}</span>
+                <span>·</span>
+                <span>{{ getTotalCalories() }} kcal/j moy.</span>
+                <span *ngIf="planMode === 'athlete' && athleteId">·</span>
+                <span *ngIf="planMode === 'athlete' && athleteId" class="save-bar-athlete">Athlète #{{ athleteId }}</span>
+                <span *ngIf="planMode === 'template'" class="save-bar-template">📋 Template</span>
             </div>
-            <button class="btn-save" (click)="savePlan()" [disabled]="isSaving">
-                <span *ngIf="!isSaving">💾 Sauvegarder le Plan</span>
-                <span *ngIf="isSaving">Sauvegarde en cours...</span>
-            </button>
+            <div class="save-bar-actions">
+                <button *ngIf="planMode === 'template' && planData.id" class="btn-assign" (click)="openAssignModal()">
+                    👥 Assigner
+                </button>
+                <button class="btn-save" (click)="savePlan()" [disabled]="isSaving">
+                    <span *ngIf="!isSaving">💾 Sauvegarder</span>
+                    <span *ngIf="isSaving">Sauvegarde en cours...</span>
+                </button>
+            </div>
         </div>
 
     </div>
+
+    <!-- ══ ASSIGN MODAL ════════════════════════════════════════════════════════ -->
+    <div *ngIf="showAssignModal" class="modal-overlay" (click)="showAssignModal = false">
+        <div class="assign-modal" (click)="$event.stopPropagation()">
+            <div class="assign-modal-header">
+                <h2 class="assign-modal-title">👥 Assigner le Plan</h2>
+                <button class="modal-close" (click)="showAssignModal = false">✕</button>
+            </div>
+
+            <p class="assign-modal-sub">
+                Sélectionnez les athlètes à qui assigner <strong>{{ planData.name }}</strong>.
+                Une copie indépendante sera créée pour chacun.
+            </p>
+
+            <!-- Start Date -->
+            <div class="assign-date-row">
+                <label class="form-label">Date de début du plan</label>
+                <input type="date" [(ngModel)]="assignStartDate" name="assignStartDate" class="form-input assign-date-input">
+            </div>
+
+            <!-- Athlete list -->
+            <div class="assign-athletes-list" *ngIf="!assignResults.length">
+                <div *ngIf="clients.length === 0" class="assign-empty">
+                    Aucun client actif. Acceptez des demandes de connexion pour constituer votre roster.
+                </div>
+                <button *ngFor="let client of clients" class="assign-athlete-row"
+                    [class.selected]="isAthleteSelected(client.athlete?.id)"
+                    (click)="toggleAthleteSelection(client.athlete?.id)">
+                    <div class="assign-athlete-avatar">{{ getClientInitial(client) }}</div>
+                    <div class="assign-athlete-info">
+                        <p class="assign-athlete-name">{{ getClientName(client) }}</p>
+                        <p class="assign-athlete-sub">{{ client.activePlan ? '📋 Plan actif' : 'Aucun plan' }}</p>
+                    </div>
+                    <div class="assign-check" [class.checked]="isAthleteSelected(client.athlete?.id)">
+                        <span *ngIf="isAthleteSelected(client.athlete?.id)">✓</span>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Results after assignment -->
+            <div class="assign-results" *ngIf="assignResults.length > 0">
+                <h3 class="assign-results-title">Résultats</h3>
+                <div *ngFor="let r of assignResults" class="assign-result-row">
+                    <span class="assign-result-name">{{ r.name }}</span>
+                    <span class="assign-result-status" [class.success]="r.status === 'assigned'" [class.failed]="r.status === 'no_connection'">
+                        {{ r.status === 'assigned' ? '✓ Assigné' : '✗ Pas de connexion' }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="assign-modal-footer">
+                <button class="btn-cancel" (click)="showAssignModal = false">
+                    {{ assignResults.length ? 'Fermer' : 'Annuler' }}
+                </button>
+                <button *ngIf="!assignResults.length" class="btn-save"
+                    [disabled]="selectedAthleteIds.length === 0 || isAssigning"
+                    (click)="executeAssign()">
+                    <span *ngIf="!isAssigning">Assigner ({{ selectedAthleteIds.length }})</span>
+                    <span *ngIf="isAssigning">Assignation...</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </app-dashboard-layout>

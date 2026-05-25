@@ -119,15 +119,17 @@ class AuthRepository {
     }
   }
 
-  /// Reset password with token
+  /// Reset password with email verification code.
   Future<void> resetPassword({
-    required String token,
+    required String email,
+    required String code,
     required String newPassword,
   }) async {
     try {
       await _api.post('/auth/reset-password', data: {
-        'token': token,
-        'password': newPassword,
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
       });
     } catch (e) {
       throw ApiException.fromDioError(e);

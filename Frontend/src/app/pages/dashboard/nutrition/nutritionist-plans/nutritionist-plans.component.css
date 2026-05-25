@@ -1,0 +1,385 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   NUTRITIONIST PLANS — Premium Dark Theme
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Page ─────────────────────────────────────────────────────────────────── */
+.plans-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+.plans-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+.plans-back {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+    text-decoration: none;
+    margin-bottom: 0.5rem;
+    transition: color 0.15s;
+}
+.plans-back:hover { color: #f97316; }
+.plans-title {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-weight: 900;
+    color: #f1f5f9;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+}
+.plans-header-actions { display: flex; gap: 0.75rem; align-items: center; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.btn-primary-plan {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.5rem;
+    background: linear-gradient(135deg, #f97316, #ea580c);
+    color: white;
+    border: none;
+    border-radius: 0.875rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-primary-plan:hover { transform: translateY(-1px); box-shadow: 0 4px 24px rgba(249,115,22,0.35); }
+
+.btn-template {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 1.25rem;
+    background: rgba(139,92,246,0.15);
+    border: 1px solid rgba(139,92,246,0.4);
+    border-radius: 0.875rem;
+    color: #a78bfa;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-template:hover { background: rgba(139,92,246,0.25); border-color: #8b5cf6; transform: translateY(-1px); }
+
+/* ── Loading ──────────────────────────────────────────────────────────────── */
+.plans-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 6rem 2rem;
+    gap: 1.5rem;
+    color: #475569;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+.plans-spinner {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 3px solid #1e293b;
+    border-top-color: #f97316;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Tabs ─────────────────────────────────────────────────────────────────── */
+.plans-tabs-wrap {}
+.plans-tab-nav {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #1e293b;
+    padding-bottom: 0;
+}
+.plans-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.2s;
+}
+.plans-tab:hover { color: #94a3b8; }
+.plans-tab.active { color: #f97316; border-bottom-color: #f97316; }
+.tab-count {
+    background: #1e293b;
+    color: #64748b;
+    font-size: 0.68rem;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-weight: 700;
+}
+.plans-tab.active .tab-count { background: rgba(249,115,22,0.15); color: #f97316; }
+
+/* ── Grid ─────────────────────────────────────────────────────────────────── */
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+    align-items: start;
+}
+
+/* ── Plan Card ────────────────────────────────────────────────────────────── */
+.plan-card {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+    transition: all 0.2s;
+}
+.plan-card:hover { border-color: #334155; transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+
+.plan-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+.plan-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 999px;
+}
+.template-badge { background: rgba(139,92,246,0.15); color: #a78bfa; border: 1px solid rgba(139,92,246,0.3); }
+.athlete-badge { background: rgba(249,115,22,0.1); color: #f97316; border: 1px solid rgba(249,115,22,0.25); }
+
+.plan-goal-badge {
+    font-size: 0.65rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+}
+.goal-bulking { background: rgba(16,185,129,0.12); color: #10b981; }
+.goal-cutting { background: rgba(239,68,68,0.12); color: #ef4444; }
+.goal-maintenance { background: rgba(96,165,250,0.12); color: #60a5fa; }
+.goal-perf { background: rgba(249,115,22,0.12); color: #f97316; }
+.goal-custom { background: rgba(100,116,139,0.12); color: #94a3b8; }
+
+.plan-name {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #f1f5f9;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+}
+.plan-desc {
+    font-size: 0.78rem;
+    color: #475569;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ── Plan Athlete Row ─────────────────────────────────────────────────────── */
+.plan-athlete-row {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+.plan-athlete-avatar {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background: rgba(249,115,22,0.15);
+    color: #f97316;
+    font-weight: 900;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.plan-athlete-name { font-size: 0.8rem; font-weight: 600; color: #94a3b8; }
+
+/* ── Plan Stats ───────────────────────────────────────────────────────────── */
+.plan-stats {
+    display: flex;
+    gap: 1.25rem;
+    padding: 0.875rem;
+    background: rgba(255,255,255,0.02);
+    border-radius: 0.75rem;
+    border: 1px solid #1e293b;
+}
+.plan-stat { display: flex; flex-direction: column; gap: 0.15rem; }
+.plan-stat-val { font-size: 1.1rem; font-weight: 900; color: #f97316; font-style: italic; }
+.plan-stat-label { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; }
+
+/* ── Plan Card Footer ─────────────────────────────────────────────────────── */
+.plan-card-footer {
+    display: flex;
+    gap: 0.625rem;
+    align-items: center;
+    margin-top: auto;
+    padding-top: 0.25rem;
+    border-top: 1px solid #1e293b;
+}
+.btn-assign-plan {
+    flex: 1;
+    padding: 0.55rem;
+    background: rgba(139,92,246,0.12);
+    border: 1px solid rgba(139,92,246,0.3);
+    border-radius: 0.625rem;
+    color: #a78bfa;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-assign-plan:hover { background: rgba(139,92,246,0.2); border-color: #8b5cf6; }
+.btn-edit-plan {
+    flex: 1;
+    padding: 0.55rem;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid #1e293b;
+    border-radius: 0.625rem;
+    color: #64748b;
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    text-align: center;
+}
+.btn-edit-plan:hover { background: rgba(255,255,255,0.08); color: #94a3b8; }
+.plan-active-tag {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #22c55e;
+}
+
+/* ── Add Card ─────────────────────────────────────────────────────────────── */
+.plan-add-card {
+    background: transparent;
+    border: 2px dashed #1e293b;
+    border-radius: 1.25rem;
+    padding: 2.5rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    min-height: 180px;
+}
+.plan-add-card:hover { border-color: #8b5cf6; background: rgba(139,92,246,0.04); }
+.plan-add-icon { font-size: 2rem; color: #334155; }
+.plan-add-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: #475569; }
+.plan-add-card:hover .plan-add-icon { color: #8b5cf6; }
+.plan-add-card:hover .plan-add-label { color: #a78bfa; }
+
+/* ── Empty ────────────────────────────────────────────────────────────────── */
+.plans-empty {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    padding: 5rem 2rem;
+    text-align: center;
+    background: rgba(255,255,255,0.02);
+    border: 1px dashed #1e293b;
+    border-radius: 1.5rem;
+}
+.plans-empty-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+.plans-empty h3 { font-size: 1.25rem; font-weight: 800; color: #f1f5f9; text-transform: uppercase; }
+.plans-empty p { font-size: 0.85rem; color: #475569; max-width: 360px; }
+
+/* ── Modal shared styles ──────────────────────────────────────────────────── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+.assign-modal {
+    background: #111827;
+    border: 1px solid #1e293b;
+    border-radius: 1.5rem;
+    width: 100%;
+    max-width: 540px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.assign-modal-header { display: flex; align-items: center; justify-content: space-between; }
+.assign-modal-title { font-size: 1.35rem; font-weight: 900; color: #f1f5f9; text-transform: uppercase; letter-spacing: -0.02em; }
+.modal-close { background: transparent; border: none; color: #475569; font-size: 1.1rem; cursor: pointer; transition: color 0.15s; }
+.modal-close:hover { color: #ef4444; }
+.assign-modal-sub { font-size: 0.82rem; color: #64748b; line-height: 1.6; }
+.assign-modal-sub strong { color: #f97316; }
+
+.assign-date-row { display: flex; flex-direction: column; gap: 0.4rem; }
+.assign-date-input { max-width: 220px; }
+.form-label { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #64748b; }
+.form-input { background: rgba(255,255,255,0.03); border: 1px solid #1e293b; border-radius: 0.75rem; padding: 0.65rem 0.875rem; color: #f1f5f9; font-size: 0.875rem; transition: border-color 0.2s; width: 100%; }
+.form-input:focus { outline: none; border-color: #f97316; }
+
+.assign-athletes-list { display: flex; flex-direction: column; gap: 0.5rem; max-height: 320px; overflow-y: auto; }
+.assign-empty { padding: 2rem; text-align: center; font-size: 0.82rem; color: #475569; background: rgba(255,255,255,0.02); border-radius: 0.75rem; border: 1px dashed #1e293b; }
+.assign-athlete-row { display: flex; align-items: center; gap: 0.875rem; padding: 0.875rem 1rem; background: rgba(255,255,255,0.02); border: 1px solid #1e293b; border-radius: 0.875rem; cursor: pointer; transition: all 0.2s; text-align: left; width: 100%; }
+.assign-athlete-row:hover { border-color: #334155; background: rgba(255,255,255,0.04); }
+.assign-athlete-row.selected { border-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+.assign-athlete-avatar { width: 2.5rem; height: 2.5rem; border-radius: 50%; background: rgba(249,115,22,0.15); color: #f97316; font-weight: 900; font-size: 1rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.assign-athlete-info { flex: 1; min-width: 0; }
+.assign-athlete-name { font-size: 0.85rem; font-weight: 700; color: #f1f5f9; }
+.assign-athlete-sub { font-size: 0.7rem; color: #475569; margin-top: 0.1rem; }
+.assign-check { width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 2px solid #334155; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; flex-shrink: 0; transition: all 0.2s; }
+.assign-check.checked { background: #8b5cf6; border-color: #8b5cf6; color: white; }
+
+.assign-results { display: flex; flex-direction: column; gap: 0.5rem; }
+.assign-results-title { font-size: 0.8rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 0.25rem; }
+.assign-result-row { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: rgba(255,255,255,0.03); border-radius: 0.625rem; }
+.assign-result-name { font-size: 0.85rem; color: #f1f5f9; font-weight: 600; }
+.assign-result-status { font-size: 0.75rem; font-weight: 700; }
+.assign-result-status.success { color: #22c55e; }
+.assign-result-status.failed { color: #ef4444; }
+
+.assign-modal-footer { display: flex; gap: 0.75rem; padding-top: 0.5rem; border-top: 1px solid #1e293b; }
+.btn-cancel { flex: 1; padding: 0.75rem; background: rgba(255,255,255,0.04); border: 1px solid #1e293b; border-radius: 0.875rem; color: #64748b; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+.btn-cancel:hover { background: rgba(255,255,255,0.08); color: #94a3b8; }
+.btn-save { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.75rem 1.5rem; background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: none; border-radius: 0.875rem; font-size: 0.82rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.2s; flex: 1; justify-content: center; }
+.btn-save:hover { transform: translateY(-1px); }
+.btn-save:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }

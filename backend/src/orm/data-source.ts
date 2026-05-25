@@ -19,7 +19,6 @@ import { MealLog } from "../entities/MealLog";
 import { DietPlan } from "../entities/DietPlan";
 import { DietDay } from "../entities/DietDay";
 import { Meal } from "../entities/Meal";
-import { Subscription } from "../entities/Subscription";
 import { Exercise } from "../entities/Exercise";
 import { DietaryProfile } from "../entities/DietaryProfile";
 import { DietLog } from "../entities/DietLog";
@@ -34,7 +33,13 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-console.log("DB CONFIG: Host =", process.env.DB_HOST, ", User =", process.env.DB_USER, ", DB =", process.env.DB_NAME);
+const isProduction = process.env.NODE_ENV === "production";
+const shouldSynchronize = !isProduction && process.env.TYPEORM_SYNC === "true";
+const shouldLogDbConfig = process.env.LOG_DB_CONFIG === "true";
+
+if (shouldLogDbConfig) {
+    console.log("DB CONFIG: Host =", process.env.DB_HOST, ", DB =", process.env.DB_NAME);
+}
 
 export const AppDataSource = new DataSource({
     type: "postgres",
@@ -43,12 +48,12 @@ export const AppDataSource = new DataSource({
     username: process.env.DB_USER || "postgres",
     password: process.env.DB_PASSWORD || "postgres",
     database: process.env.DB_NAME || "coaching_db",
-    synchronize: true,
+    synchronize: shouldSynchronize,
     logging: false,
     entities: [
         User, Athlete, Program, Goal, CoachProfile, CoachSpecialization, CoachCertification, 
         ProgramDay, ProgramExercise, WorkoutLog, ExerciseLog, CoachingRequest, UserInvitation, 
-        ActivityEvent, Notification, MealLog, Subscription, Exercise,
+        ActivityEvent, Notification, MealLog, Exercise,
         DietPlan, DietDay, Meal, DietaryProfile, DietLog, NutritionConnection, NutritionistProfile, BodyMetric, Session, Conversation, Message
     ],
     migrations: [],

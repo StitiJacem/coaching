@@ -3,10 +3,12 @@ import { Athlete } from "../entities/Athlete";
 import { CoachProfile } from "../entities/Coach";
 import { CoachingRequest } from "../entities/CoachingRequest";
 import { Program } from "../entities/Program";
+import { NutritionistProfile } from "../entities/NutritionistProfile";
+import { NutritionConnection } from "../entities/NutritionConnection";
 
 /**
- * Reusable authorization helper: coaches can only access athletes they are
- * linked to (accepted coaching request OR program). Athletes can only access themselves.
+ * Reusable authorization helper: coaches/nutritionists can only access athletes they are
+ * linked to (accepted coaching request/connection OR program). Athletes can only access themselves.
  */
 export async function canAccessAthlete(user: { id: number; role: string }, athleteId: number): Promise<boolean> {
     if (user.role === "athlete") {
@@ -40,6 +42,22 @@ export async function canAccessAthlete(user: { id: number; role: string }, athle
             ],
         });
         return !!hasProgram;
+    }
+
+    if (user.role === "nutritionist") {
+        const nutritionistProfileRepo = AppDataSource.getRepository(NutritionistProfile);
+        const nutritionistProfile = await nutritionistProfileRepo.findOne({ where: { userId: user.id } });
+        if (!nutritionistProfile) return false;
+
+        const connectionRepo = AppDataSource.getRepository(NutritionConnection);
+        const hasConnection = await connectionRepo.findOne({
+            where: {
+                athleteId,
+                nutritionistProfileId: nutritionistProfile.id,
+                status: "accepted",
+            },
+        });
+        return !!hasConnection;
     }
 
     return false;

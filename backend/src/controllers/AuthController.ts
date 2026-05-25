@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { AuthService } from '../services/AuthService';
+import { sanitizeUser } from '../utils/sanitizeUser';
 
 export class AuthController {
     private authService: AuthService;
@@ -11,7 +12,7 @@ export class AuthController {
     register = async (req: Request, res: Response) => {
         try {
             const user = await this.authService.register(req.body);
-            res.status(201).json({ message: 'User registered', user: { id: user.id, username: user.username, email: user.email } });
+            res.status(201).json({ message: 'User registered', user: sanitizeUser(user) });
         } catch (err: any) {
             res.status(400).json({ error: err.message });
         }
@@ -51,7 +52,7 @@ export class AuthController {
         try {
             const { email } = req.body;
             await this.authService.forgotPassword(email);
-            res.json({ message: 'Password reset code sent' });
+            res.json({ message: 'If the email exists, a password reset code has been sent' });
         } catch (err: any) {
             res.status(400).json({ error: err.message });
         }

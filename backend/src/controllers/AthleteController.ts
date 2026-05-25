@@ -430,24 +430,18 @@ export class AthleteController {
                 notes
             });
 
-            console.log('Created Metric Entity:', metric);
-
             const savedMetric = await metricRepo.save(metric);
-            console.log('Saved Metric Success:', savedMetric.id);
 
             if (weight) {
                 const athleteRepo = AppDataSource.getRepository(Athlete);
                 await athleteRepo.update(athleteId, { weight: Number(weight) });
-                console.log('Updated Athlete current weight');
             }
 
             res.status(201).json(savedMetric);
         } catch (error: any) {
             console.error("CRITICAL ERROR adding athlete metric:", error);
             res.status(500).json({ 
-                message: "Error adding athlete metric", 
-                error: error.message,
-                detail: error.detail || 'No additional details'
+                message: "Error adding athlete metric"
             });
         }
     };

@@ -10,7 +10,7 @@ La complexité inhérente à une application gérant des programmes d'entraînem
 
 \subsection{Tests d'intégration avec Postman}
 Pour valider le fonctionnement de notre API REST (le cœur du système), nous avons utilisé Postman de manière systématique.
-Plutôt que de tester de manière ad hoc, nous avons créé une \textbf{Postman Collection} automatisée. Chaque endpoint (ex: `POST /api/programs`) a été associé à des scripts de test (écrits en JavaScript au sein de Postman) permettant de valider :
+Plutôt que de tester de manière ad hoc, nous avons créé une \textbf{Postman Collection} automatisée. Chaque scénario critique a été associé à des scripts de test (écrits en JavaScript au sein de Postman) permettant de valider :
 \begin{itemize}
     \item \textbf{Le code HTTP de retour :} S'assurer qu'une requête valide retourne `201 Created` ou `200 OK`, et qu'une tentative d'accès sans token JWT retourne bien `401 Unauthorized`.
     \item \textbf{Le schéma JSON :} Vérifier que l'API renvoie bien les champs attendus (ex: `program.id`, `program.days`).
@@ -37,7 +37,7 @@ L'API Node.js a été renforcée contre les vulnérabilités les plus fréquente
 \begin{itemize}
     \item \textbf{Injections SQL :} L'utilisation exclusive de l'ORM TypeORM prévient nativement ce type d'attaque grâce à la paramétrisation automatique des requêtes. Aucune requête brute basée sur de la concaténation de chaînes utilisateur n'est exécutée.
     \item \textbf{CORS (Cross-Origin Resource Sharing) :} Un middleware restrictif a été configuré pour empêcher des domaines non autorisés de consommer l'API depuis un navigateur web. Seul le Dashboard Angular officiel est "whitelisté".
-    \item \textbf{Rate Limiting :} Afin de se prémunir contre les attaques par force brute (Brute Force) sur l'endpoint de connexion, un middleware \texttt{express-rate-limit} bloque temporairement l'adresse IP source après plusieurs tentatives de login infructueuses.
+    \item \textbf{Rate Limiting :} Afin de se prémunir contre les attaques par force brute (Brute Force) sur le flux de connexion, un middleware \texttt{express-rate-limit} bloque temporairement l'adresse IP source après plusieurs tentatives de login infructueuses.
 \end{itemize}
 
 \section{Processus de Déploiement (DevOps)}
@@ -60,4 +60,4 @@ Le Dashboard Web (Angular) est compilé statiquement en HTML/JS (\texttt{ng buil
 L'application mobile (Flutter) a été compilée en générant les \textit{Android App Bundles} (.aab) et les archives iOS (.ipa), prêtes à être publiées sur leurs magasins d'applications respectifs (Google Play Store et Apple App Store).
 
 \section{Conclusion}
-Ce huitième chapitre a démontré que notre projet n'est pas qu'une simple maquette académique, mais une solution logicielle répondant aux normes de l'industrie professionnelle. La stratégie de test assure la fiabilité des flux complexes, les mesures de sécurité garantissent la confidentialité des utilisateurs, et l'architecture de déploiement cloud permet à "CoachingApp" de supporter une charge d'utilisateurs croissante. L'ensemble de ces efforts de qualification et de mise en production vient sceller l'achèvement technique de notre projet de fin d'études.
+Ce huitième chapitre a démontré que notre projet n'est pas qu'une simple maquette académique, mais une solution logicielle répondant aux normes de l'industrie professionnelle. La stratégie de test assure la fiabilité des flux complexes, les mesures de sécurité garantissent la confidentialité des utilisateurs, et l'architecture de déploiement cloud permet à GOSPORT de supporter une charge d'utilisateurs croissante. L'ensemble de ces efforts de qualification et de mise en production vient sceller l'achèvement technique de notre projet de fin d'études.
