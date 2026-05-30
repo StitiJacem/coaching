@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
@@ -14,12 +15,60 @@ class AppShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final role = ref.watch(userRoleProvider);
+    final user = ref.watch(currentUserProvider);
     final location = GoRouterState.of(context).uri.toString();
 
     final navItems = _navItemsFor(role);
     final currentIndex = _indexFor(location, navItems);
 
+    final name = user?.firstName ?? '';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'U';
+
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: AppColors.surface,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        shape: const Border(bottom: BorderSide(color: AppColors.cardBorder, width: 1)),
+        titleSpacing: 16,
+        title: Row(
+          children: [
+            AppTheme.logoMark(size: 28),
+            const SizedBox(width: 12),
+            Text(
+              'GOSPORT',
+              style: GoogleFonts.bebasNeue(
+                fontSize: 24,
+                color: AppColors.textPrimary,
+                letterSpacing: 2,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => context.push('/notifications'),
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textSecondary),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => context.push('/profile'),
+            child: CircleAvatar(
+              radius: 16,
+              backgroundColor: AppColors.cardBorder,
+              child: Text(
+                initial,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: child,
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(

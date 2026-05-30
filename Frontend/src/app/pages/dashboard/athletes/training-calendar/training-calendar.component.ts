@@ -598,6 +598,12 @@ export class TrainingCalendarComponent implements OnInit {
         
         if (!this.draggedSession || !this.athleteId) return;
 
+        if (!this.isDayAvailable(targetDate)) {
+            this.toastService.showWarning('Cannot move workout: this day is not in the athlete\'s training schedule.');
+            this.draggedSession = null;
+            return;
+        }
+
         const isCopy = event.ctrlKey;
         const newDateStr = format(targetDate, 'yyyy-MM-dd');
         
@@ -649,6 +655,11 @@ export class TrainingCalendarComponent implements OnInit {
 
         if (isBefore(date, today) && !this.isMasterMode) {
             this.toastService.showWarning('Selection Restricted: You cannot add or edit workouts for past dates.');
+            return;
+        }
+
+        if (!this.isDayAvailable(date) && !this.isMasterMode && !this.isPreviewMode) {
+            this.toastService.showWarning('This day is not in the athlete\'s training schedule.');
             return;
         }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 
 /// Splash screen — mirrors MainActivity's 2s delay + session check
@@ -15,38 +16,16 @@ class SplashScreen extends ConsumerWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo / Brand mark
-            Container(
-              width: 96,
-              height: 96,
-              decoration: BoxDecoration(
-                gradient: const RadialGradient(
-                  colors: [AppColors.primaryLight, AppColors.primary],
-                ),
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.4),
-                    blurRadius: 32,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.fitness_center_rounded,
-                size: 50,
-                color: Colors.white,
-              ),
-            ),
+            // Logo / Brand mark (matches web)
+            AppTheme.logoMark(size: 80),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'GOSPORT',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 32,
-                fontWeight: FontWeight.w700,
+              style: GoogleFonts.bebasNeue(
+                fontSize: 48,
                 color: AppColors.textPrimary,
                 letterSpacing: 4,
+                height: 1.0,
               ),
             ),
             const SizedBox(height: 8),

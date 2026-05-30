@@ -94,7 +94,10 @@ export class AthleteScheduleComponent implements OnInit {
             const found = athletes.find(a => a.userId === user.id);
             if (found) {
                 this.athlete = found;
-                this.selectedDays = found.preferredTrainingDays || [];
+                // Default to Mon-Fri if no preference has been saved yet
+                this.selectedDays = (found.preferredTrainingDays && found.preferredTrainingDays.length > 0)
+                    ? found.preferredTrainingDays
+                    : [0, 1, 2, 3, 4];
             }
         });
     }

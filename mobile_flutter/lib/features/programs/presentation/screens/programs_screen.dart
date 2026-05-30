@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
@@ -89,12 +90,14 @@ class _ProgramsScreenState extends ConsumerState<ProgramsScreen> {
                           fontWeight: FontWeight.w700,
                           letterSpacing: 1.5),
                     ),
-                    const Text(
+                    Text(
                       'PROGRAMS',
-                      style: TextStyle(
+                      style: GoogleFonts.bebasNeue(
                           color: AppColors.textPrimary,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800),
+                          fontSize: 36,
+                          letterSpacing: 2,
+                          height: 1.0,
+                      ),
                     ),
                   ],
                 ),

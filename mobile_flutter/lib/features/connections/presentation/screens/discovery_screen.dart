@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/athletes_repository.dart';
 import '../../../../shared/widgets/animate_in.dart';
@@ -56,7 +57,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> {
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 centerTitle: false,
-                title: const Text('DISCOVERY', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -1)),
+                title: Text('DISCOVERY', style: GoogleFonts.bebasNeue(color: Colors.white, fontSize: 36, letterSpacing: 2, height: 1.0)),
                 bottom: PreferredSize(
                   preferredSize: const Size.fromHeight(80),
                   child: Padding(

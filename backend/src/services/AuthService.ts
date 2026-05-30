@@ -65,6 +65,7 @@ export class AuthService {
             const athleteProfile = new Athlete();
             athleteProfile.userId = savedUser.id;
             athleteProfile.lastActive = new Date();
+            athleteProfile.preferredTrainingDays = [0, 1, 2, 3, 4]; // Default: Monday to Friday
             await AppDataSource.getRepository(Athlete).save(athleteProfile);
         }
 

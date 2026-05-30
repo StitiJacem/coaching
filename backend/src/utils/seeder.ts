@@ -93,6 +93,7 @@ export const seedDatabase = async () => {
             athlete.user = user;
             athlete.sport = data.sport;
             athlete.lastActive = new Date();
+            athlete.preferredTrainingDays = [0, 1, 2, 3, 4]; // Default: Monday to Friday
             await athleteRepo.save(athlete);
 
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:math' as math;
 import 'dart:ui';
 import '../../../../core/theme/app_theme.dart';
@@ -205,8 +206,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
                           delegate: SliverChildListDelegate([
                             _buildHeroSection(user, _stats),
                             const SizedBox(height: 32),
-                            _buildQuickActions(context, isCoach),
-                            const SizedBox(height: 32),
                             _buildStatsGrid(isCoach, _stats),
                             const SizedBox(height: 32),
                             if (!isCoach) ...[
@@ -238,18 +237,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
     );
   }
 
-                        ),
-                      ]),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   String _greeting() {
     final h = DateTime.now().hour;
     if (h < 12) return 'Good morning 👋';
@@ -262,196 +249,61 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
 // Supporting Widgets
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _QuickActions extends StatelessWidget {
-  final bool isCoach;
-  const _QuickActions({required this.isCoach});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("QUICK ACTIONS",
-            style: TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                letterSpacing: 1.5)),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 90,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            children: isCoach 
-              ? [
-                  _QuickActionItem(
-                    label: 'Discovery',
-                    icon: Icons.search_rounded,
-                    color: AppColors.primary,
-                    onTap: () => context.push('/discovery'),
-                  ),
-                  _QuickActionItem(
-                    label: 'New Program',
-                    icon: Icons.add_box_rounded,
-                    color: AppColors.success,
-                    onTap: () => context.push('/programs/create'),
-                  ),
-                  _QuickActionItem(
-                    label: 'Analytics',
-                    icon: Icons.bar_chart_rounded,
-                    color: AppColors.info,
-                    onTap: () => context.push('/analytics'),
-                  ),
-                  _QuickActionItem(
-                    label: 'Messaging',
-                    icon: Icons.message_rounded,
-                    color: AppColors.accent,
-                    onTap: () => context.push('/notifications'),
-                  ),
-                ]
-              : [
-                  _QuickActionItem(
-                    label: 'Programs',
-                    icon: Icons.fitness_center_rounded,
-                    color: AppColors.primary,
-                    onTap: () => context.push('/programs'),
-                  ),
-                  _QuickActionItem(
-                    label: 'Calendar',
-                    icon: Icons.calendar_month_rounded,
-                    color: AppColors.success,
-                    onTap: () => context.push('/schedule'),
-                  ),
-                  _QuickActionItem(
-                    label: 'Nutrition',
-                    icon: Icons.restaurant_rounded,
-                    color: AppColors.roleNutritionist,
-                    onTap: () => context.push('/nutrition'),
-                  ),
-                  _QuickActionItem(
-                    label: 'My Team',
-                    icon: Icons.verified_user_rounded,
-                    color: AppColors.info,
-                    onTap: () => context.push('/specialists'),
-                  ),
-                  _QuickActionItem(
-                    label: 'History',
-                    icon: Icons.history_rounded,
-                    color: AppColors.textSecondary,
-                    onTap: () => context.push('/workout-history'),
-                  ),
-                ],
-=======
-        const SizedBox(width: 8),
-        GestureDetector(
-          onTap: () => context.push('/profile'),
-          child: Container(
-            margin: const EdgeInsets.only(right: 20),
-            padding: const EdgeInsets.all(2),
-            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
-            child: CircleAvatar(
-              radius: 16,
-              backgroundColor: AppColors.surface,
-              child: Text(user?.firstName[0] ?? 'A', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-            ),
->>>>>>> Stashed changes
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildHeroSection(user, stats) {
     final isAthlete = user?.role == AppConstants.roleAthlete;
-    final progress = isAthlete ? ((stats?['adherencePercent'] ?? 0) / 100.0).toDouble() : 0.85;
-
-    return AppTheme.glassCard(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-                    child: Text(user?.role.toUpperCase() ?? 'ATHLETE', style: const TextStyle(color: AppColors.primary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(isAthlete ? "YOUR PROGRESS" : "TEAM STATUS", style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
-                  const SizedBox(height: 4),
-                  Text(isAthlete ? "Keep pushing your limits" : "Monitoring performance", style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-                ],
-              ),
-            ),
-            SizedBox(
-              width: 80,
-              height: 80,
-              child: CustomPaint(
-                painter: _PerformanceRingPainter(progress),
-                child: Center(
-                  child: Text("${(progress * 100).toInt()}%", style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 16)),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickActions(BuildContext context, bool isCoach) {
-    final actions = isCoach 
-      ? [
-          {'icon': Icons.search_rounded, 'label': 'Market', 'route': '/discovery', 'color': AppColors.primary},
-          {'icon': Icons.add_box_rounded, 'label': 'Program', 'route': '/programs/create', 'color': AppColors.secondary},
-          {'icon': Icons.analytics_rounded, 'label': 'Analytics', 'route': '/analytics', 'color': AppColors.accent},
-          {'icon': Icons.chat_bubble_rounded, 'label': 'Chat', 'route': '/notifications', 'color': Colors.white},
-        ]
-      : [
-          {'icon': Icons.play_arrow_rounded, 'label': 'Train', 'route': '/sessions', 'color': AppColors.primary},
-          {'icon': Icons.calendar_today_rounded, 'label': 'Plan', 'route': '/schedule', 'color': AppColors.secondary},
-          {'icon': Icons.restaurant_rounded, 'label': 'Diet', 'route': '/nutrition', 'color': AppColors.success},
-          {'icon': Icons.history_rounded, 'label': 'Logs', 'route': '/workout-history', 'color': Colors.white},
-        ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text("READY FOR ACTION?", style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: actions.map((a) => _buildQuickActionItem(context, a)).toList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildQuickActionItem(BuildContext context, Map<String, dynamic> action) {
-    return GestureDetector(
-      onTap: () => context.push(action['route']),
-      child: Column(
+    final name = user?.firstName ?? 'Athlete';
+    
+    if (isAthlete) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: AppColors.surfaceVariant,
-              borderRadius: BorderRadius.circular(20),
+          const Text(
+            'TODAY',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
             ),
-            child: Icon(action['icon'] as IconData, color: action['color'] as Color, size: 28),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
-            (action['label'] as String).toUpperCase(),
-            style: const TextStyle(color: AppColors.textPrimary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 0.5),
+            "LET'S GO, ${name.toUpperCase()}",
+            style: GoogleFonts.bebasNeue(
+              color: Colors.white,
+              fontSize: 48,
+              letterSpacing: 1.5,
+              height: 1.0,
+            ),
           ),
         ],
-      ),
-    );
+      );
+    } else {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'OVERVIEW',
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "COACH DASHBOARD",
+            style: GoogleFonts.bebasNeue(
+              color: Colors.white,
+              fontSize: 48,
+              letterSpacing: 1.5,
+              height: 1.0,
+            ),
+          ),
+        ],
+      );
+    }
   }
 
   Widget _buildBiometricsSection(Map<String, dynamic> overview) {
@@ -1509,7 +1361,6 @@ class _RingPainter extends CustomPainter {
   bool shouldRepaint(_RingPainter old) => old.progress != progress;
 }
 
-<<<<<<< Updated upstream
 class _StartSessionBanner extends StatelessWidget {
   final Map<String, dynamic>? workout;
   final void Function(Map<String, dynamic>)? onStart;
@@ -1579,7 +1430,6 @@ class _StartSessionBanner extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
-=======
 class _MetricCard extends StatelessWidget {
   final String label;
   final String value;
@@ -1626,7 +1476,6 @@ class _MetricCard extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(unit, style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w800)),
               ],
->>>>>>> Stashed changes
             ),
           ],
         ),
@@ -1634,8 +1483,6 @@ class _MetricCard extends StatelessWidget {
     );
   }
 }
-<<<<<<< Updated upstream
-=======
 
 // Performance Ring Painter for Hero Section
 class _PerformanceRingPainter extends CustomPainter {
@@ -1672,4 +1519,3 @@ class _PerformanceRingPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
->>>>>>> Stashed changes

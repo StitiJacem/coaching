@@ -60,6 +60,9 @@ services:
       # Edamam Nutrition API
       EDAMAM_APP_ID: ${EDAMAM_APP_ID}
       EDAMAM_APP_KEY: ${EDAMAM_APP_KEY}
+      # TypeORM configuration
+      TYPEORM_SYNC: ${TYPEORM_SYNC:-true}
+      SEED_DB: ${SEED_DB:-true}
       # Gemini fallback
       GEMINI_API_KEY: ${GEMINI_API_KEY}
     ports:

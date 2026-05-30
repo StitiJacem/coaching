@@ -42,12 +42,23 @@ export class EmailService {
     };
 
     try {
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        console.log('\n----------------------------------------');
+        console.log(`[MOCK EMAIL] Verification code for ${email} (${username}):`);
+        console.log(`CODE: ${code}`);
+        console.log('----------------------------------------\n');
+        return true;
+      }
       await transporter.sendMail(mailOptions);
       console.log('Verification email sent to:', email);
       return true;
     } catch (error) {
-      console.error('Error sending email:', error);
-      throw error;
+      console.error('Error sending verification email, using local fallback:', error);
+      console.log('\n----------------------------------------');
+      console.log(`[MOCK EMAIL - FALLBACK] Verification code for ${email} (${username}):`);
+      console.log(`CODE: ${code}`);
+      console.log('----------------------------------------\n');
+      return true;
     }
   }
 
@@ -117,12 +128,23 @@ export class EmailService {
     };
 
     try {
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        console.log('\n----------------------------------------');
+        console.log(`[MOCK EMAIL] Password reset code for ${email} (${username}):`);
+        console.log(`CODE: ${code}`);
+        console.log('----------------------------------------\n');
+        return true;
+      }
       await transporter.sendMail(mailOptions);
       console.log('Password reset email sent to:', email);
       return true;
     } catch (error) {
-      console.error('Error sending password reset email:', error);
-      throw error;
+      console.error('Error sending password reset email, using local fallback:', error);
+      console.log('\n----------------------------------------');
+      console.log(`[MOCK EMAIL - FALLBACK] Password reset code for ${email} (${username}):`);
+      console.log(`CODE: ${code}`);
+      console.log('----------------------------------------\n');
+      return true;
     }
   }
 
@@ -156,12 +178,25 @@ export class EmailService {
     };
 
     try {
+      if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+        console.log('\n----------------------------------------');
+        console.log(`[MOCK EMAIL] Athlete Invitation to ${email}:`);
+        console.log(`Coach: ${coachName}`);
+        console.log(`Signup URL: ${signupUrl}`);
+        console.log('----------------------------------------\n');
+        return true;
+      }
       await transporter.sendMail(mailOptions);
       console.log('Invitation email sent to:', email);
       return true;
     } catch (error) {
-      console.error('Error sending invitation email:', error);
-      return false;
+      console.error('Error sending invitation email, using local fallback:', error);
+      console.log('\n----------------------------------------');
+      console.log(`[MOCK EMAIL - FALLBACK] Athlete Invitation to ${email}:`);
+      console.log(`Coach: ${coachName}`);
+      console.log(`Signup URL: ${signupUrl}`);
+      console.log('----------------------------------------\n');
+      return true;
     }
   }
 }

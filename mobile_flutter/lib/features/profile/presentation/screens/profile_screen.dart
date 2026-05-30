@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../shared/providers/auth_provider.dart';
@@ -107,7 +108,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               floating: true,
               backgroundColor: Colors.transparent,
               elevation: 0,
-              title: const Text('PROFILE', style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -1)),
+              title: Text('PROFILE', style: GoogleFonts.bebasNeue(color: Colors.white, fontSize: 36, letterSpacing: 2, height: 1.0)),
               actions: [
                 TextButton(
                   onPressed: _saving ? null : _save,

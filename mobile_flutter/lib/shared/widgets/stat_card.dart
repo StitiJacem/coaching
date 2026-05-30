@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_theme.dart';
 
 class StatCard extends StatelessWidget {
@@ -55,11 +56,11 @@ class StatCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w800,
+              style: GoogleFonts.bebasNeue(
+                fontSize: 32,
                 color: AppColors.textPrimary,
                 height: 1.1,
+                letterSpacing: 1.0,
               ),
             ),
           ),
