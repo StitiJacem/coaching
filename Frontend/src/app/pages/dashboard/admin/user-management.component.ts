@@ -46,25 +46,6 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
-  async updateRole(user: any, newRole: string): Promise<void> {
-    const confirmed = await this.confirmService.ask(`Voulez-vous vraiment changer le rôle de ${user.first_name} en ${newRole} ?`, 'warning');
-    if (confirmed) {
-      this.adminService.updateUserRole(user.id, newRole).subscribe({
-        next: () => {
-          user.role = newRole;
-          this.toastService.showSuccess(`Rôle de ${user.first_name} mis à jour.`);
-        },
-        error: (err: any) => {
-          console.error('Error updating role', err);
-          this.toastService.showError('Erreur lors du changement de rôle.');
-          this.loadUsers(); // Revert on error
-        }
-      });
-    } else {
-        this.loadUsers(); // Revert UI
-    }
-  }
-
   async deleteUser(user: any): Promise<void> {
     const confirmed = await this.confirmService.danger(
       `Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.first_name} ${user.last_name} ? Cette action est irréversible.`,

@@ -5,6 +5,7 @@ import { CoachProfile } from "../entities/Coach";
 import { Athlete } from "../entities/Athlete";
 import { Program } from "../entities/Program";
 import { sanitizeUser } from "../utils/sanitizeUser";
+import { MoreThanOrEqual } from "typeorm";
 
 export class AdminController {
     static getAllUsers = async (req: Request, res: Response) => {
@@ -39,26 +40,6 @@ export class AdminController {
         }
     };
 
-    static updateUserRole = async (req: Request, res: Response) => {
-        try {
-            const { userId, newRole } = req.body;
-            const userRepo = AppDataSource.getRepository(User);
-            const user = await userRepo.findOne({ where: { id: userId } });
-
-            if (!user) {
-                return res.status(404).json({ message: "User not found" });
-            }
-
-            user.role = newRole;
-            await userRepo.save(user);
-
-            res.json({ message: `User role updated to ${newRole}`, user: sanitizeUser(user) });
-        } catch (error) {
-            console.error("Error updating user role:", error);
-            res.status(500).json({ message: "Error updating user role" });
-        }
-    };
-
     static getStats = async (req: Request, res: Response) => {
         try {
             const userRepo = AppDataSource.getRepository(User);
@@ -71,16 +52,41 @@ export class AdminController {
             const totalAthletes = await athleteRepo.count();
             const totalPrograms = await programRepo.count();
 
+            const nutritionistCount = await userRepo.count({ where: { role: 'nutritionist' } as any });
+            const adminCount = await userRepo.count({ where: { role: 'admin' } as any });
+            const verifiedCount = await userRepo.count({ where: { is_verified: true } as any });
+
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const recentUsers = await userRepo.count({ where: { created_at: MoreThanOrEqual(thirtyDaysAgo) } as any });
+
             res.json({
                 totalUsers,
                 totalCoaches,
                 totalAthletes,
                 totalPrograms,
-                activeUsers24h: Math.floor(totalUsers * 0.1) // Placeholder for now
+                nutritionistCount,
+                adminCount,
+                verifiedCount,
+                recentUsers
             });
         } catch (error) {
             console.error("Error fetching admin stats:", error);
             res.status(500).json({ message: "Error fetching admin stats" });
+        }
+    };
+
+    static getRecentUsers = async (req: Request, res: Response) => {
+        try {
+            const userRepo = AppDataSource.getRepository(User);
+            const users = await userRepo.find({
+                order: { created_at: "DESC" },
+                take: 5
+            });
+            res.json(users.map(u => sanitizeUser(u)));
+        } catch (error) {
+            console.error("Error fetching recent users:", error);
+            res.status(500).json({ message: "Error fetching recent users" });
         }
     };
 
@@ -90,52 +96,65 @@ export class AdminController {
             const userId = Number(id);
             const userRepo = AppDataSource.getRepository(User);
             
-            // Find the user to know their role and related IDs
             const user = await userRepo.findOne({ where: { id: userId } });
             if (!user) return res.status(404).json({ message: "User not found" });
 
-            // Aggressive manual cleanup for tables that might block deletion
+            // Helper to safely run raw SQL queries (some columns may not exist in DB schema)
+            const safeQuery = async (sql: string, params: any[]) => {
+                try { await AppDataSource.query(sql, params); }
+                catch (e: any) { console.warn(`Cleanup skipped for: ${sql.split(' ')[2]} — ${e.message}`); }
+            };
+
             // 1. Delete notifications
             await AppDataSource.getRepository("Notification").delete({ userId: userId });
-            
-            // 2. Delete conversations/messages where user is participant
-            await AppDataSource.query(`DELETE FROM messages WHERE "senderId" = $1`, [userId]);
-            await AppDataSource.query(`DELETE FROM conversations WHERE "participant1Id" = $1 OR "participant2Id" = $1`, [userId]);
 
-            // 3. Handle User-level relationships (e.g., sessions where user is coach)
-            await AppDataSource.query(`DELETE FROM sessions WHERE "coachId" = $1`, [userId]);
+            // 2. Delete messages/conversations
+            await safeQuery(`DELETE FROM messages WHERE "senderId" = $1`, [userId]);
+            await safeQuery(`DELETE FROM conversations WHERE "participant1Id" = $1 OR "participant2Id" = $1`, [userId]);
 
-            // 4. Handle Role-Specific Profiles
-            if (user.role === 'athlete') {
-                const athlete = await AppDataSource.getRepository("Athlete").findOne({ where: { userId } });
-                if (athlete) {
-                    // Must delete sessions where athlete is a participant
-                    await AppDataSource.query(`DELETE FROM sessions WHERE "athleteId" = $1`, [athlete.id]);
-                    
-                    await AppDataSource.query(`DELETE FROM exercise_logs WHERE "athleteId" = $1`, [athlete.id]);
-                    await AppDataSource.query(`DELETE FROM workout_logs WHERE "athleteId" = $1`, [athlete.id]);
-                    await AppDataSource.query(`DELETE FROM programs WHERE "athleteId" = $1`, [athlete.id]);
-                    await AppDataSource.query(`DELETE FROM body_metrics WHERE "athleteId" = $1`, [athlete.id]);
-                    await AppDataSource.query(`DELETE FROM coaching_requests WHERE "athleteId" = $1`, [athlete.id]);
-                    await AppDataSource.query(`DELETE FROM nutrition_connections WHERE "athleteId" = $1`, [athlete.id]);
-                    await AppDataSource.getRepository("Athlete").delete({ id: athlete.id });
-                }
-            } else if (user.role === 'coach' || user.role === 'nutritionist') {
-                const profileRepo = AppDataSource.getRepository(user.role === 'coach' ? "CoachProfile" : "NutritionistProfile");
-                const profile = await profileRepo.findOne({ where: { userId } } as any) as any;
-                if (profile) {
-                    if (user.role === 'coach') {
-                        await AppDataSource.query(`DELETE FROM coach_specializations WHERE "coachProfileId" = $1`, [profile.id]);
-                        await AppDataSource.query(`DELETE FROM coach_certifications WHERE "coachProfileId" = $1`, [profile.id]);
-                        await AppDataSource.query(`DELETE FROM programs WHERE "coachProfileId" = $1`, [profile.id]);
-                        await AppDataSource.query(`DELETE FROM coaching_requests WHERE "coachProfileId" = $1`, [profile.id]);
-                    } else if (user.role === 'nutritionist') {
-                        await AppDataSource.query(`DELETE FROM nutrition_connections WHERE "nutritionistProfileId" = $1`, [profile.id]);
-                        await AppDataSource.query(`DELETE FROM diet_plans WHERE "nutritionistProfileId" = $1`, [profile.id]);
-                    }
-                    await profileRepo.delete({ id: profile.id });
-                }
+            // 3. Sessions where user is directly referenced as coach
+            await safeQuery(`DELETE FROM sessions WHERE "coachId" = $1`, [userId]);
+
+            // 4. Try to find and clean up ANY profile (athlete, coach, nutritionist) regardless of current role
+            //    This handles users whose role was changed but profile records still exist.
+
+            // Athlete profile
+            const athlete = await AppDataSource.getRepository("Athlete").findOne({ where: { userId } });
+            if (athlete) {
+                await safeQuery(`DELETE FROM sessions WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM exercise_logs WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM workout_logs WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM programs WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM body_metrics WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM coaching_requests WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM nutrition_connections WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM goals WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM dietary_profiles WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM meal_logs WHERE "athleteId" = $1`, [athlete.id]);
+                await safeQuery(`DELETE FROM activity_events WHERE "athleteId" = $1`, [athlete.id]);
+                await AppDataSource.getRepository("Athlete").delete({ id: athlete.id });
             }
+
+            // Coach profile
+            const coachProfile = await AppDataSource.getRepository("CoachProfile").findOne({ where: { userId } });
+            if (coachProfile) {
+                await safeQuery(`DELETE FROM coach_specializations WHERE "coachProfileId" = $1`, [coachProfile.id]);
+                await safeQuery(`DELETE FROM coach_certifications WHERE "coachProfileId" = $1`, [coachProfile.id]);
+                await safeQuery(`DELETE FROM programs WHERE "coachProfileId" = $1`, [coachProfile.id]);
+                await safeQuery(`DELETE FROM coaching_requests WHERE "coachProfileId" = $1`, [coachProfile.id]);
+                await AppDataSource.getRepository("CoachProfile").delete({ id: coachProfile.id });
+            }
+
+            // Nutritionist profile
+            const nutritionistProfile = await AppDataSource.getRepository("NutritionistProfile").findOne({ where: { userId } });
+            if (nutritionistProfile) {
+                await safeQuery(`DELETE FROM nutrition_connections WHERE "nutritionistProfileId" = $1`, [nutritionistProfile.id]);
+                await safeQuery(`DELETE FROM diet_plans WHERE "nutritionistProfileId" = $1`, [nutritionistProfile.id]);
+                await AppDataSource.getRepository("NutritionistProfile").delete({ id: nutritionistProfile.id });
+            }
+
+            // 5. User invitations
+            await safeQuery(`DELETE FROM user_invitations WHERE "coachId" = $1`, [userId]);
 
             // Finally delete the user
             await userRepo.delete(userId);

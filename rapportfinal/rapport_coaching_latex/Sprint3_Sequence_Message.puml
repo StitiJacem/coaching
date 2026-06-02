@@ -1,0 +1,50 @@
+@startuml
+skinparam maxMessageSize 150
+skinparam roundcorner 10
+
+actor "Expéditeur\n(Coach / Athlète)" as sender
+participant "Mobile App\n(Flutter)" as app
+participant "ChatController\n(Node.js)" as api
+database "PostgreSQL" as db
+participant "Service de\nNotification" as notif
+actor "Destinataire" as receiver
+
+sender -> app : 1. Saisir message & Envoyer
+activate app
+app -> api : 2. POST /api/messages {receiverId, content}
+activate api
+
+api -> api : 3. Valider Token JWT & Permissions
+
+api -> db : 4. INSERT INTO messages (senderId, receiverId)
+activate db
+db --> api : 5. messageId, timestamp
+deactivate db
+
+api --> app : 6. 201 Created (Message envoyé)
+app --> sender : 7. Afficher message (statut: envoyé)
+deactivate app
+
+alt Destinataire Connecté (Socket.io)
+    api -> receiver : 8a. Emission Socket : "new_message"
+    activate receiver
+    receiver --> api : 9. ACK (Accusé de réception)
+    
+    api -> db : 10. UPDATE messages SET isRead = true
+    activate db
+    db --> api : OK
+    deactivate db
+    
+    api -> sender : 11. Notification de lecture (statut: lu)
+    deactivate receiver
+    
+else Destinataire Déconnecté
+    api -> notif : 8b. Envoyer payload FCM
+    activate notif
+    notif -> receiver : 9b. Push Notification (Écran de verrouillage)
+    deactivate notif
+end
+
+deactivate api
+
+@enduml

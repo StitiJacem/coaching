@@ -1,0 +1,936 @@
+{
+	"_type": "Project",
+	"_id": "project_1_mpmoet9k",
+	"name": "Diagramme de sequence - Sprint 3",
+	"ownedElements": [
+		{
+			"_type": "UMLModel",
+			"_id": "model_2_mpmoet9k",
+			"_parent": {
+				"$ref": "project_1_mpmoet9k"
+			},
+			"name": "GOSPORT - Sequences corrigees",
+			"ownedElements": [
+				{
+					"_type": "UMLInteraction",
+					"_id": "interaction_3_mpmoet9k",
+					"_parent": {
+						"$ref": "model_2_mpmoet9k"
+					},
+					"name": "Sequence Sprint 3 - Programme et workout player",
+					"participants": [
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_5_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "Coach"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_6_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "Program Builder"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_7_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "ProgramController"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_8_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "ProgramRepository"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_9_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "Athlete"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_a_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "Workout Player"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_b_mpmoet9k",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "WorkoutLogController"
+						}
+					],
+					"messages": [
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_c_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "composer programme",
+							"source": {
+								"$ref": "life_5_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_6_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_d_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "POST /programs",
+							"source": {
+								"$ref": "life_6_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_e_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "save Program",
+							"source": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_8_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_f_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "save ProgramDay + ProgramExercise",
+							"source": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_8_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_g_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "POST /programs/:id/assign",
+							"source": {
+								"$ref": "life_5_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_h_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "programme assigne",
+							"source": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_9_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_i_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "PATCH /programs/:id/accept",
+							"source": {
+								"$ref": "life_9_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_j_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "ouvrir seance du jour",
+							"source": {
+								"$ref": "life_9_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_k_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "GET /programs/athlete/:userId/today",
+							"source": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_l_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "demarrer seance",
+							"source": {
+								"$ref": "life_9_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_m_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "POST /workout-logs/:id/start",
+							"source": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_b_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_n_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "POST /workout-logs/:id/exercises",
+							"source": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_b_mpmoet9k"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_o_mpmoet9l",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9k"
+							},
+							"name": "historique mis a jour",
+							"source": {
+								"$ref": "life_b_mpmoet9k"
+							},
+							"target": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"messageSort": "reply"
+						}
+					]
+				},
+				{
+					"_type": "UMLSequenceDiagram",
+					"_id": "seqDiagram_4_mpmoet9k",
+					"_parent": {
+						"$ref": "model_2_mpmoet9k"
+					},
+					"name": "Diagramme de sequence - Sprint 3",
+					"defaultDiagram": true,
+					"ownedViews": [
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_p_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_5_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_q_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_p_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_5_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_r_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_q_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 68,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Coach"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 60,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_r_mpmoet9l"
+									}
+								}
+							],
+							"left": 60,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_q_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_s_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_6_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_t_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_s_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_6_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_u_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_t_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 243,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Program Builder"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 235,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_u_mpmoet9l"
+									}
+								}
+							],
+							"left": 235,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_t_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_v_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_7_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_w_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_v_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_7_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_x_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_w_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 418,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "ProgramController"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 410,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_x_mpmoet9l"
+									}
+								}
+							],
+							"left": 410,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_w_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_y_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_8_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_z_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_y_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_8_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_10_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_z_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 593,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "ProgramRepository"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 585,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_10_mpmoet9l"
+									}
+								}
+							],
+							"left": 585,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_z_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_11_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_9_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_12_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_11_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_9_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_13_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_12_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 768,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Athlete"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 760,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_13_mpmoet9l"
+									}
+								}
+							],
+							"left": 760,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_12_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_14_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_a_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_15_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_14_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_a_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_16_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_15_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 943,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Workout Player"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 935,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_16_mpmoet9l"
+									}
+								}
+							],
+							"left": 935,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_15_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_17_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "life_b_mpmoet9k"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_18_mpmoet9l",
+									"_parent": {
+										"$ref": "lifeView_17_mpmoet9l"
+									},
+									"model": {
+										"$ref": "life_b_mpmoet9k"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_19_mpmoet9l",
+											"_parent": {
+												"$ref": "nameComp_18_mpmoet9l"
+											},
+											"font": "Arial;13;1",
+											"left": 1118,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "WorkoutLogController"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 1110,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_19_mpmoet9l"
+									}
+								}
+							],
+							"left": 1110,
+							"top": 55,
+							"width": 140,
+							"height": 619,
+							"nameCompartment": {
+								"$ref": "nameComp_18_mpmoet9l"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1a_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_c_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_p_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_s_mpmoet9l"
+							},
+							"points": "(130,125);(305,125)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1b_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_d_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_s_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"points": "(305,163);(480,163)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1c_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_e_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_y_mpmoet9l"
+							},
+							"points": "(480,201);(655,201)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1d_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_f_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_y_mpmoet9l"
+							},
+							"points": "(480,239);(655,239)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1e_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_g_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_p_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"points": "(130,277);(480,277)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1f_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_h_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_11_mpmoet9l"
+							},
+							"points": "(480,315);(830,315)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1g_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_i_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_11_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"points": "(830,353);(480,353)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1h_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_j_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_11_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_14_mpmoet9l"
+							},
+							"points": "(830,391);(1005,391)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1i_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_k_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_14_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_v_mpmoet9l"
+							},
+							"points": "(1005,429);(480,429)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1j_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_l_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_11_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_14_mpmoet9l"
+							},
+							"points": "(830,467);(1005,467)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1k_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_m_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_14_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_17_mpmoet9l"
+							},
+							"points": "(1005,505);(1180,505)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1l_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_n_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_14_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_17_mpmoet9l"
+							},
+							"points": "(1005,543);(1180,543)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1m_mpmoet9l",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9k"
+							},
+							"model": {
+								"$ref": "msg_o_mpmoet9l"
+							},
+							"tail": {
+								"$ref": "lifeView_17_mpmoet9l"
+							},
+							"head": {
+								"$ref": "lifeView_14_mpmoet9l"
+							},
+							"points": "(1180,581);(1005,581)",
+							"font": "Arial;12;0",
+							"lineColor": "#64748B",
+							"lineStyle": 1
+						}
+					]
+				}
+			]
+		}
+	]
+}

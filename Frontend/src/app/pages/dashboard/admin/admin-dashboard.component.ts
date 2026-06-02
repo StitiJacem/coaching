@@ -19,13 +19,26 @@ import { AdminService } from '../../../services/admin.service';
 })
 export class AdminDashboardComponent implements OnInit {
   stats: any;
+  recentUsers: any[] = [];
 
   constructor(private adminService: AdminService) {}
 
   ngOnInit(): void {
+    this.loadData();
+  }
+
+  loadData(): void {
     this.adminService.getStats().subscribe({
       next: (data) => this.stats = data,
       error: (err) => console.error('Error loading admin stats', err)
     });
+    this.adminService.getRecentUsers().subscribe({
+      next: (data) => this.recentUsers = data,
+      error: (err) => console.error('Error loading recent users', err)
+    });
+  }
+
+  refresh(): void {
+    this.loadData();
   }
 }

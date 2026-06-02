@@ -4,89 +4,207 @@
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div>
         <h1 class="text-3xl font-display font-bold text-white uppercase tracking-wider">
-          Administration <span class="text-gosport-orange">Site</span>
+          Administration <span class="text-gosport-orange">GoSport</span>
         </h1>
-        <p class="text-slate-400 mt-1">Gérer les utilisateurs et surveiller l'activité de la plateforme.</p>
+        <p class="text-slate-400 mt-1">Tableau de bord administrateur — vue d'ensemble de la plateforme.</p>
       </div>
       <div class="flex gap-3">
-        <button class="bg-gosport-orange hover:bg-orange-600 text-white px-6 py-2.5 rounded-xl font-bold uppercase tracking-wider text-xs transition-all shadow-lg shadow-gosport-orange/20">
-          Paramètres Système
+        <button (click)="refresh()"
+          class="bg-slate-800 hover:bg-slate-700 text-white px-5 py-2.5 rounded-xl font-bold tracking-wider text-xs transition-all flex items-center gap-2">
+          <lucide-angular name="refresh-cw" size="16"></lucide-angular>
+          Actualiser
+        </button>
+        <button [routerLink]="['/dashboard/admin/users']"
+          class="bg-gosport-orange hover:bg-orange-600 text-white px-5 py-2.5 rounded-xl font-bold tracking-wider text-xs transition-all shadow-lg shadow-gosport-orange/20 flex items-center gap-2">
+          <lucide-angular name="settings" size="16"></lucide-angular>
+          Gérer
         </button>
       </div>
     </div>
 
-    <!-- Global Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-gosport-surface border border-gosport-border p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <lucide-angular name="users" size="64" class="text-white"></lucide-angular>
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/20 transition-all">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+          <lucide-angular name="users" size="48" class="text-white"></lucide-angular>
         </div>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Total Utilisateurs</p>
-        <h3 class="text-4xl font-display font-bold text-white">{{ stats?.totalUsers || 0 }}</h3>
-        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
-          <span class="text-emerald-400 font-bold">+5%</span> cette semaine
-        </p>
+        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Total</p>
+        <h3 class="text-3xl font-display font-bold text-white">{{ stats?.totalUsers || 0 }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">utilisateurs</p>
       </div>
 
-      <div class="bg-gosport-surface border border-gosport-border p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <lucide-angular name="award" size="64" class="text-white"></lucide-angular>
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/20 transition-all">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+          <lucide-angular name="award" size="48" class="text-white"></lucide-angular>
         </div>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Coachs Actifs</p>
-        <h3 class="text-4xl font-display font-bold text-white">{{ stats?.totalCoaches || 0 }}</h3>
-        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
-          <span class="text-emerald-400 font-bold">+2</span> nouveau coach
-        </p>
+        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Coachs</p>
+        <h3 class="text-3xl font-display font-bold text-white">{{ stats?.totalCoaches || 0 }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">professionnels</p>
       </div>
 
-      <div class="bg-gosport-surface border border-gosport-border p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <lucide-angular name="activity" size="64" class="text-white"></lucide-angular>
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/20 transition-all">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+          <lucide-angular name="activity" size="48" class="text-white"></lucide-angular>
         </div>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Athlètes</p>
-        <h3 class="text-4xl font-display font-bold text-white">{{ stats?.totalAthletes || 0 }}</h3>
-        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
-          {{ stats?.totalAthletes || 0 }} athlètes enregistrés
-        </p>
+        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Athlètes</p>
+        <h3 class="text-3xl font-display font-bold text-white">{{ stats?.totalAthletes || 0 }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">sportifs</p>
       </div>
 
-      <div class="bg-gosport-surface border border-gosport-border p-6 rounded-2xl relative overflow-hidden group">
-        <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-           <lucide-angular name="layout" size="64" class="text-white"></lucide-angular>
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/20 transition-all">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+          <lucide-angular name="apple" size="48" class="text-white"></lucide-angular>
         </div>
-        <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Programmes</p>
-        <h3 class="text-4xl font-display font-bold text-white">{{ stats?.totalPrograms || 0 }}</h3>
-        <p class="text-xs text-slate-400 mt-2 flex items-center gap-1">
-           {{ stats?.totalPrograms || 0 }} plans d'entraînement
-        </p>
+        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Nutritionnistes</p>
+        <h3 class="text-3xl font-display font-bold text-white">{{ stats?.nutritionistCount || 0 }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">diététiciens</p>
+      </div>
+
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/20 transition-all">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+          <lucide-angular name="layout" size="48" class="text-white"></lucide-angular>
+        </div>
+        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Programmes</p>
+        <h3 class="text-3xl font-display font-bold text-white">{{ stats?.totalPrograms || 0 }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">plans créés</p>
+      </div>
+
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/20 transition-all">
+        <div class="absolute top-0 right-0 p-3 opacity-[0.07] group-hover:opacity-[0.12] transition-opacity">
+          <lucide-angular name="user-check" size="48" class="text-white"></lucide-angular>
+        </div>
+        <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Vérifiés</p>
+        <h3 class="text-3xl font-display font-bold text-white">{{ stats?.verifiedCount || 0 }}</h3>
+        <p class="text-[10px] text-slate-400 mt-1">comptes actifs</p>
+      </div>
+    </div>
+
+    <!-- Main Content: Recent Users + Distribution -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Recent Users -->
+      <div class="lg:col-span-2 bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden">
+        <div class="p-5 border-b border-gosport-border flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Inscriptions récentes</h2>
+            <p class="text-[10px] text-slate-500 mt-0.5">Les 5 derniers utilisateurs inscrits</p>
+          </div>
+          <a [routerLink]="['/dashboard/admin/users']"
+            class="text-[10px] font-bold text-gosport-orange uppercase tracking-wider hover:underline">
+            Voir tout
+          </a>
+        </div>
+        <div class="divide-y divide-gosport-border/50">
+          <div *ngFor="let user of recentUsers" class="flex items-center gap-4 px-5 py-3.5 hover:bg-white/[0.02] transition-colors">
+            <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white text-xs font-bold overflow-hidden shrink-0">
+              <span>{{ user.first_name?.[0] }}{{ user.last_name?.[0] }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-white truncate">{{ user.first_name }} {{ user.last_name }}</p>
+              <p class="text-[10px] text-slate-500 truncate">{{ user.email }}</p>
+            </div>
+            <span class="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
+              [ngClass]="{
+                'text-gosport-orange bg-gosport-orange/10': user.role === 'athlete',
+                'text-emerald-400 bg-emerald-400/10': user.role === 'coach',
+                'text-purple-400 bg-purple-400/10': user.role === 'admin',
+                'text-sky-400 bg-sky-400/10': user.role === 'nutritionist'
+              }">
+              {{ user.role }}
+            </span>
+            <span class="text-[10px] text-slate-500 shrink-0">{{ user.created_at | date:'dd/MM/yy' }}</span>
+          </div>
+          <div *ngIf="recentUsers.length === 0" class="p-10 text-center">
+            <lucide-angular name="user-plus" size="32" class="text-slate-700 mx-auto mb-2"></lucide-angular>
+            <p class="text-slate-500 text-xs italic">Aucun utilisateur récent.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- User Distribution -->
+      <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-5">
+        <h2 class="text-sm font-bold text-white uppercase tracking-wider mb-4">Répartition par rôle</h2>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Athlètes</span>
+              <span class="text-white font-bold">{{ stats?.totalAthletes || 0 }}</span>
+            </div>
+            <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-gosport-orange rounded-full transition-all duration-700"
+                [style.width.%]="stats ? (stats.totalAthletes / (stats.totalUsers || 1)) * 100 : 0"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Coachs</span>
+              <span class="text-white font-bold">{{ stats?.totalCoaches || 0 }}</span>
+            </div>
+            <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-400 rounded-full transition-all duration-700"
+                [style.width.%]="stats ? (stats.totalCoaches / (stats.totalUsers || 1)) * 100 : 0"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Nutritionnistes</span>
+              <span class="text-white font-bold">{{ stats?.nutritionistCount || 0 }}</span>
+            </div>
+            <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-sky-400 rounded-full transition-all duration-700"
+                [style.width.%]="stats ? (stats.nutritionistCount / (stats.totalUsers || 1)) * 100 : 0"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs mb-1.5">
+              <span class="text-slate-400 font-medium">Administrateurs</span>
+              <span class="text-white font-bold">{{ stats?.adminCount || 0 }}</span>
+            </div>
+            <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-purple-400 rounded-full transition-all duration-700"
+                [style.width.%]="stats ? (stats.adminCount / (stats.totalUsers || 1)) * 100 : 0"></div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-5 pt-4 border-t border-gosport-border">
+          <div class="flex justify-between text-xs">
+            <span class="text-slate-500">Nouveaux (30 jours)</span>
+            <span class="text-white font-bold">{{ stats?.recentUsers || 0 }}</span>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Quick Actions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-gosport-surface border border-gosport-border p-8 rounded-3xl hover:border-gosport-orange/30 transition-all cursor-pointer group"
-           [routerLink]="['/dashboard/admin/users']">
-         <div class="flex items-center gap-6">
-            <div class="w-16 h-16 rounded-2xl bg-gosport-orange/10 flex items-center justify-center text-gosport-orange group-hover:scale-110 transition-transform">
-               <lucide-angular name="users-round" size="32"></lucide-angular>
-            </div>
-            <div>
-               <h3 class="text-xl font-bold text-white mb-1">Gestion des Utilisateurs</h3>
-               <p class="text-slate-400 text-sm">Voir, modifier les rôles ou supprimer des comptes utilisateurs.</p>
-            </div>
-         </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <a [routerLink]="['/dashboard/admin/users']"
+        class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl hover:border-gosport-orange/30 transition-all group flex items-center gap-4">
+        <div class="w-12 h-12 rounded-xl bg-gosport-orange/10 flex items-center justify-center text-gosport-orange group-hover:scale-110 transition-transform shrink-0">
+          <lucide-angular name="users-round" size="24"></lucide-angular>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Gérer les utilisateurs</h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">Modifier les rôles, vérifier ou supprimer des comptes</p>
+        </div>
+      </a>
+
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl hover:border-gosport-orange/30 transition-all group flex items-center gap-4 cursor-pointer">
+        <div class="w-12 h-12 rounded-xl bg-emerald-400/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform shrink-0">
+          <lucide-angular name="bar-chart-3" size="24"></lucide-angular>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Rapports d'activité</h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">Analyser la croissance et les statistiques avancées</p>
+        </div>
       </div>
 
-      <div class="bg-gosport-surface border border-gosport-border p-8 rounded-3xl hover:border-gosport-orange/30 transition-all cursor-pointer group">
-         <div class="flex items-center gap-6">
-            <div class="w-16 h-16 rounded-2xl bg-emerald-400/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-               <lucide-angular name="bar-chart-3" size="32"></lucide-angular>
-            </div>
-            <div>
-               <h3 class="text-xl font-bold text-white mb-1">Statistiques Globales</h3>
-               <p class="text-slate-400 text-sm">Analyser la croissance et l'utilisation de la plateforme GoSport.</p>
-            </div>
-         </div>
+      <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl hover:border-gosport-orange/30 transition-all group flex items-center gap-4 cursor-pointer">
+        <div class="w-12 h-12 rounded-xl bg-purple-400/10 flex items-center justify-center text-purple-400 group-hover:scale-110 transition-transform shrink-0">
+          <lucide-angular name="shield" size="24"></lucide-angular>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-white">Paramètres système</h3>
+          <p class="text-[10px] text-slate-400 mt-0.5">Configuration et sécurité de la plateforme</p>
+        </div>
       </div>
     </div>
   </div>

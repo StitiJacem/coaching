@@ -59,15 +59,14 @@
                 </div>
               </td>
               <td class="px-6 py-4">
-                <select [ngModel]="user.role" 
-                        (ngModelChange)="updateRole(user, $event)"
-                        class="bg-transparent border-none text-xs font-bold uppercase tracking-wider focus:ring-0 cursor-pointer p-0"
-                        [ngClass]="getRoleColor(user.role)">
-                  <option value="athlete">ATHLÈTE</option>
-                  <option value="coach">COACH</option>
-                  <option value="nutritionist">NUTRITIONNISTE</option>
-                  <option value="admin" class="text-purple-400">ADMIN</option>
-                </select>
+                <span class="text-xs font-bold uppercase tracking-wider" [ngClass]="getRoleColor(user.role)">
+                  {{ 
+                    user.role === 'athlete' ? 'ATHLÈTE' : 
+                    user.role === 'coach' ? 'COACH' : 
+                    user.role === 'nutritionist' ? 'NUTRITIONNISTE' : 
+                    user.role === 'admin' ? 'ADMIN' : user.role 
+                  }}
+                </span>
               </td>
               <td class="px-6 py-4">
                 <p class="text-xs text-slate-400">{{ user.created_at | date:'dd MMM yyyy' }}</p>

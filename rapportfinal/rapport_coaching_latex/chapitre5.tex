@@ -1,0 +1,100 @@
+\chapter{Sprint 3 : Catalogue d'Exercices, Workout Builder et Workout Player}
+\minitoc
+\newpage
+
+\section{Sprint III : Catalogue d'Exercices, Workout Builder et Workout Player}
+
+\subsection{Objectif du Sprint}
+Ce troisième sprint constitue le coeur de la proposition de valeur sportive de GOSPORT. Il apporte deux innovations majeures : d'un côté, \textbf{le Workout Builder} (un outil de création de programmes structurés, puissant et intuitif destiné au coach) ; de l'autre, \textbf{le Workout Player} (un lecteur de séance interactif et immersif destiné à l'athlète, intégrant des chronomètres de repos dynamiques et une validation des séries en temps réel).
+
+L'objectif est de transformer l'acte d'entraînement -- qui était jusque-là une consultation statique d'un PDF -- en une expérience guidée, dynamique et motivante pour l'athlète.
+
+\subsection{Backlog du Sprint III}
+
+\begin{table}[H]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{|c|c|p{5cm}|p{6.5cm}|c|}
+\hline
+\rowcolor[HTML]{DAE8FC}
+\textbf{ID} & \textbf{Acteur} & \textbf{User Story} & \textbf{Tâche Technique} & \textbf{Priorité} \\ \hline
+3.1 & Coach & Gérer le catalogue d'exercices & Gestion du catalogue et entité Exercise & Must \\ \hline
+3.2 & Coach & Créer un programme en jours (Workout Builder) & Cascade Program/ProgramDay/ProgramExercise & Must \\ \hline
+3.3 & Coach & Assigner un programme à un athlète & Assignation contrôlée du programme & Must \\ \hline
+3.4 & Athlète & Exécuter une séance (Workout Player) & Interface Angular avec timer, validation des séries & Must \\ \hline
+3.5 & Athlète & Enregistrer les charges réelles de la séance & Entité WorkoutLog et sauvegarde de séance & Must \\ \hline
+3.6 & Athlète & Consulter l'historique des séances passées & Historique personnel des séances & Should \\ \hline
+3.7 & Coach & Consulter la progression d'un athlète & Consultation de la progression athlète & Should \\ \hline
+\end{tabular}%
+}
+\caption{Backlog du Sprint 3 -- Workout Builder et Player}
+\end{table}
+
+\section{Analyse}
+
+\subsection{Diagramme de cas d'utilisation du troisième sprint}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.88\textwidth]{Sprint3_Cas_Utilisation.png}
+\caption{Diagramme de cas d'utilisation -- Sprint 3}
+\end{figure}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\subsection{Tableau descriptif du cas d'utilisation « ... »}
+
+\section{Conception}
+
+\subsection{Diagrammes de séquences}
+
+\subsection{A) Diagramme de séquence « ... »}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.85\textwidth]{Sprint3_Sequence_SaveProgram.png}
+\caption{Diagramme de séquence -- Sauvegarde transactionnelle d'un programme}
+\end{figure}
+
+\subsection{B) Diagramme de séquence « ... »}
+
+\subsection{C) Diagramme de séquence « ... »}
+
+\subsection{D) Diagramme de séquence « ... »}
+
+\subsection{Diagramme de classes du troisième sprint}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{Sprint3_Classes.png}
+\caption{Diagramme de classes -- Programmes et Logs d'entraînement}
+\end{figure}
+
+La structure de données du programme d'entraînement est hiérarchique sur trois niveaux :
+\begin{enumerate}
+    \item \textbf{Program :} Le conteneur principal (nom, description, objectif, template ou assigné).
+    \item \textbf{ProgramDay :} Chaque jour de la semaine d'entraînement (Jour A, Jour B...) lié au programme parent.
+    \item \textbf{ProgramExercise :} Chaque exercice du jour, avec ses paramètres précis (séries, répétitions, charge cible, temps de repos en secondes).
+\end{enumerate}
+
+Cette relation est enregistrée en base de données en une seule transaction atomique grâce au \texttt{QueryRunner} de TypeORM, garantissant l'intégrité des données.
+
+\section{Réalisation}
+
+\subsection{Description des interfaces}
+
+\section*{Conclusion du Sprint III}
+\addcontentsline{toc}{section}{Conclusion du Sprint III}
+\mtcaddsection
+\markboth{Conclusion du Sprint III}{}
+Le coeur de la valeur sportive de GOSPORT est désormais livré. Le coach dispose d'un Workout Builder puissant pour structurer ses programmes en jours et exercices, et les assigner à ses athlètes. L'athlète, de son côté, bénéficie d'une expérience de séance guidée et interactive avec le Workout Player, remplaçant efficacement le traditionnel PDF imprimé. L'enregistrement des charges réelles constitue la base pour les analyses de progression futures.

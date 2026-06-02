@@ -1,0 +1,118 @@
+@startuml
+title Diagramme de classes - Sprint 5
+left to right direction
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: number
+  +email: string
+  +password?: string
+  +role: string
+  +is_verified: boolean
+  +oauth_provider: string
+  +profile_completed: boolean
+  +created_at: Date
+  +register()
+  +login()
+  +verifyEmail()
+  +resetPassword()
+  +updateProfile()
+}
+
+class Athlete {
+  +id: number
+  +userId: number
+  +sport?: string
+  +goals?: string
+  +experienceLevel?: string
+  +fitnessLevel?: string
+  +joinedDate: Date
+  +completeProfile()
+  +updateMetrics()
+  +consultDashboard()
+}
+
+class CoachProfile {
+  +id: uuid
+  +userId: number
+  +bio?: string
+  +experience_years: number
+  +rating: number
+  +monthlyPrice: decimal
+  +verified: boolean
+  +updateProfile()
+  +publishProgram()
+  +manageAthletes()
+}
+
+class NutritionistProfile {
+  +id: uuid
+  +userId: number
+  +bio?: string
+  +experience_years: number
+  +rating: number
+  +specializations?: string[]
+  +updateProfile()
+  +createDietPlan()
+  +monitorCompliance()
+}
+
+class Conversation {
+  +id: uuid
+  +type: enum
+  +participant1Id: number
+  +participant2Id: number
+  +lastMessageContent?: string
+  +lastMessageAt?: Date
+  +start()
+  +listMessages()
+}
+
+class Message {
+  +id: uuid
+  +conversationId: uuid
+  +senderId: number
+  +content: string
+  +isRead: boolean
+  +created_at: Date
+  +send()
+  +markRead()
+}
+
+class Notification {
+  +id: number
+  +userId: number
+  +type: string
+  +title: string
+  +body?: string
+  +read: boolean
+  +push()
+  +markRead()
+  +delete()
+}
+
+class Session {
+  +id: number
+  +athleteId?: number
+  +coachId?: number
+  +programId?: number
+  +date?: Date
+  +time: string
+  +status: string
+  +create()
+  +update()
+  +cancel()
+}
+
+User "1" --> "0..1" Athlete : possède
+User "1" --> "0..1" CoachProfile : possède
+User "1" --> "0..1" NutritionistProfile : possède
+User "1" --> "0..*" Conversation : participe
+Conversation "1" --> "0..*" Message : contient
+User "1" --> "0..*" Message : envoie
+User "1" --> "0..*" Notification : reçoit
+Athlete "1" --> "0..*" Session : réserve
+User "1" --> "0..*" Session : anime
+@enduml

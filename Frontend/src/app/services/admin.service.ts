@@ -34,12 +34,6 @@ export class AdminService {
     });
   }
 
-  updateUserRole(userId: number, newRole: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/users/role`, { userId, newRole }, {
-      headers: this.getHeaders()
-    });
-  }
-
   deleteUser(userId: number): Observable<any> {
     return this.http.delete(`${this.apiUrl}/users/${userId}`, {
       headers: this.getHeaders()
@@ -48,6 +42,12 @@ export class AdminService {
 
   getStats(): Observable<any> {
     return this.http.get(`${this.apiUrl}/stats`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  getRecentUsers(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/recent-users`, {
       headers: this.getHeaders()
     });
   }

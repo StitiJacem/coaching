@@ -269,7 +269,7 @@ function buildSprint2() {
   gid = 700;
   let cl = cls('User', 'User', ['+ id', '+ email', '+ role'], 400, 20, 180) + cls('Coach', 'Coach', attCoach, 80, 200, 220, '#e1d5e7', '#9673a6') + cls('Athlete', 'Athlete', attAthlete, 400, 200, 220, '#dae8fc', '#6c8ebf');
   cl += cls('CoachingRequest', 'CoachingRequest', attCReq, 80, 450, 240) + cls('NutritionConnection', 'NutritionConnection', ['+ id : uuid', '+ status : enum', '+ message : string'], 480, 450, 260) + cls('UserInvitation', 'UserInvitation', ['+ id : uuid', '+ token : string', '+ expiresAt : date'], 800, 450, 240);
-  cl += ed('Coach', 'User', '', INH) + ed('Athlete', 'User', '', INH) + ed('Athlete', 'CoachingRequest', '', ASC2) + ed('Coach', 'CoachingRequest', '', ASC2) + ed('Athlete', 'NutritionConnection', '', ASC2);
+  cl += ed('Coach', 'User', '', INH) + ed('Athlete', 'User', '', INH) + ed('Athlete', 'CoachingRequest', '', ASC2) + ed('Coach', 'CoachingRequest', '', ASC2) + ed('Athlete', 'NutritionConnection', '', ASC2) + ed('Coach', 'UserInvitation', '', ASC2);
   fs.writeFileSync('Sprint2_Classes.drawio', wrap(cl, 'Sprint 2 - Classes'));
 
   const seq = seqDiagram(['Athlète', 'Angular', 'Backend', 'PostgreSQL', 'Coach'], [

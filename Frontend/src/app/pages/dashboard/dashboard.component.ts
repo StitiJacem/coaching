@@ -402,6 +402,15 @@ export class DashboardComponent implements OnInit {
         return !!this.todayWorkout?.program;
     }
 
+    get weekSessionsDone(): number {
+        return this.weekDays.filter(day => this.hasSessionOn(day)).length;
+    }
+
+    get weeklySessionPercent(): number {
+        if (!this.weekDays.length) return 0;
+        return Math.round((this.weekSessionsDone / this.weekDays.length) * 100);
+    }
+
     get workoutAlreadyStarted(): boolean {
         return this.todayWorkout?.workoutLog?.status === 'in_progress';
     }

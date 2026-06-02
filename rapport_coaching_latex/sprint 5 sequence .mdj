@@ -1,0 +1,901 @@
+{
+	"_type": "Project",
+	"_id": "project_1_mpmoet9q",
+	"name": "Diagramme de sequence - Sprint 5",
+	"ownedElements": [
+		{
+			"_type": "UMLModel",
+			"_id": "model_2_mpmoet9q",
+			"_parent": {
+				"$ref": "project_1_mpmoet9q"
+			},
+			"name": "GOSPORT - Sequences corrigees",
+			"ownedElements": [
+				{
+					"_type": "UMLInteraction",
+					"_id": "interaction_3_mpmoet9q",
+					"_parent": {
+						"$ref": "model_2_mpmoet9q"
+					},
+					"name": "Sequence Sprint 5 - Messagerie et agenda",
+					"participants": [
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_5_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "Utilisateur A"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_6_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "Messaging UI"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_7_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "ChatController"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_8_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "ConversationRepository"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_9_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "SocketService"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_a_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "Utilisateur B"
+						},
+						{
+							"_type": "UMLLifeline",
+							"_id": "life_b_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "SessionController"
+						}
+					],
+					"messages": [
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_c_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "ouvrir messagerie",
+							"source": {
+								"$ref": "life_5_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_6_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_d_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "GET /chat/contacts",
+							"source": {
+								"$ref": "life_6_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_e_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "contacts autorises",
+							"source": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_6_mpmoet9q"
+							},
+							"messageSort": "reply"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_f_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "envoyer message",
+							"source": {
+								"$ref": "life_5_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_6_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_g_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "POST /chat/conversations",
+							"source": {
+								"$ref": "life_6_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_h_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "find or create conversation",
+							"source": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_8_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_i_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "save Message",
+							"source": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_8_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_j_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "emit message:new",
+							"source": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_9_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_k_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "message temps reel",
+							"source": {
+								"$ref": "life_9_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_a_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_l_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "POST /sessions",
+							"source": {
+								"$ref": "life_5_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_b_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_m_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "notify session created",
+							"source": {
+								"$ref": "life_b_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_9_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						},
+						{
+							"_type": "UMLMessage",
+							"_id": "msg_n_mpmoet9q",
+							"_parent": {
+								"$ref": "interaction_3_mpmoet9q"
+							},
+							"name": "notification agenda",
+							"source": {
+								"$ref": "life_9_mpmoet9q"
+							},
+							"target": {
+								"$ref": "life_a_mpmoet9q"
+							},
+							"messageSort": "synchCall"
+						}
+					]
+				},
+				{
+					"_type": "UMLSequenceDiagram",
+					"_id": "seqDiagram_4_mpmoet9q",
+					"_parent": {
+						"$ref": "model_2_mpmoet9q"
+					},
+					"name": "Diagramme de sequence - Sprint 5",
+					"defaultDiagram": true,
+					"ownedViews": [
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_o_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_5_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_p_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_o_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_5_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_q_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_p_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 68,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Utilisateur A"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 60,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_q_mpmoet9q"
+									}
+								}
+							],
+							"left": 60,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_p_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_r_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_6_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_s_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_r_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_6_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_t_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_s_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 243,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Messaging UI"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 235,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_t_mpmoet9q"
+									}
+								}
+							],
+							"left": 235,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_s_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_u_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_7_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_v_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_u_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_7_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_w_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_v_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 418,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "ChatController"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 410,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_w_mpmoet9q"
+									}
+								}
+							],
+							"left": 410,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_v_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_x_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_8_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_y_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_x_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_8_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_z_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_y_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 593,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "ConversationRepository"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 585,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_z_mpmoet9q"
+									}
+								}
+							],
+							"left": 585,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_y_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_10_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_9_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_11_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_10_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_9_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_12_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_11_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 768,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "SocketService"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 760,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_12_mpmoet9q"
+									}
+								}
+							],
+							"left": 760,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_11_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_13_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_a_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_14_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_13_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_a_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_15_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_14_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 943,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "Utilisateur B"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 935,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_15_mpmoet9q"
+									}
+								}
+							],
+							"left": 935,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_14_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqLifelineView",
+							"_id": "lifeView_16_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "life_b_mpmoet9q"
+							},
+							"subViews": [
+								{
+									"_type": "UMLNameCompartmentView",
+									"_id": "nameComp_17_mpmoet9q",
+									"_parent": {
+										"$ref": "lifeView_16_mpmoet9q"
+									},
+									"model": {
+										"$ref": "life_b_mpmoet9q"
+									},
+									"subViews": [
+										{
+											"_type": "LabelView",
+											"_id": "label_18_mpmoet9q",
+											"_parent": {
+												"$ref": "nameComp_17_mpmoet9q"
+											},
+											"font": "Arial;13;1",
+											"left": 1118,
+											"top": 63,
+											"width": 124,
+											"height": 16,
+											"text": "SessionController"
+										}
+									],
+									"font": "Arial;13;0",
+									"left": 1110,
+									"top": 55,
+									"width": 140,
+									"height": 28,
+									"nameLabel": {
+										"$ref": "label_18_mpmoet9q"
+									}
+								}
+							],
+							"left": 1110,
+							"top": 55,
+							"width": 140,
+							"height": 581,
+							"nameCompartment": {
+								"$ref": "nameComp_17_mpmoet9q"
+							},
+							"fillColor": "#F8FAFC",
+							"lineColor": "#334155",
+							"font": "Arial;13;0"
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_19_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_c_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_o_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_r_mpmoet9q"
+							},
+							"points": "(130,125);(305,125)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1a_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_d_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_r_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_u_mpmoet9q"
+							},
+							"points": "(305,163);(480,163)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1b_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_e_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_u_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_r_mpmoet9q"
+							},
+							"points": "(480,201);(305,201)",
+							"font": "Arial;12;0",
+							"lineColor": "#64748B",
+							"lineStyle": 1
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1c_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_f_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_o_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_r_mpmoet9q"
+							},
+							"points": "(130,239);(305,239)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1d_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_g_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_r_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_u_mpmoet9q"
+							},
+							"points": "(305,277);(480,277)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1e_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_h_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_u_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_x_mpmoet9q"
+							},
+							"points": "(480,315);(655,315)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1f_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_i_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_u_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_x_mpmoet9q"
+							},
+							"points": "(480,353);(655,353)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1g_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_j_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_u_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_10_mpmoet9q"
+							},
+							"points": "(480,391);(830,391)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1h_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_k_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_10_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_13_mpmoet9q"
+							},
+							"points": "(830,429);(1005,429)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1i_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_l_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_o_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_16_mpmoet9q"
+							},
+							"points": "(130,467);(1180,467)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1j_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_m_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_16_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_10_mpmoet9q"
+							},
+							"points": "(1180,505);(830,505)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						},
+						{
+							"_type": "UMLSeqMessageView",
+							"_id": "msgView_1k_mpmoet9q",
+							"_parent": {
+								"$ref": "seqDiagram_4_mpmoet9q"
+							},
+							"model": {
+								"$ref": "msg_n_mpmoet9q"
+							},
+							"tail": {
+								"$ref": "lifeView_10_mpmoet9q"
+							},
+							"head": {
+								"$ref": "lifeView_13_mpmoet9q"
+							},
+							"points": "(830,543);(1005,543)",
+							"font": "Arial;12;0",
+							"lineColor": "#2563EB",
+							"lineStyle": 0
+						}
+					]
+				}
+			]
+		}
+	]
+}

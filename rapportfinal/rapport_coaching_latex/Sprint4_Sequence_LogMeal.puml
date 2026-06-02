@@ -1,0 +1,46 @@
+@startuml
+skinparam maxMessageSize 150
+skinparam roundcorner 10
+
+actor "Athlète" as athlete
+participant "Mobile App\n(Flutter)" as app
+participant "NutritionController\n(Node.js)" as api
+database "PostgreSQL" as db
+
+athlete -> app : 1. Ouvrir le journal alimentaire
+activate app
+app -> api : 2. GET /api/diet-plan/today {athleteId}
+activate api
+api -> db : 3. SELECT * FROM diet_plans WHERE athleteId = ? AND date = today
+activate db
+db --> api : 4. Plan diététique du jour (objectifs macros)
+deactivate db
+api --> app : 5. 200 OK {dietPlan, targetCalories, targetMacros}
+deactivate api
+app --> athlete : 6. Afficher plan du jour et objectifs
+
+athlete -> app : 7. Ajouter un repas (rechercher aliment)
+app -> api : 8. GET /api/foods?search=...
+activate api
+api -> db : 9. SELECT * FROM foods WHERE name LIKE ?
+activate db
+db --> api : 10. Liste d'aliments
+deactivate db
+api --> app : 11. 200 OK [foods]
+deactivate api
+app --> athlete : 12. Afficher résultats de recherche
+
+athlete -> app : 13. Sélectionner aliment + quantité (g)
+app -> api : 14. POST /api/meal-logs {foodId, quantity, mealType}
+activate api
+api -> api : 15. Calculer macros (protéines, glucides, lipides, calories)
+api -> db : 16. INSERT INTO meal_logs {athleteId, foodId, quantity, macros}
+activate db
+db --> api : 17. logId, timestamp
+deactivate db
+api --> app : 18. 200 OK {dailySummary}
+deactivate api
+app --> athlete : 19. Mettre à jour les jauges de macros (fl_chart)
+deactivate app
+
+@enduml

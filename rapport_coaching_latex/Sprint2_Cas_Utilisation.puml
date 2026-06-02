@@ -1,0 +1,54 @@
+@startuml
+title Diagramme de cas d'utilisation - Sprint 2
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam actorStyle stickman
+
+actor "Athlete" as Athlete
+actor "Coach" as Coach
+actor "Nutritionniste" as Nutritionniste
+actor "Service Notification" as Service_Notification
+
+rectangle "Plateforme GOSPORT" {
+  usecase "Consulter marketplace" as Consulter_marketplace
+  usecase "Rechercher coach" as Rechercher_coach
+  usecase "Rechercher nutritionniste" as Rechercher_nutritionniste
+  usecase "Filtrer par specialite" as Filtrer_par_specialite
+  usecase "Envoyer demande coaching" as Envoyer_demande_coaching
+  usecase "Envoyer demande nutrition" as Envoyer_demande_nutrition
+  usecase "Traiter demande" as Traiter_demande
+  usecase "Accepter demande" as Accepter_demande
+  usecase "Refuser demande" as Refuser_demande
+  usecase "Gerer clients" as Gerer_clients
+  usecase "Rompre relation" as Rompre_relation
+  usecase "Notifier utilisateur" as Notifier_utilisateur
+}
+
+Athlete --> Consulter_marketplace
+Athlete --> Rechercher_coach
+Athlete --> Rechercher_nutritionniste
+Athlete --> Envoyer_demande_coaching
+Athlete --> Envoyer_demande_nutrition
+Coach --> Traiter_demande
+Nutritionniste --> Traiter_demande
+Coach --> Gerer_clients
+Nutritionniste --> Gerer_clients
+Athlete --> Rompre_relation
+Coach --> Rompre_relation
+Nutritionniste --> Rompre_relation
+Notifier_utilisateur --> Service_Notification
+
+Consulter_marketplace .> Filtrer_par_specialite : <<include>>
+Rechercher_coach .> Filtrer_par_specialite : <<include>>
+Rechercher_nutritionniste .> Filtrer_par_specialite : <<include>>
+Envoyer_demande_coaching .> Notifier_utilisateur : <<include>>
+Envoyer_demande_nutrition .> Notifier_utilisateur : <<include>>
+Traiter_demande .> Notifier_utilisateur : <<include>>
+Rompre_relation .> Notifier_utilisateur : <<include>>
+Consulter_marketplace <. Rechercher_coach : <<extend>>
+Consulter_marketplace <. Rechercher_nutritionniste : <<extend>>
+Traiter_demande <. Accepter_demande : <<extend>>
+Traiter_demande <. Refuser_demande : <<extend>>
+Accepter_demande <. Gerer_clients : <<extend>>
+@enduml

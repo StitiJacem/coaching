@@ -1,0 +1,90 @@
+@startuml
+title Diagramme de classes - Sprint 1
+left to right direction
+hide circle
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: number
+  +email: string
+  +password?: string
+  +role: string
+  +is_verified: boolean
+  +oauth_provider: string
+  +profile_completed: boolean
+  +created_at: Date
+  +register()
+  +login()
+  +verifyEmail()
+  +resetPassword()
+  +updateProfile()
+}
+
+class Athlete {
+  +id: number
+  +userId: number
+  +sport?: string
+  +goals?: string
+  +experienceLevel?: string
+  +fitnessLevel?: string
+  +joinedDate: Date
+  +completeProfile()
+  +updateMetrics()
+  +consultDashboard()
+}
+
+class CoachProfile {
+  +id: uuid
+  +userId: number
+  +bio?: string
+  +experience_years: number
+  +rating: number
+  +monthlyPrice: decimal
+  +verified: boolean
+  +updateProfile()
+  +publishProgram()
+  +manageAthletes()
+}
+
+class NutritionistProfile {
+  +id: uuid
+  +userId: number
+  +bio?: string
+  +experience_years: number
+  +rating: number
+  +specializations?: string[]
+  +updateProfile()
+  +createDietPlan()
+  +monitorCompliance()
+}
+
+class UserInvitation {
+  +id: uuid
+  +email: string
+  +coachId: number
+  +status: pending|accepted|expired
+  +token?: string
+  +expiresAt?: Date
+  +invite()
+  +accept()
+}
+
+class Notification {
+  +id: number
+  +userId: number
+  +type: string
+  +title: string
+  +body?: string
+  +read: boolean
+  +push()
+  +markRead()
+  +delete()
+}
+
+User "1" --> "0..1" Athlete : possède
+User "1" --> "0..1" CoachProfile : possède
+User "1" --> "0..1" NutritionistProfile : possède
+User "1" --> "0..*" Notification : reçoit
+User "1" --> "0..*" UserInvitation : envoie
+@enduml

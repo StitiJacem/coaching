@@ -181,55 +181,105 @@
 
     <div *ngIf="roleService.currentRole === 'athlete'" class="space-y-8">
 
-        <!-- Onboarding Guide -->
-        <section *ngIf="showOnboarding" class="animate-fade-in">
+        <!-- Weekly Progress Widget -->
+        <section class="animate-fade-in">
             <div class="relative p-8 rounded-[2.5rem] bg-slate-900/40 border border-white/5 backdrop-blur-xl overflow-hidden shadow-2xl">
                 <!-- Background Glows -->
                 <div class="absolute -top-24 -left-24 w-64 h-64 bg-gosport-orange/10 rounded-full blur-[100px] animate-pulse"></div>
-                <div class="absolute -bottom-24 -right-24 w-64 h-64 bg-gosport-lime/10 rounded-full blur-[100px] animate-pulse" style="animation-delay: 1s;"></div>
-                
-                <div class="relative z-10 flex flex-col lg:flex-row items-center gap-10">
-                    <!-- Progress Circle -->
-                    <div class="relative w-40 h-40 flex-shrink-0 group">
-                        <svg class="w-full h-full transform -rotate-90">
-                            <circle cx="80" cy="80" r="74" stroke="currentColor" stroke-width="12" fill="transparent" class="text-white/5" />
-                            <circle cx="80" cy="80" r="74" stroke="currentColor" stroke-width="12" fill="transparent" 
-                                [attr.stroke-dasharray]="465"
-                                [attr.stroke-dashoffset]="465 - (465 * onboardingProgress / 100)"
-                                class="text-gosport-orange transition-all duration-1000 ease-out"
-                                stroke-linecap="round" />
-                        </svg>
-                        <div class="absolute inset-0 flex flex-col items-center justify-center">
-                            <span class="text-4xl font-display font-black text-white italic tracking-tighter">{{ onboardingProgress }}%</span>
-                            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Setup</span>
+                <div class="absolute -bottom-16 -right-16 w-56 h-56 bg-gosport-lime/8 rounded-full blur-[80px] animate-pulse" style="animation-delay: 1.2s;"></div>
+
+                <div class="relative z-10">
+                    <!-- Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
+                        <div>
+                            <p class="text-[10px] font-black text-gosport-orange uppercase tracking-[0.2em] mb-1">{{ currentWeekRange }}</p>
+                            <h2 class="text-2xl font-display font-bold text-white italic tracking-wide uppercase">Objectifs de la Semaine</h2>
+                        </div>
+                        <!-- Overall ring -->
+                        <div class="flex items-center gap-3">
+                            <div class="relative w-14 h-14 flex-shrink-0">
+                                <svg class="w-full h-full transform -rotate-90">
+                                    <circle cx="28" cy="28" r="23" stroke="currentColor" stroke-width="4" fill="transparent" class="text-white/5" />
+                                    <circle cx="28" cy="28" r="23" stroke="currentColor" stroke-width="4" fill="transparent"
+                                        [attr.stroke-dasharray]="144"
+                                        [attr.stroke-dashoffset]="144 - (144 * weeklySessionPercent / 100)"
+                                        class="text-gosport-orange drop-shadow-[0_0_8px_rgba(255,107,0,0.5)] transition-all duration-1000"
+                                        stroke-linecap="round" />
+                                </svg>
+                                <div class="absolute inset-0 flex items-center justify-center">
+                                    <span class="text-xs font-black text-white">{{ weeklySessionPercent }}%</span>
+                                </div>
+                            </div>
+                            <div class="text-left">
+                                <p class="text-white font-black text-lg leading-none">{{ weekSessionsDone }}<span class="text-slate-500 font-bold text-sm">/{{ weekDays.length }}</span></p>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Sessions</p>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="flex-1 space-y-6 text-center lg:text-left">
-                        <div>
-                            <h2 class="text-3xl font-display font-bold text-white italic tracking-wide uppercase mb-2">Getting Started Guide</h2>
-                            <p class="text-slate-400 text-sm max-w-xl">Welcome to <span class="text-gosport-orange font-bold italic">GoSport</span>. Follow these steps to unlock your full potential and start your personalized coaching journey.</p>
+                    <!-- Day bars -->
+                    <div class="grid grid-cols-7 gap-2 mb-8">
+                        <div *ngFor="let day of weekDays; let i = index" class="flex flex-col items-center gap-2">
+                            <!-- Bar -->
+                            <div class="relative w-full h-16 rounded-xl overflow-hidden bg-white/5 border border-white/5">
+                                <div class="absolute bottom-0 left-0 right-0 rounded-xl transition-all duration-700"
+                                    [style.height]="hasSessionOn(day) ? '100%' : (isToday(day) ? '20%' : '0%')"
+                                    [ngClass]="hasSessionOn(day) ? 'bg-gradient-to-t from-gosport-orange to-orange-400 shadow-[0_0_12px_rgba(255,107,0,0.4)]' : 'bg-gosport-orange/20'">
+                                </div>
+                                <lucide-icon *ngIf="hasSessionOn(day)" name="check" class="absolute inset-0 m-auto w-4 h-4 text-white" [strokeWidth]="3"></lucide-icon>
+                                <div *ngIf="isToday(day) && !hasSessionOn(day)" class="absolute inset-0 flex items-center justify-center">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-gosport-orange animate-pulse"></div>
+                                </div>
+                            </div>
+                            <!-- Label -->
+                            <span class="text-[10px] font-black uppercase tracking-wider"
+                                [ngClass]="isToday(day) ? 'text-gosport-orange' : 'text-slate-600'">{{ day | date:'EEE' | slice:0:1 }}</span>
+                            <span class="text-[10px] font-bold"
+                                [ngClass]="isToday(day) ? 'text-white' : 'text-slate-600'">{{ day | date:'d' }}</span>
+                        </div>
+                    </div>
+
+                    <!-- KPI row -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Streak -->
+                        <div class="flex flex-col gap-1 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-gosport-orange/20 transition-colors">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-6 h-6 rounded-lg bg-gosport-orange/15 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5 text-gosport-orange" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd" />
+                                    </svg>
+                                </span>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Streak</span>
+                            </div>
+                            <p class="text-2xl font-display font-black text-white italic leading-none">{{ currentStreak }}<span class="text-sm text-slate-500 font-bold ml-1">j</span></p>
+                            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">{{ currentStreak > 0 ? 'Continuez !' : 'Démarrez !' }}</p>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div *ngFor="let step of onboardingSteps" 
-                                [routerLink]="step.link"
-                                [queryParams]="step.queryParams"
-                                [class.cursor-pointer]="step.link"
-                                class="relative p-5 rounded-2xl transition-all duration-300 border group overflow-hidden"
-                                [ngClass]="step.completed ? 'bg-gosport-lime/5 border-gosport-lime/20' : 'bg-white/5 border-white/5 hover:border-white/10 hover:bg-white/[0.07]'">
-                                
-                                <div class="flex items-center gap-3 mb-2">
-                                    <div class="w-6 h-6 rounded-full flex items-center justify-center border transition-all"
-                                        [ngClass]="step.completed ? 'bg-gosport-lime border-gosport-lime text-gosport-dark shadow-[0_0_10px_rgba(163,230,53,0.4)]' : 'border-white/20 text-white/20 group-hover:border-white/40'">
-                                        <lucide-icon [name]="step.completed ? 'check' : 'circle'" class="w-3 h-3" [strokeWidth]="3" />
-                                    </div>
-                                    <h3 class="font-bold text-sm tracking-tight transition-colors" [ngClass]="step.completed ? 'text-gosport-lime' : 'text-white/80 group-hover:text-white'">{{ step.label }}</h3>
-                                </div>
-                                <p class="text-[10px] leading-relaxed transition-colors" [ngClass]="step.completed ? 'text-gosport-lime/60' : 'text-slate-500 group-hover:text-slate-400'">{{ step.description }}</p>
-                                
-                                <lucide-icon *ngIf="step.link && !step.completed" name="chevron-right" class="absolute top-5 right-5 w-3 h-3 text-white/20 group-hover:text-white/40 group-hover:translate-x-1 transition-all" />
+                        <!-- Adherence -->
+                        <div class="flex flex-col gap-1 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-gosport-lime/20 transition-colors">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-6 h-6 rounded-lg bg-gosport-lime/10 flex items-center justify-center">
+                                    <lucide-icon name="trending-up" class="w-3.5 h-3.5 text-gosport-lime"></lucide-icon>
+                                </span>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Assiduité</span>
                             </div>
+                            <p class="text-2xl font-display font-black text-white italic leading-none">{{ adherencePercent }}<span class="text-sm text-slate-500 font-bold ml-0.5">%</span></p>
+                            <div class="h-1 w-full rounded-full bg-white/5 overflow-hidden mt-1">
+                                <div class="h-full rounded-full bg-gosport-lime transition-all duration-700 shadow-[0_0_6px_rgba(163,230,53,0.4)]"
+                                    [style.width.%]="adherencePercent"></div>
+                            </div>
+                        </div>
+
+                        <!-- Total sessions -->
+                        <div class="flex flex-col gap-1 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-blue-500/20 transition-colors">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                    <lucide-icon name="dumbbell" class="w-3.5 h-3.5 text-blue-400"></lucide-icon>
+                                </span>
+                                <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total</span>
+                            </div>
+                            <p class="text-2xl font-display font-black text-white italic leading-none">{{ completedSessions }}</p>
+                            <p class="text-[10px] text-slate-600 font-bold uppercase tracking-wider">Sessions complètes</p>
                         </div>
                     </div>
                 </div>

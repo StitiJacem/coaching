@@ -4,7 +4,7 @@
 \newpage
 
 \section{Introduction}
-Dans le chapitre précédent, nous avons analysé le contexte général de notre projet et défini le cadre méthodologique Agile Scrum. Dans ce deuxième chapitre, nous entrons au cœur de l'ingénierie logicielle. Nous allons d’abord identifier avec précision les différents acteurs de notre système, pour ensuite dégager de manière exhaustive les besoins fonctionnels et non fonctionnels de notre projet. Ces besoins seront traduits sous la forme d'un Product Backlog priorisé structuré en 5 Sprints. Enfin, nous procèderons à une modélisation poussée via le diagramme de cas d'utilisation global et présenterons les choix d'architecture de l'application.
+Dans le chapitre précédent, nous avons analysé le contexte général de notre projet et défini le cadre méthodologique Agile Scrum. Dans ce deuxième chapitre, nous entrons au cœur de l'ingénierie logicielle. Nous allons d’abord identifier avec précision les différents acteurs de notre système, pour ensuite dégager de manière exhaustive les besoins fonctionnels et non fonctionnels de notre projet. Ces besoins seront traduits sous la forme d'un Product Backlog priorisé structuré en 4 Sprints. Enfin, nous procèderons à une modélisation poussée via le diagramme de cas d'utilisation global et présenterons les choix d'architecture de l'application.
 
 \section{Rôles Scrum}
 Dans le cadre de ce projet, l'organisation du travail s'appuie sur les rôles fondamentaux de Scrum afin de clarifier les responsabilités et de faciliter le suivi de l'avancement.
@@ -95,14 +95,13 @@ La priorisation du Product Backlog est réalisée selon la méthode MoSCoW, qui 
 & & 3.3 & Athlète & ETQ athlète, je veux consulter l'historique de mes séances effectuées. & Should \\ \hline
 4 & \multirow{2}{3cm}{Nutrition \& Objectifs}
 & 4.1 & Coach & ETQ coach, je veux bâtir des plans diététiques (Diet Builder). & Should \\ \cline{3-6}
-& & 4.2 & Athlète & ETQ athlète, je veux logger mes repas et suivre mes objectifs de macros. & Should \\ \hline
-5 & \multirow{3}{3cm}{Interactivité \& IA}
-& 5.1 & Tous & ETQ utilisateur, je veux chatter en temps réel avec mon coach/athlète. & Should \\ \cline{3-6}
-& & 5.2 & Tous & ETQ utilisateur, je veux réserver des séances et lancer un appel visio. & Could \\ \cline{3-6}
-& & 5.3 & Coach/Ath & ETQ utilisateur, je veux consulter le copilote IA pour des conseils. & Could \\ \hline
+& & 4.2 & Athlète & ETQ athlète, je veux logger mes repas et suivre mes objectifs de macros. & Should \\ \cline{3-6}
+& & 4.3 & Coach/Ath & ETQ utilisateur, je veux consulter le copilote IA pour des conseils. & Could \\ \cline{3-6}
+& & 4.4 & Tous & ETQ utilisateur, je veux chatter en temps réel avec mon coach/athlète. & Should \\ \cline{3-6}
+& & 4.5 & Tous & ETQ utilisateur, je veux réserver des séances et lancer un appel visio. & Could \\ \hline
 \end{tabular}%
 }
-\caption{Product Backlog détaillé en 5 Sprints}
+\caption{Product Backlog détaillé en 4 Sprints}
 \end{table}
 
 \section{Identification des sprints}
@@ -119,8 +118,7 @@ Le découpage en sprints permet de transformer progressivement les besoins en in
 Sprint 1 & Socle technique et authentification & Inscription, connexion, JWT, Google OAuth, onboarding utilisateur. \\ \hline
 Sprint 2 & Mise en relation & Recherche de coachs et nutritionnistes, demandes de coaching, validation ou refus des demandes. \\ \hline
 Sprint 3 & Entraînement & Catalogue d'exercices, création de programmes, assignation et exécution des séances. \\ \hline
-Sprint 4 & Nutrition et santé & Plans diététiques, journal alimentaire, suivi des objectifs nutritionnels et physiologiques. \\ \hline
-Sprint 5 & Communication et assistance & Messagerie instantanée, notifications, visioconférence, copilote IA. \\ \hline
+Sprint 4 & Nutrition, Communication et IA & Plans diététiques, journal alimentaire, messagerie instantanée, visioconférence, copilote IA. \\ \hline
 \end{tabular}%
 }
 \caption{Partitionnement des user stories par sprint}

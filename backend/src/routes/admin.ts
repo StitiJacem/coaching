@@ -10,8 +10,8 @@ router.use(authenticateToken);
 router.use(isAdmin);
 
 router.get("/users", AdminController.getAllUsers);
-router.put("/users/role", AdminController.updateUserRole);
 router.delete("/users/:id", AdminController.deleteUser);
 router.get("/stats", AdminController.getStats);
+router.get("/recent-users", AdminController.getRecentUsers);
 
 export default router;
