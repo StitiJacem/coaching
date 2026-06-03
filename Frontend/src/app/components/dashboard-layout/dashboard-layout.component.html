@@ -1,6 +1,21 @@
-<div class="flex min-h-screen bg-gosport-dark text-white font-sans">
+<div class="flex min-h-screen bg-gosport-dark text-white font-sans relative overflow-hidden">
+    
+    <!-- Sophisticated Mesh Background -->
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <!-- Main deep gradient -->
+        <div class="absolute inset-0 bg-[#020617]"></div>
+        
+        <!-- Subtle theme-matched glows -->
+        <div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-gosport-orange/5 rounded-full blur-[120px]"></div>
+        <div class="absolute top-[20%] -right-[5%] w-[30%] h-[30%] bg-blue-900/10 rounded-full blur-[100px]"></div>
+        <div class="absolute -bottom-[10%] left-[20%] w-[50%] h-[50%] bg-[#111a2e]/20 rounded-full blur-[150px]"></div>
+        
+        <!-- Surface texture/noise (optional but adds premium feel) -->
+        <div class="absolute inset-0 opacity-[0.015] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+    </div>
 
-    <div class="hidden md:block">
+    <!-- Content remains in relative z-10 -->
+    <div class="hidden md:block relative z-10">
         <app-sidebar></app-sidebar>
     </div>
 
@@ -26,18 +41,53 @@
                 </button>
 
 
-                <div class="hidden md:flex items-center relative">
-                    <svg class="w-4 h-4 text-slate-500 absolute left-3" fill="none" stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input type="text" [placeholder]="searchPlaceholders[roleService.currentRole]"
-                        class="bg-slate-900/50 border border-slate-800 rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-gosport-orange w-72 transition-colors">
-                </div>
+                <!-- Removed Search Bar as requested -->
             </div>
 
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3">
+                <!-- Language Switcher -->
+                <div class="relative group">
+                    <button (click)="toggleLanguage()" class="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 rounded-xl transition-all">
+                        <span class="text-xs font-bold">{{ currentLang === 'fr' ? 'FR' : 'EN' }}</span>
+                        <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <div *ngIf="langOpen" class="absolute right-0 mt-2 w-24 bg-gosport-surface border border-gosport-border rounded-xl shadow-2xl z-[60] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                        <button (click)="setLanguage('fr')" class="w-full px-4 py-2 text-left text-xs font-bold hover:bg-white/5 transition-colors" [class.text-gosport-orange]="currentLang === 'fr'">Français</button>
+                        <button (click)="setLanguage('en')" class="w-full px-4 py-2 text-left text-xs font-bold hover:bg-white/5 transition-colors" [class.text-gosport-orange]="currentLang === 'en'">English</button>
+                    </div>
+                </div>
+
+                <!-- Messaging Popup Trigger -->
+                <div class="relative">
+                    <button (click)="toggleMessaging()" class="p-2 text-slate-400 hover:text-white transition-colors relative group">
+                        <lucide-icon name="message-circle" class="w-5 h-5"></lucide-icon>
+                        <span *ngIf="unreadMessages > 0" class="absolute top-1 right-1 w-2 h-2 bg-gosport-orange rounded-full"></span>
+                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-0 h-0.5 bg-gosport-orange group-hover:w-full transition-all"></div>
+                    </button>
+                    
+                    <!-- Messaging Popup -->
+                    <div *ngIf="messagingOpen" class="absolute right-0 mt-2 w-[400px] h-[550px] bg-gosport-surface border border-gosport-border rounded-2xl shadow-2xl z-[60] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                        <div class="p-4 border-b border-gosport-border bg-gosport-dark/50 flex items-center justify-between">
+                            <h3 class="font-black text-sm text-white tracking-tight uppercase">Messages</h3>
+                            <div class="flex items-center gap-2">
+                                <button (click)="messagingOpen = false" class="p-1.5 text-slate-500 hover:text-white hover:bg-white/5 rounded-lg transition-colors">
+                                    <lucide-icon name="x" class="w-4 h-4"></lucide-icon>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex-1 overflow-hidden relative">
+                            <!-- Integrated Messaging Component -->
+                            <app-messaging-view [isPopup]="true"></app-messaging-view>
+                        </div>
+                        <div class="p-3 bg-gosport-dark/30 border-t border-gosport-border text-center">
+                            <a routerLink="/dashboard/messaging" (click)="messagingOpen = false" class="text-[10px] font-black uppercase tracking-widest text-gosport-orange hover:text-white transition-colors">Ouvrir en plein écran</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="h-6 w-px bg-slate-800 mx-1"></div>
 
                 <div class="relative">
                     <button (click)="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-white transition-colors">

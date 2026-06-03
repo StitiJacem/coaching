@@ -39,7 +39,16 @@ export class ProfileComponent implements OnInit {
     confirmPassword: ''
   };
   
-  athleteForm: any = {};
+  athleteForm: any = {
+    weight: null,
+    height: null,
+    sport: '',
+    primaryObjective: '',
+    targetMetric: '',
+    experienceLevel: 'beginner',
+    equipment: 'gym',
+    notes: ''
+  };
   coachForm: any = {};
   
   isLoading = false;

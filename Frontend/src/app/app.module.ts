@@ -46,6 +46,7 @@ import { JwtInterceptor } from './interceptors/jwt.interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ToastComponent } from './components/toast/toast.component';
 import { ConfirmComponent } from './components/confirm/confirm.component';
+import { MessagingViewComponent } from './components/messaging-view/messaging-view.component';
 
 @NgModule({
   declarations: [
@@ -152,7 +153,8 @@ import { ConfirmComponent } from './components/confirm/confirm.component';
     DietaryProfileComponent,
     DietBuilderComponent,
     ToastComponent,
-    ConfirmComponent
+    ConfirmComponent,
+    MessagingViewComponent
   ],
   providers: [
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true }

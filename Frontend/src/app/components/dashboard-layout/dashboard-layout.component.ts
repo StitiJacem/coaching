@@ -2,20 +2,28 @@ import { Component, OnInit } from '@angular/core';
 import { RoleService } from '../../services/role.service';
 import { NotificationService, Notification } from '../../services/notification.service';
 import { NutritionService } from '../../services/nutrition.service';
+import { ChatService } from '../../services/chat.service';
 
 import { CommonModule } from '@angular/common';
 import { SidebarComponent } from '../sidebar/sidebar.component';
+import { RouterModule } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
+import { MessagingViewComponent } from '../messaging-view/messaging-view.component';
 
 @Component({
     selector: 'app-dashboard-layout',
     standalone: true,
-    imports: [CommonModule, SidebarComponent],
+    imports: [CommonModule, SidebarComponent, RouterModule, LucideAngularModule, MessagingViewComponent],
     templateUrl: './dashboard-layout.component.html',
     styleUrls: ['./dashboard-layout.component.css']
 })
 export class DashboardLayoutComponent implements OnInit {
     mobileMenuOpen = false;
     notificationsOpen = false;
+    langOpen = false;
+    messagingOpen = false;
+    currentLang = 'fr';
+    unreadMessages = 0;
     notifications: Notification[] = [];
     unreadCount = 0;
     processingIds = new Set<number>();
@@ -40,11 +48,41 @@ export class DashboardLayoutComponent implements OnInit {
     constructor(
         public roleService: RoleService,
         private notificationService: NotificationService,
-        private nutritionService: NutritionService
+        private nutritionService: NutritionService,
+        private chatService: ChatService
     ) { }
 
     ngOnInit(): void {
+        this.currentLang = localStorage.getItem('lang') || 'fr';
         this.loadNotifications();
+        
+        this.chatService.conversations$.subscribe(convs => {
+            this.unreadMessages = convs.filter(c => c.unread).length;
+        });
+    }
+
+    toggleLanguage(): void {
+        this.langOpen = !this.langOpen;
+        if (this.langOpen) {
+            this.notificationsOpen = false;
+            this.messagingOpen = false;
+        }
+    }
+
+    setLanguage(lang: string): void {
+        this.currentLang = lang;
+        localStorage.setItem('lang', lang);
+        this.langOpen = false;
+        window.location.reload();
+    }
+
+    toggleMessaging(): void {
+        this.messagingOpen = !this.messagingOpen;
+        if (this.messagingOpen) {
+            this.notificationsOpen = false;
+            this.langOpen = false;
+            this.chatService.refreshConversations();
+        }
     }
 
     loadNotifications(): void {
@@ -58,7 +96,11 @@ export class DashboardLayoutComponent implements OnInit {
 
     toggleNotifications(): void {
         this.notificationsOpen = !this.notificationsOpen;
-        if (this.notificationsOpen) this.loadNotifications();
+        if (this.notificationsOpen) {
+            this.messagingOpen = false;
+            this.langOpen = false;
+            this.loadNotifications();
+        }
     }
 
     markAsRead(notification: Notification): void {

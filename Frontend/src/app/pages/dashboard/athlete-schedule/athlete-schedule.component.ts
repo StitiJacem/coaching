@@ -5,56 +5,53 @@ import { AthleteService, Athlete } from '../../../services/athlete.service';
 import { RoleService } from '../../../services/role.service';
 import { ToastService } from '../../../services/toast.service';
 import { DashboardLayoutComponent } from '../../../components/dashboard-layout/dashboard-layout.component';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
     selector: 'app-athlete-schedule',
     standalone: true,
-    imports: [CommonModule, DashboardLayoutComponent, HttpClientModule],
+    imports: [CommonModule, DashboardLayoutComponent, HttpClientModule, LucideAngularModule],
     template: `
     <app-dashboard-layout>
-      <div class="max-w-4xl mx-auto py-12 px-6">
-        <div class="mb-12">
-          <h1 class="text-4xl font-display font-black text-white uppercase italic mb-4">My Training Schedule</h1>
-          <p class="text-slate-400 font-bold uppercase tracking-widest text-xs">Select the days you are ready and available to train. Your coach will use this to plan your workouts.</p>
+      <div class="max-w-4xl mx-auto py-8 px-6">
+        <div class="mb-8">
+          <h1 class="text-xl md:text-2xl font-black text-white uppercase tracking-tight italic mb-2">My Training Schedule</h1>
+          <p class="text-slate-500 font-bold uppercase tracking-widest text-[9px]">Select your availability. Your coach will plan accordingly.</p>
         </div>
 
-        <div class="bg-gosport-surface border border-gosport-border rounded-[2.5rem] p-10 shadow-2xl">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div class="elevation-1 light-border rounded-[2rem] p-8 md:p-10 shadow-2xl">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div>
-              <h3 class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-6">Availability</h3>
-              <div class="space-y-3">
+              <h3 class="text-gosport-orange font-black uppercase tracking-widest text-[9px] mb-6">Weekly Availability</h3>
+              <div class="space-y-2.5">
                 <button *ngFor="let day of days; let i = index"
                   (click)="toggleDay(i)"
                   [ngClass]="{
-                    'bg-gosport-orange text-white shadow-gosport-orange/20': selectedDays.includes(i),
+                    'bg-gosport-orange text-white shadow-lg shadow-gosport-orange/20': selectedDays.includes(i),
                     'bg-black/40 text-slate-500 border border-white/5': !selectedDays.includes(i)
                   }"
-                  class="w-full flex items-center justify-between p-5 rounded-2xl font-black uppercase tracking-widest text-sm transition-all transform active:scale-[0.98] hover:shadow-xl">
+                  class="w-full flex items-center justify-between p-4 rounded-xl font-bold uppercase tracking-wider text-xs transition-all active:scale-[0.98]">
                   <span>{{ day }}</span>
-                  <div *ngIf="selectedDays.includes(i)" class="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
-                    </svg>
+                  <div *ngIf="selectedDays.includes(i)" class="w-5 h-5 bg-white/20 rounded-full flex items-center justify-center">
+                    <lucide-icon name="check" class="w-3 h-3 text-white"></lucide-icon>
                   </div>
                 </button>
               </div>
             </div>
 
-            <div class="flex flex-col justify-center space-y-8 p-8 bg-black/20 rounded-3xl border border-white/5">
+            <div class="flex flex-col justify-center space-y-6 p-8 bg-black/20 rounded-[2rem] border border-white/5">
               <div class="text-center space-y-4">
-                <div class="w-16 h-16 bg-gosport-orange/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg class="w-8 h-8 text-gosport-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
+                <div class="w-12 h-12 bg-gosport-orange/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <lucide-icon name="calendar" class="w-6 h-6 text-gosport-orange"></lucide-icon>
                 </div>
-                <h4 class="text-xl font-display font-black text-white uppercase italic">Why this matters?</h4>
-                <p class="text-slate-400 text-sm font-medium leading-relaxed">By setting your training days, you ensure that your coach only assigns workouts when you're actually ready to put in the work.</p>
+                <h4 class="text-lg font-black text-white uppercase tracking-tight">Why set this?</h4>
+                <p class="text-slate-500 text-xs font-medium leading-relaxed">It ensures your coach only assigns workouts when you're available to train, maximizing consistency.</p>
               </div>
 
-              <div class="pt-8">
+              <div class="pt-4">
                 <button (click)="saveSchedule()" [disabled]="isSaving"
-                  class="w-full py-5 bg-gosport-orange text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-gosport-orange/30 hover:bg-orange-600 transition-all transform active:scale-95 disabled:opacity-50">
-                  {{ isSaving ? 'Saving Changes...' : 'Save My Schedule' }}
+                  class="btn-premium bg-gosport-orange text-white w-full py-4 text-xs">
+                  {{ isSaving ? 'Saving...' : 'Save My Schedule' }}
                 </button>
               </div>
             </div>

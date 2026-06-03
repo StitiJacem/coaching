@@ -4,11 +4,12 @@ import { RoleService, UserRole } from '../../services/role.service';
 import { AuthService } from '../../services/auth.service';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { LucideAngularModule, LogOut } from 'lucide-angular';
 
 @Component({
     selector: 'app-sidebar',
     standalone: true,
-    imports: [CommonModule, RouterModule],
+    imports: [CommonModule, RouterModule, LucideAngularModule],
     templateUrl: './sidebar.component.html',
     styleUrls: ['./sidebar.component.css']
 })

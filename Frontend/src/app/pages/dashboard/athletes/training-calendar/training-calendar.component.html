@@ -1,91 +1,74 @@
 <app-dashboard-layout>
-    <div class="space-y-8 animate-fade-in">
-        <header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div class="flex items-center gap-6">
-                <div
-                    class="w-20 h-20 rounded-3xl bg-gosport-orange/10 border border-gosport-orange/20 flex items-center justify-center text-gosport-orange">
-                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
+    <div class="space-y-6 animate-fade-in">
+        <header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-gosport-orange/10 border border-gosport-orange/20 flex items-center justify-center text-gosport-orange">
+                    <lucide-icon name="calendar" class="w-6 h-6" />
                 </div>
                 <div *ngIf="isMasterMode" class="flex flex-col">
-                    <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">Master Program
-                        Planner</p>
+                    <p class="text-gosport-orange font-black uppercase tracking-widest text-[9px] mb-1">Master Planner</p>
                     <input type="text" [(ngModel)]="programTitle" placeholder="Program Title"
-                        class="bg-transparent border-none text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tight leading-none focus:outline-none focus:border-b-2 focus:border-gosport-orange placeholder:text-slate-700 w-full md:w-[500px]">
+                        class="bg-transparent border-none text-xl md:text-2xl font-black text-white tracking-tight leading-none focus:outline-none focus:border-b focus:border-gosport-orange placeholder:text-slate-700 w-full md:w-[400px]">
                 </div>
                 <div *ngIf="isPreviewMode" class="flex flex-col">
-                    <p class="text-gosport-orange font-black uppercase tracking-[0.2em] text-[10px] mb-2">Consult &
-                        Accept Program</p>
-                    <h1
-                        class="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tight leading-none">
+                    <p class="text-gosport-orange font-black uppercase tracking-widest text-[9px] mb-1">Preview & Accept</p>
+                    <h1 class="text-xl md:text-2xl font-black text-white tracking-tight leading-none">
                         {{ programTitle }}
                     </h1>
                 </div>
+                <div *ngIf="!isMasterMode && !isPreviewMode" class="flex flex-col">
+                    <p class="text-slate-500 font-black uppercase tracking-widest text-[9px] mb-1">Training</p>
+                    <h1 class="text-xl md:text-2xl font-black text-white tracking-tight leading-none">Calendar</h1>
+                </div>
             </div>
 
-            <div class="flex items-center gap-4 bg-black/20 p-2 rounded-2xl border border-white/5">
+            <div class="flex items-center gap-2 bg-black/20 p-1.5 rounded-xl border border-white/5">
                 <button (click)="setViewMode('1 Week')" [class.bg-gosport-orange]="viewMode === '1 Week'"
-                    class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:text-white">1
-                    Week</button>
+                    class="px-4 py-1.5 rounded-lg font-bold uppercase tracking-widest text-[9px] transition-all">1W</button>
                 <button (click)="setViewMode('2 Week')" [class.bg-gosport-orange]="viewMode === '2 Week'"
-                    class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:text-white">2
-                    Week</button>
+                    class="px-4 py-1.5 rounded-lg font-bold uppercase tracking-widest text-[9px] transition-all">2W</button>
                 <button (click)="setViewMode('4 Week')" [class.bg-gosport-orange]="viewMode === '4 Week'"
-                    class="px-5 py-2.5 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all hover:text-white">Month</button>
+                    class="px-4 py-1.5 rounded-lg font-bold uppercase tracking-widest text-[9px] transition-all">Month</button>
             </div>
         </header>
 
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
                 <button (click)="setToday()"
-                    class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">Today</button>
-                <div class="flex items-center gap-2 bg-black/20 p-2 rounded-xl">
-                    <button (click)="prevRange()" class="p-2 text-slate-400 hover:text-white transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                d="M15 19l-7-7 7-7" />
-                        </svg>
+                    class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all">Today</button>
+                <div class="flex items-center gap-1 bg-black/20 p-1 rounded-xl border border-white/5">
+                    <button (click)="prevRange()" class="p-1.5 text-slate-500 hover:text-white transition-all">
+                        <lucide-icon name="chevron-left" class="w-4 h-4" />
                     </button>
-                    <span class="text-white font-black uppercase text-xs tracking-widest min-w-[200px] text-center">{{
-                        formatDateRange() }}</span>
-                    <button (click)="nextRange()" class="p-2 text-slate-400 hover:text-white transition-all">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
-                        </svg>
+                    <span class="text-white font-black uppercase text-[10px] tracking-widest min-w-[150px] text-center">{{ formatDateRange() }}</span>
+                    <button (click)="nextRange()" class="p-1.5 text-slate-500 hover:text-white transition-all">
+                        <lucide-icon name="chevron-right" class="w-4 h-4" />
                     </button>
                 </div>
             </div>
 
-            <button (click)="router.navigate(['/dashboard'])"
-                class="flex items-center gap-2 px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 transition-all">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
-                </svg>
-                Back
-            </button>
-            <!-- Coach-only Management Actions -->
-            <ng-container *ngIf="roleService.currentRole === 'coach'">
-                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="bundleCurrentCalendarIntoProgram()" [disabled]="isAssigning"
-                    class="h-10 px-6 rounded-xl bg-gosport-orange text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-gosport-orange/20 hover:scale-105 transition-all">
-                    + Assign Program
+            <div class="flex items-center gap-2">
+                <button (click)="router.navigate(['/dashboard'])"
+                    class="flex items-center gap-2 px-4 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] border border-white/5 text-slate-500 hover:text-white transition-all">
+                    <lucide-icon name="arrow-left" class="w-3 h-3" /> Back
                 </button>
-                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="clearCalendar()"
-                    class="h-10 px-6 rounded-xl border-2 border-red-500 text-red-500 font-black uppercase tracking-widest text-xs hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10"
-                    title="Clear all upcoming sessions to fix duplicates or start over">
-                    Clear Calendar
+                
+                <ng-container *ngIf="roleService.currentRole === 'coach'">
+                    <button *ngIf="!isMasterMode && !isPreviewMode" (click)="bundleCurrentCalendarIntoProgram()" [disabled]="isAssigning"
+                        class="btn-premium bg-gosport-orange text-white">
+                        <lucide-icon name="plus" class="w-3.5 h-3.5" /> Assign
+                    </button>
+                    <button *ngIf="!isMasterMode && !isPreviewMode" (click)="clearCalendar()"
+                        class="px-4 py-2 rounded-xl border border-red-500/30 text-red-500 font-black uppercase tracking-widest text-[10px] hover:bg-red-500 hover:text-white transition-all">
+                        Clear
+                    </button>
+                </ng-container>
+
+                <button *ngIf="isMasterMode" (click)="saveMasterPlanner()"
+                    class="btn-premium bg-gosport-orange text-white">
+                    Save Template
                 </button>
-                <button *ngIf="!isMasterMode && !isPreviewMode" (click)="openTemplateLibrary()"
-                    class="h-10 px-6 rounded-xl bg-slate-800 text-slate-400 border border-slate-700 font-black uppercase tracking-widest text-xs hover:border-gosport-orange hover:text-white transition-all">
-                    <lucide-icon name="library" class="w-4 h-4 mr-2 inline-block"></lucide-icon>
-                    Apply Blueprint
-                </button>
-            </ng-container>
-            <button *ngIf="isMasterMode" (click)="saveMasterPlanner()"
-                class="bg-gosport-orange text-white px-6 py-2.5 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-gosport-orange/20 hover:bg-orange-600 active:scale-95 transition-all">
-                Save Template
-            </button>
+            </div>
         </div>
 
 
