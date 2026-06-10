@@ -47,7 +47,7 @@ export class ExerciseService {
         }
 
         if (this._isFetching) {
-            // Wait a moment for the initial fetch to finish if multiple requests hit simultaneously
+           
             await new Promise(resolve => setTimeout(resolve, 500));
             if (this._libraryCache.length > 0) return;
         }
@@ -55,7 +55,6 @@ export class ExerciseService {
         this._isFetching = true;
         try {
             console.log('[ExerciseService] Fetching library from WorkoutX API...');
-            // We fetch up to 2000 to ensure we get all ~1324 exercises in one go to save quota
             const response = await axios.get('https://api.workoutxapp.com/v1/exercises?limit=2000', {
                 headers: { 'X-WorkoutX-Key': this.workoutXKey }
             });
@@ -63,7 +62,6 @@ export class ExerciseService {
             if (response.data && Array.isArray(response.data.data)) {
                 this._libraryCache = response.data.data.map((ex: any) => ({
                     ...ex,
-                    // Proxy the GIF to avoid API quota limits and auth header issues on the frontend
                     gifUrl: `/api/exercises/gif/${ex.id}`
                 }));
                 this._cacheTimestamp = Date.now();

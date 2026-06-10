@@ -6,16 +6,12 @@ import { Program } from "../entities/Program";
 import { NutritionistProfile } from "../entities/NutritionistProfile";
 import { NutritionConnection } from "../entities/NutritionConnection";
 
-/**
- * Reusable authorization helper: coaches/nutritionists can only access athletes they are
- * linked to (accepted coaching request/connection OR program). Athletes can only access themselves.
- */
+
 export async function canAccessAthlete(user: { id: number; role: string }, athleteId: number): Promise<boolean> {
     if (user.role === "athlete") {
         const athleteRepo = AppDataSource.getRepository(Athlete);
         const athlete = await athleteRepo.findOne({ where: { userId: user.id } });
         if (!athlete) return Number(user.id) === Number(athleteId);
-        // Access granted if it matches their athlete PK OR their user PK (sidebar fallback)
         return Number(athlete.id) === Number(athleteId) || Number(user.id) === Number(athleteId);
     }
 

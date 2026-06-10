@@ -65,7 +65,7 @@ export class AuthService {
             const athleteProfile = new Athlete();
             athleteProfile.userId = savedUser.id;
             athleteProfile.lastActive = new Date();
-            athleteProfile.preferredTrainingDays = [0, 1, 2, 3, 4]; // Default: Monday to Friday
+            athleteProfile.preferredTrainingDays = [0, 1, 2, 3, 4];
             await AppDataSource.getRepository(Athlete).save(athleteProfile);
         }
 
@@ -104,7 +104,6 @@ export class AuthService {
             { expiresIn: '7d' }
         );
 
-        // Enrich user response with role-specific profile IDs
         let athleteId: number | null = null;
         let nutritionistProfileId: string | null = null;
 

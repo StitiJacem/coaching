@@ -16,12 +16,10 @@ export async function notifyUser(
         const repo = AppDataSource.getRepository(Notification);
         const notification = await repo.save(repo.create({ userId, type, title, body, payload }));
 
-        // Emit via socket for real-time in-app notifications
         try {
             const io = SocketService.getIO();
             io.to(`user_${userId}`).emit("notification", notification);
         } catch (socketErr) {
-            // Socket might not be initialized or user not connected
             console.log(`[Socket] Could not emit notification to user ${userId}`);
         }
     } catch (err) {

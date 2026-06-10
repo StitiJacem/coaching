@@ -119,6 +119,8 @@ class DashboardRepository {
     } catch (e) {
       throw ApiException.fromDioError(e);
     }
+  }
+
   /// GET /api/athletes/:id/overview
   Future<Map<String, dynamic>> getAthleteOverview(int athleteId) async {
     try {

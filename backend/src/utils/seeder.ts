@@ -37,7 +37,6 @@ export const seedDatabase = async () => {
         coach.onboarding_completed = true;
         await userRepo.save(coach);
 
-        // --- NEW ADMIN USER ---
         const admin = new User();
         admin.first_name = "System";
         admin.last_name = "Admin";
@@ -93,7 +92,7 @@ export const seedDatabase = async () => {
             athlete.user = user;
             athlete.sport = data.sport;
             athlete.lastActive = new Date();
-            athlete.preferredTrainingDays = [0, 1, 2, 3, 4]; // Default: Monday to Friday
+            athlete.preferredTrainingDays = [0, 1, 2, 3, 4];
             await athleteRepo.save(athlete);
 
 

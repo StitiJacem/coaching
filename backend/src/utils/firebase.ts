@@ -1,7 +1,5 @@
 import admin from 'firebase-admin';
 
-// Check if Firebase service account is available in the environment
-// Usually this is a path to the JSON file or the JSON string itself.
 const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
 
 let isFirebaseInitialized = false;

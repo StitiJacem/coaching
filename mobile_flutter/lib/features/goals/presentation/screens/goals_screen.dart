@@ -89,10 +89,10 @@ class _GoalsScreenState extends ConsumerState<GoalsScreen> {
               backgroundColor: AppColors.background,
               surfaceTintColor: Colors.transparent,
               titleSpacing: 16,
-              title: const Column(
+              title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('YOUR PROFILE',
+                  const Text('YOUR PROFILE',
                       style: TextStyle(
                           color: AppColors.textMuted,
                           fontSize: 11,

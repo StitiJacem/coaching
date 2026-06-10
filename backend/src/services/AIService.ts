@@ -3,9 +3,6 @@ import axios from "axios";
 import path from "path";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Types
-// ─────────────────────────────────────────────────────────────────────────────
 
 export interface NutritionData {
   calories: number;
@@ -27,9 +24,6 @@ export interface FoodAnalysisResult {
   source: "vision+edamam" | "vision+gemini" | "gemini-only";
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Constants — Generic labels to filter out from Cloud Vision results
-// ─────────────────────────────────────────────────────────────────────────────
 
 const GENERIC_FOOD_LABELS = new Set([
   "food",
@@ -69,18 +63,8 @@ const GENERIC_FOOD_LABELS = new Set([
   "baked goods",
 ]);
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 1 — Google Cloud Vision: detect food labels from image buffer
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Sends the image to Google Cloud Vision API (labelDetection) and returns
- * only high-confidence, specific food item names (score >= 0.70).
- *
- * Auth: uses the service account JSON pointed to by GOOGLE_APPLICATION_CREDENTIALS.
- */
 async function detectFoodLabelsWithVision(imageBuffer: Buffer): Promise<string[]> {
-  // Resolve credentials: prefer env path, fall back to file bundled in the project
   const credentialsPath =
     process.env.GOOGLE_APPLICATION_CREDENTIALS ??
     path.resolve(__dirname, "../../gosport-ai-credentials.json");
@@ -99,7 +83,6 @@ async function detectFoodLabelsWithVision(imageBuffer: Buffer): Promise<string[]
     labels.map((l) => `${l.description} (${((l.score ?? 0) * 100).toFixed(0)}%)`).join(", ")
   );
 
-  // Filter: score >= 70% AND not in the generic list
   const filtered = labels
     .filter((l) => (l.score ?? 0) >= 0.7 && !GENERIC_FOOD_LABELS.has((l.description ?? "").toLowerCase()))
     .map((l) => (l.description ?? "").toLowerCase().trim())
@@ -109,29 +92,20 @@ async function detectFoodLabelsWithVision(imageBuffer: Buffer): Promise<string[]
   return filtered;
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 2A — Edamam: fetch nutrition data for a food item list
-// ─────────────────────────────────────────────────────────────────────────────
 
 interface EdamamHint {
   food: {
     label: string;
     nutrients: {
-      ENERC_KCAL?: number; // Calories
-      PROCNT?: number;     // Protein (g)
-      CHOCDF?: number;     // Carbs (g)
-      FAT?: number;        // Fat (g)
+      ENERC_KCAL?: number;
+      PROCNT?: number;
+      CHOCDF?: number;
+      FAT?: number;
     };
   };
   measures?: { label: string; weight: number }[];
 }
 
-/**
- * Queries the Edamam Food Database API for nutritional data for a combined
- * food description string (e.g. "chicken breast rice broccoli").
- *
- * Returns aggregated macros scaled to the estimated portion size.
- */
 async function fetchNutritionFromEdamam(
   foodItems: string[],
   portionGrams: number
@@ -143,7 +117,6 @@ async function fetchNutritionFromEdamam(
     throw new Error("EDAMAM_APP_ID or EDAMAM_APP_KEY is not configured.");
   }
 
-  // Query each food item separately and aggregate
   let totalCalories = 0;
   let totalProtein = 0;
   let totalCarbs = 0;
@@ -169,11 +142,8 @@ async function fetchNutritionFromEdamam(
         continue;
       }
 
-      // Take the best match (first hint)
       const best = hints[0].food.nutrients;
 
-      // Edamam returns per-100g values — scale to per portion share
-      // We divide total portion equally among detected foods
       const portionShare = portionGrams / foodItems.length;
       const scaleFactor = portionShare / 100;
 
@@ -203,9 +173,6 @@ async function fetchNutritionFromEdamam(
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 2B — Gemini fallback: nutrition estimation when Edamam fails
-// ─────────────────────────────────────────────────────────────────────────────
 
 async function estimateNutritionWithGemini(
   foodItems: string[],
@@ -245,10 +212,6 @@ async function estimateNutritionWithGemini(
   }
 }
 
-/**
- * Multimodal Fallback: If Google Vision fails, Gemini can analyze the image directly.
- * It detects the foods AND provides nutritional data in a single pass.
- */
 async function analyzeFullImageWithGemini(
   imageBuffer: Buffer,
   mimeType: string
@@ -309,35 +272,17 @@ async function analyzeFullImageWithGemini(
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Step 3 — Portion estimation helper
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Derives a portion size estimate from the number of detected food items.
- * The frontend or controller can override this with real image metadata later.
- */
+
 function estimatePortion(foodCount: number): PortionSize {
-  // Heuristic: more distinct items → larger plate
   if (foodCount <= 1) return { estimate: "small", grams: 150 };
   if (foodCount <= 3) return { estimate: "medium", grams: 300 };
   return { estimate: "large", grams: 500 };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Public API
-// ─────────────────────────────────────────────────────────────────────────────
 
-/**
- * Main entry point.
- *
- * Flow:
- *   1. Google Cloud Vision → detect food labels
- *   2. Filter generic labels
- *   3. Edamam API → fetch nutrition for detected items
- *      └─ If Edamam fails/unavailable → Gemini text fallback
- *   4. Return structured result
- */
+
+
 export async function analyzeFoodImage(
   imageBuffer: Buffer,
   mimeType: string = "image/jpeg"
@@ -346,7 +291,7 @@ export async function analyzeFoodImage(
     `[AIService] Starting analysis — image size: ${(imageBuffer.length / 1024).toFixed(1)} KB`
   );
 
-  // ── Step 1: Vision API ─────────────────────────────────────────────────────
+
   let detectedFoods: string[] = [];
   let useFullGeminiFallback = false;
 
@@ -361,10 +306,8 @@ export async function analyzeFoodImage(
     useFullGeminiFallback = true;
   }
 
-  // ── Step 1.5: Handle Full Gemini Fallback (if Vision failed completely) ───
   if (useFullGeminiFallback) {
     try {
-      // If Vision failed, we use Gemini's vision capability to do EVERYTHING at once
       const geminiResult = await analyzeFullImageWithGemini(imageBuffer, mimeType);
       console.log("[AIService] Full analysis resolved via Gemini (Vision API was unavailable).");
       return geminiResult;
@@ -385,11 +328,9 @@ export async function analyzeFoodImage(
     };
   }
 
-  // ── Step 2: Portion estimation ─────────────────────────────────────────────
   const portion = estimatePortion(detectedFoods.length);
   console.log(`[AIService] Portion estimate: ${portion.estimate} (${portion.grams}g)`);
 
-  // ── Step 3: Nutrition lookup ───────────────────────────────────────────────
   let nutrition: NutritionData;
   let source: FoodAnalysisResult["source"] = "vision+edamam";
 
@@ -410,21 +351,16 @@ export async function analyzeFoodImage(
     nutrition = await estimateNutritionWithGemini(detectedFoods, portion.grams);
   }
 
-  // ── Confidence rating ──────────────────────────────────────────────────────
   const confidence: FoodAnalysisResult["confidence"] =
     detectedFoods.length >= 3 ? "high" : detectedFoods.length === 2 ? "medium" : "low";
 
   console.log(
     `[AIService] Done — foods: [${detectedFoods.join(", ")}] | ` +
-      `${nutrition.calories} kcal | confidence: ${confidence} | source: ${source}`
+    `${nutrition.calories} kcal | confidence: ${confidence} | source: ${source}`
   );
 
   return { detectedFoods, portion, nutrition, confidence, source };
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Utility export (used by tests)
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function filterGenericLabels(foods: string[]): string[] {
   return foods

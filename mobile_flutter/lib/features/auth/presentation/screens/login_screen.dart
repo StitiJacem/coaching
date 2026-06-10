@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -84,7 +85,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 color: AppColors.primary.withValues(alpha: 0.08),
               ),
               child: BackdropFilter(
-                filter: const ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
                 child: const SizedBox(),
               ),
             ),
@@ -100,7 +101,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 color: AppColors.secondary.withValues(alpha: 0.07),
               ),
               child: BackdropFilter(
-                filter: const ImageFilter.blur(sigmaX: 80, sigmaY: 80),
+                filter: ImageFilter.blur(sigmaX: 80, sigmaY: 80),
                 child: const SizedBox(),
               ),
             ),

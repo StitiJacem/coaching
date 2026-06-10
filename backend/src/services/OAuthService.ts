@@ -29,8 +29,7 @@ export class OAuthService {
             const payload = response.data;
             const clientId = process.env.GOOGLE_CLIENT_ID;
             
-            // debug log removed
-            // debug log removed
+
 
             if (payload.aud !== clientId) {
                 console.error(`[ERROR] Google Auth - Client ID mismatch!`);
@@ -124,7 +123,7 @@ export class OAuthService {
             offer_types?: string[];
             photo_url?: string;
             phone?: string;
-            // Athlete specific
+
             height?: number;
             weight?: number;
             sport?: string;

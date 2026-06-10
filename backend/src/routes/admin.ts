@@ -5,7 +5,6 @@ import { isAdmin } from "../middleware/adminMiddleware";
 
 const router = Router();
 
-// All routes here are protected by both auth and admin check
 router.use(authenticateToken);
 router.use(isAdmin);
 

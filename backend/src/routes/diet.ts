@@ -7,10 +7,8 @@ import { Athlete } from '../entities/Athlete';
 const router = Router();
 const dietController = new DietController();
 
-// Redirect legacy routes to unified /api/nutrition
 router.post('/plans', authenticateToken, (req, res) => dietController.createPlan(req, res));
 
-// Legacy /my-plan: resolves athleteId from the JWT user, then delegates
 router.get('/my-plan', authenticateToken, async (req, res) => {
     try {
         const userId = (req as any).user.id;

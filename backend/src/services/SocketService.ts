@@ -19,7 +19,6 @@ export class SocketService {
             }
         });
 
-        // Middleware for authentication
         this.io.use((socket, next) => {
             let token = socket.handshake.auth?.token || socket.handshake.query?.token;
             
@@ -27,7 +26,6 @@ export class SocketService {
                 return next(new Error("Authentication error: No token provided"));
             }
 
-            // Remove Bearer prefix if present
             if (typeof token === 'string' && token.startsWith('Bearer ')) {
                 token = token.slice(7);
             }
@@ -49,7 +47,6 @@ export class SocketService {
             
             console.log(`[Socket] User ${userId} (${role}) connected: ${socket.id}`);
 
-            // Send initial state
             await this.sendInitialState(socket);
 
             socket.on("join_room", (room: string) => {
@@ -85,7 +82,6 @@ export class SocketService {
 
                     const messageRepository = AppDataSource.getRepository(Message);
 
-                    // Save message
                     const newMessage = messageRepository.create({
                         conversationId: data.conversationId,
                         senderId: data.senderId,
@@ -93,16 +89,11 @@ export class SocketService {
                     });
                     await messageRepository.save(newMessage);
 
-                    // Update conversation last message
                     await conversationRepository.update(data.conversationId, {
                         lastMessageContent: data.content,
                         lastMessageAt: new Date()
                     });
-
-                    // Emit to room
                     this.io.to(data.conversationId).emit("new_message", newMessage);
-                    
-                    // Also notify participants to update their conversation list (for last message preview)
                     this.io.to(`user_${conversation.participant1Id}`).emit("refresh_conversations");
                     this.io.to(`user_${conversation.participant2Id}`).emit("refresh_conversations");
                 } catch (error) {
@@ -123,7 +114,6 @@ export class SocketService {
                     }
 
                     const messageRepository = AppDataSource.getRepository(Message);
-                    // Mark all messages as read where sender is NOT the current user
                     await messageRepository.createQueryBuilder()
                         .update(Message)
                         .set({ isRead: true })
@@ -131,7 +121,6 @@ export class SocketService {
                         .andWhere("senderId != :userId", { userId })
                         .execute();
 
-                    // Notify the room that messages were read
                     this.io.to(data.conversationId).emit("messages_read", { 
                         conversationId: data.conversationId, 
                         readBy: userId 
@@ -141,7 +130,6 @@ export class SocketService {
                 }
             });
 
-            // Join personal room for notifications
             socket.join(`user_${userId}`);
 
             socket.on("disconnect", () => {

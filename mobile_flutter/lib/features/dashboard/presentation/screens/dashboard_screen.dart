@@ -63,7 +63,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
       final isAthlete = user.role == AppConstants.roleAthlete;
       final isCoach = user.role == AppConstants.roleCoach;
 
-      final results = await Future.wait([
+      final results = await Future.wait(<Future<dynamic>>[
         isAthlete ? repo.getAthleteStats(user.id) : repo.getStats(role: user.role),
         notifRepo.getUnreadCount(),
         repo.getRecentPRs(role: user.role),
@@ -243,11 +243,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
     if (h < 17) return 'Good afternoon 👋';
     return 'Good evening 👋';
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Supporting Widgets
-// ─────────────────────────────────────────────────────────────────────────────
 
   Widget _buildHeroSection(user, stats) {
     final isAthlete = user?.role == AppConstants.roleAthlete;
@@ -319,7 +314,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
             const Text("BIOMÉTRIE & PERF", style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.5)),
             GestureDetector(
               onTap: () => _showAddMetricModal(),
-              child: const Text("LOG DATA +", style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w900, italic: true)),
+              child: const Text("LOG DATA +", style: TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
             ),
           ],
         ),
@@ -422,7 +417,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("LOG NEW BIOMETRICS", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, italic: true)),
+              const Text("LOG NEW BIOMETRICS", style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, fontStyle: FontStyle.italic)),
               const SizedBox(height: 32),
               TextField(
                 controller: weightController,
@@ -467,7 +462,185 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
       ),
     );
   }
-}
+
+  // ── App bar ──────────────────────────────────────────────────────────────────
+  Widget _buildAppBar(BuildContext context, user, int unreadCount) {
+    return SliverAppBar(
+      floating: true,
+      pinned: false,
+      backgroundColor: AppColors.background,
+      surfaceTintColor: Colors.transparent,
+      titleSpacing: 20,
+      title: Text(
+        _greeting(),
+        style: const TextStyle(
+          color: AppColors.textMuted,
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      actions: [
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.notifications_outlined, color: AppColors.textSecondary, size: 26),
+              onPressed: () => context.push('/notifications'),
+            ),
+            if (unreadCount > 0)
+              Positioned(
+                right: 10,
+                top: 10,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  // ── Stats grid ───────────────────────────────────────────────────────────────
+  Widget _buildStatsGrid(bool isCoach, Map<String, dynamic>? stats) {
+    if (stats == null || stats.isEmpty) return const SizedBox.shrink();
+
+    List<Map<String, dynamic>> tiles;
+    if (isCoach) {
+      tiles = [
+        {'label': 'ATHLETES', 'value': '${stats['totalAthletes'] ?? 0}', 'icon': Icons.group_rounded, 'color': AppColors.primary},
+        {'label': 'PROGRAMS', 'value': '${stats['totalPrograms'] ?? 0}', 'icon': Icons.assignment_rounded, 'color': AppColors.accent},
+        {'label': 'SESSIONS TODAY', 'value': '${stats['todaySessions'] ?? 0}', 'icon': Icons.today_rounded, 'color': AppColors.success},
+        {'label': 'ADHERENCE', 'value': '${stats['adherencePercent'] ?? 0}%', 'icon': Icons.trending_up_rounded, 'color': AppColors.warning},
+      ];
+    } else {
+      tiles = [
+        {'label': 'WORKOUTS', 'value': '${stats['totalWorkouts'] ?? 0}', 'icon': Icons.fitness_center_rounded, 'color': AppColors.primary},
+        {'label': 'THIS WEEK', 'value': '${stats['weeklyWorkouts'] ?? 0}', 'icon': Icons.calendar_view_week_rounded, 'color': AppColors.accent},
+        {'label': 'STREAK', 'value': '${stats['streak'] ?? 0}d', 'icon': Icons.local_fire_department_rounded, 'color': Colors.orangeAccent},
+        {'label': 'ADHERENCE', 'value': '${stats['adherenceRate'] ?? 0}%', 'icon': Icons.trending_up_rounded, 'color': AppColors.success},
+      ];
+    }
+
+    return GridView.count(
+      crossAxisCount: 2,
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.6,
+      children: tiles.map((t) => StatCard(
+        label: t['label'] as String,
+        value: t['value'] as String,
+        icon: t['icon'] as IconData,
+        color: t['color'] as Color,
+      )).toList(),
+    );
+  }
+
+  // ── Weekly schedule ──────────────────────────────────────────────────────────
+  Widget _buildWeeklySchedule() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('THIS WEEK', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+        const SizedBox(height: 16),
+        _WeeklyScheduleCard(sessions: _weeklySessions, weekStart: _weekStart()),
+      ],
+    );
+  }
+
+  // ── Today workout ────────────────────────────────────────────────────────────
+  Widget _buildTodayWorkout() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text("TODAY'S SESSION", style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+        const SizedBox(height: 16),
+        _StartSessionBanner(
+          workout: _todayWorkout,
+          onStart: _startSession,
+        ),
+        const SizedBox(height: 16),
+        _TodayWorkoutCard(data: _todayWorkout),
+        if (_pendingPrograms.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          const Text('PENDING PROGRAMS', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+          const SizedBox(height: 12),
+          ..._pendingPrograms.map((p) => _PendingProgramTile(program: p as Map<String, dynamic>)),
+        ],
+      ],
+    );
+  }
+
+  // ── Pending requests (coach) ─────────────────────────────────────────────────
+  Widget _buildPendingRequests() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('PENDING REQUESTS', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+            if (_pendingRequests.isNotEmpty)
+              Text('${_pendingRequests.length}', style: const TextStyle(color: AppColors.primary, fontSize: 11, fontWeight: FontWeight.w900)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (_pendingRequests.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
+            child: const Center(child: Text('No pending requests', style: TextStyle(color: AppColors.textMuted, fontSize: 13))),
+          )
+        else
+          ..._pendingRequests.map((r) => _InvitationCard(
+                request: r as Map<String, dynamic>,
+                isCoach: true,
+                onAccept: () => _handleRequest(r['id'].toString(), 'accepted'),
+                onReject: () => _handleRequest(r['id'].toString(), 'rejected'),
+              )),
+      ],
+    );
+  }
+
+  // ── Recent athletes (coach) ──────────────────────────────────────────────────
+  Widget _buildRecentAthletes() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('RECENT ATHLETES', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+        const SizedBox(height: 16),
+        if (_recentAthletes.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.cardBorder)),
+            child: const Center(child: Text('No athletes yet', style: TextStyle(color: AppColors.textMuted, fontSize: 13))),
+          )
+        else
+          ..._recentAthletes.map((a) => _RecentAthleteTile(athlete: a as Map<String, dynamic>)),
+      ],
+    );
+  }
+
+  // ── Activity log ─────────────────────────────────────────────────────────────
+  Widget _buildActivityLog(bool isCoach) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('RECENT ACTIVITY', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
+        const SizedBox(height: 16),
+        _ActivityLog(prs: _recentPRs, isCoach: isCoach),
+      ],
+    );
+  }
+} // end _DashboardScreenState
+
 
 class _WeeklyScheduleCard extends StatelessWidget {
   final List<dynamic> sessions;
@@ -1430,6 +1603,14 @@ class _StartSessionBanner extends StatelessWidget {
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _MetricCard extends StatelessWidget {
   final String label;
   final String value;

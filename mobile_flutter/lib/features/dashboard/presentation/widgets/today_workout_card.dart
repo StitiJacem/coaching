@@ -18,7 +18,7 @@ class TodayWorkoutCard extends StatelessWidget {
         gradient: LinearGradient(
           colors: [
             AppColors.primary.withValues(alpha: 0.9),
-            AppColors.primaryDark,
+            AppColors.primary.withValues(alpha: 0.6),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,

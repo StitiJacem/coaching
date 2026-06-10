@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { WorkoutLogService, WorkoutLog, ExerciseLog } from '../../../services/workout-log.service';
+import { ExerciseService } from '../../../services/exercise.service';
 
 @Component({
     selector: 'app-workout-player',
@@ -39,6 +40,7 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
         private route: ActivatedRoute,
         private router: Router,
         private workoutLogService: WorkoutLogService,
+        private exerciseService: ExerciseService,
         private sanitizer: DomSanitizer
     ) { }
 
@@ -75,6 +77,35 @@ export class WorkoutPlayerComponent implements OnInit, OnDestroy {
                 }
                 
                 this.exercises = rawExercises.sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0)) || [];
+                
+                // Normalize exercise properties to handle different schemas (ProgramExercise vs Session workoutData)
+                this.exercises.forEach(ex => {
+                    if (!ex.exercise_name && ex.name) {
+                        ex.exercise_name = ex.name;
+                    }
+                    if (!ex.exercise_gif && ex.gifUrl) {
+                        ex.exercise_gif = ex.gifUrl;
+                    }
+                    if (!ex.exercise_id && ex.id && typeof ex.id === 'string') {
+                        ex.exercise_id = ex.id;
+                    }
+                });
+
+                // Fetch missing gifs from database
+                this.exercises.forEach(ex => {
+                    if (!ex.exercise_gif && ex.exercise_id) {
+                        this.exerciseService.getById(ex.exercise_id).subscribe({
+                            next: (fullEx) => {
+                                if (fullEx && fullEx.gifUrl) {
+                                    ex.exercise_gif = fullEx.gifUrl;
+                                    ex.gifUrl = fullEx.gifUrl;
+                                }
+                            },
+                            error: (err) => console.error('Error fetching exercise gif:', err)
+                        });
+                    }
+                });
+
                 this.isLoading = false;
                 
                 // Do not start timer or init sets until they pick an exercise from the map
