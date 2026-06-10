@@ -29,7 +29,7 @@ import { CardComponent } from './components/ui/card/card.component';
 import { BadgeComponent } from './components/ui/badge/badge.component';
 import { ButtonComponent } from './components/ui/button/button.component';
 import { AvatarComponent } from './components/ui/avatar/avatar.component';
-import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, XCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight, Scan, RefreshCw, Info, History, Sparkles, Circle, X, HelpCircle, Dumbbell, Target, Box, Ruler, Scale, LineChart, Percent, Shield, Briefcase, Edit3, Calendar, ChevronDown, Save, Lock, Key, Mail, Tag, PlusCircle } from 'lucide-angular';
+import { LucideAngularModule, Plus, ArrowRight, ArrowLeft, Clock, Search, User, LogOut, AlertCircle, MapPin, Activity, Edit2, AlertTriangle, Star, Award, CheckCircle, XCircle, Camera, Phone, MessageSquare, MessageCircle, Users, Video, MoreVertical, Smile, Send, Zap, ShieldCheck, Check, CheckCheck, ChevronRight, Scan, RefreshCw, Info, History, Sparkles, Circle, X, HelpCircle, Dumbbell, Target, Box, Ruler, Scale, LineChart, Percent, Shield, Briefcase, Edit3, Calendar, ChevronDown, Save, Lock, Key, Mail, Tag, PlusCircle, BarChart3, Trash2, Settings, Apple, Layout, UserCheck, UserPlus, UsersRound } from 'lucide-angular';
 import { DiscoveryComponent } from './pages/dashboard/discovery/discovery.component';
 import { WorkoutPlayerComponent } from './pages/dashboard/workout-player/workout-player.component';
 import { WorkoutHistoryComponent } from './pages/dashboard/workout-history/workout-history.component';
@@ -132,7 +132,15 @@ import { ConfirmComponent } from './components/confirm/confirm.component';
       Key,
       Mail,
       Tag,
-      PlusCircle
+      PlusCircle,
+      BarChart3,
+      Trash2,
+      Settings,
+      Apple,
+      Layout,
+      UserCheck,
+      UserPlus,
+      UsersRound
     }),
     StatsCardComponent,
     CardComponent,

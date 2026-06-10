@@ -29,6 +29,11 @@ import '../../features/nutrition/presentation/screens/nutrition_screen.dart';
 import '../../features/nutrition/presentation/screens/meal_scan_screen.dart';
 import '../../features/programs/presentation/screens/program_builder_screen.dart';
 import '../../features/programs/presentation/screens/program_detail_screen.dart';
+import '../../features/nutritionist/presentation/screens/nutritionist_clients_screen.dart';
+import '../../features/nutritionist/presentation/screens/nutritionist_client_detail_screen.dart';
+import '../../features/nutritionist/presentation/screens/nutritionist_plans_screen.dart';
+import '../../features/nutritionist/presentation/screens/nutritionist_plan_detail_screen.dart';
+import '../../features/nutritionist/presentation/screens/nutritionist_plan_builder_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -101,6 +106,9 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(path: '/specialists',   builder: (_, _) => const SpecialistsScreen()),
           GoRoute(path: '/notifications', builder: (_, _) => const NotificationsScreen()),
           GoRoute(path: '/profile',       builder: (_, _) => const ProfileScreen()),
+          // ── Nutritionist shell routes ──────────────────────────────────
+          GoRoute(path: '/nutritionist/clients', builder: (_, _) => const NutritionistClientsScreen()),
+          GoRoute(path: '/nutritionist/plans',   builder: (_, _) => const NutritionistPlansScreen()),
         ],
       ),
 
@@ -108,6 +116,23 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/nutrition/scan', builder: (_, _) => const MealScanScreen()),
       GoRoute(path: '/sessions',       builder: (_, _) => const SessionsScreen()),
       GoRoute(path: '/workout-history', builder: (_, _) => const WorkoutHistoryScreen()),
+      // ── Nutritionist full-screen routes ──────────────────────────────────
+      GoRoute(
+        path: '/nutritionist/clients/:id',
+        builder: (context, state) => NutritionistClientDetailScreen(
+          athleteId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        ),
+      ),
+      GoRoute(
+        path: '/nutritionist/plans/create',
+        builder: (_, _) => const NutritionistPlanBuilderScreen(),
+      ),
+      GoRoute(
+        path: '/nutritionist/plans/:id',
+        builder: (context, state) => NutritionistPlanDetailScreen(
+          planId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
+        ),
+      ),
       GoRoute(
         path: '/workouts/:id/play',
         builder: (context, state) => WorkoutPlayerScreen(

@@ -47,8 +47,11 @@ export class UserManagementComponent implements OnInit {
   }
 
   async deleteUser(user: any): Promise<void> {
+    const displayName = (user.first_name || user.last_name) 
+      ? `${user.first_name || ''} ${user.last_name || ''}`.trim() 
+      : 'cet utilisateur';
     const confirmed = await this.confirmService.danger(
-      `Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${user.first_name} ${user.last_name} ? Cette action est irréversible.`,
+      `Êtes-vous sûr de vouloir supprimer définitivement l'utilisateur ${displayName} ? Cette action est irréversible.`,
       'Supprimer Utilisateur'
     );
     

@@ -51,4 +51,16 @@ export class AdminService {
       headers: this.getHeaders()
     });
   }
+
+  getAnalytics(filters?: { period?: string; role?: string; status?: string }): Observable<any> {
+    let params: any = {};
+    if (filters?.period) params.period = filters.period;
+    if (filters?.role) params.role = filters.role;
+    if (filters?.status) params.status = filters.status;
+
+    return this.http.get(`${this.apiUrl}/analytics`, {
+      headers: this.getHeaders(),
+      params
+    });
+  }
 }

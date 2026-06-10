@@ -1,0 +1,241 @@
+<app-dashboard-layout>
+  <div class="space-y-6">
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-display font-bold text-white uppercase tracking-wider">
+        Paramètres <span class="text-gosport-orange">GoSport</span>
+      </h1>
+      <p class="text-xs text-slate-400 mt-1">Gérez les informations, la sécurité et les préférences de la plateforme.</p>
+    </div>
+
+    <!-- Main Settings Form Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <!-- LEFT COLUMN -->
+      <div class="space-y-6">
+        
+        <!-- CARD 1: Profil Administrateur -->
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-3 border-b border-gosport-border/30 pb-3">
+            <div class="w-8 h-8 rounded-lg bg-gosport-orange/10 flex items-center justify-center text-gosport-orange">
+              <lucide-angular name="user" size="18"></lucide-angular>
+            </div>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Profil Administrateur</h2>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Full Name -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nom Complet</label>
+              <input type="text" [(ngModel)]="adminName" 
+                     placeholder="Nom de l'administrateur" 
+                     class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-gosport-orange focus:outline-none w-full transition-colors">
+            </div>
+
+            <!-- Email -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Adresse Email</label>
+              <input type="email" [(ngModel)]="adminEmail" 
+                     placeholder="email@gosport.tn" 
+                     class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white placeholder:text-slate-600 focus:border-gosport-orange focus:outline-none w-full transition-colors">
+            </div>
+
+            <!-- Role (Read Only) -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Rôle système</label>
+              <div class="flex items-center justify-between bg-slate-900/30 border border-slate-800/80 rounded-xl px-4 py-2.5 text-sm text-slate-400 cursor-not-allowed">
+                <span>{{ adminRole }}</span>
+                <span class="text-[9px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400 px-2 py-0.5 rounded-full">
+                  Privilège Max
+                </span>
+              </div>
+            </div>
+
+            <!-- Edit profile button -->
+            <div class="pt-2">
+              <button (click)="updateProfile()" 
+                      class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all">
+                Modifier le profil
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 3: Préférences Plateforme -->
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-3 border-b border-gosport-border/30 pb-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-400/10 flex items-center justify-center text-emerald-400">
+              <lucide-angular name="settings" size="18"></lucide-angular>
+            </div>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Préférences Plateforme</h2>
+          </div>
+
+          <div class="space-y-4">
+            <!-- App Name -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nom de l'application</label>
+              <input type="text" [(ngModel)]="appName" 
+                     placeholder="GOSPORT" 
+                     class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gosport-orange focus:outline-none w-full transition-colors">
+            </div>
+
+            <!-- Default Language & Theme -->
+            <div class="grid grid-cols-2 gap-4">
+              <!-- Langue -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Langue par défaut</label>
+                <select [(ngModel)]="defaultLanguage" 
+                        class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gosport-orange focus:outline-none w-full cursor-pointer transition-colors">
+                  <option value="fr">Français (FR)</option>
+                  <option value="en">English (EN)</option>
+                </select>
+              </div>
+
+              <!-- Thème -->
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Thème Visuel</label>
+                <select [(ngModel)]="defaultTheme" 
+                        class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gosport-orange focus:outline-none w-full cursor-pointer transition-colors">
+                  <option value="dark">Sombre (GOSPORT Dark)</option>
+                  <option value="light" disabled>Clair (Non disponible)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Items Per Page selector -->
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nombre d'éléments par page</label>
+              <select [(ngModel)]="itemsPerPage" 
+                      class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2.5 text-sm text-white focus:border-gosport-orange focus:outline-none w-full cursor-pointer transition-colors">
+                <option [value]="10">10 éléments par défaut</option>
+                <option [value]="25">25 éléments par défaut</option>
+                <option [value]="50">50 éléments par défaut</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="space-y-6">
+        
+        <!-- CARD 2: Sécurité -->
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-3 border-b border-gosport-border/30 pb-3">
+            <div class="w-8 h-8 rounded-lg bg-purple-400/10 flex items-center justify-center text-purple-400">
+              <lucide-angular name="lock" size="18"></lucide-angular>
+            </div>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Sécurité du Compte</h2>
+          </div>
+
+          <div class="space-y-4">
+            <!-- Email Verification Status Badge -->
+            <div class="flex justify-between items-center bg-slate-900/20 border border-slate-800 p-3.5 rounded-xl text-xs">
+              <div>
+                <p class="font-bold text-white">Vérification de l'email</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Statut de sécurité de l'adresse de contact</p>
+              </div>
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-wider"
+                    [ngClass]="isEmailVerified ? 'bg-emerald-400/10 text-emerald-400' : 'bg-gosport-orange/10 text-gosport-orange'">
+                <div class="w-1.5 h-1.5 rounded-full" [ngClass]="isEmailVerified ? 'bg-emerald-400' : 'bg-gosport-orange'"></div>
+                {{ isEmailVerified ? 'Vérifié' : 'En attente' }}
+              </span>
+            </div>
+
+            <!-- Password Change block -->
+            <div class="space-y-3 pt-1">
+              <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Changer le mot de passe</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <input type="password" [(ngModel)]="newPassword" 
+                       placeholder="Nouveau mot de passe" 
+                       class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:border-gosport-orange focus:outline-none transition-colors">
+                
+                <input type="password" [(ngModel)]="confirmPassword" 
+                       placeholder="Confirmer" 
+                       class="bg-slate-900/50 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white placeholder:text-slate-600 focus:border-gosport-orange focus:outline-none transition-colors">
+              </div>
+              <div>
+                <button (click)="changePassword()" 
+                        class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl transition-all">
+                  Mettre à jour le mot de passe
+                </button>
+              </div>
+            </div>
+
+            <!-- Disconnect other sessions -->
+            <div class="border-t border-gosport-border/30 pt-4 flex justify-between items-center">
+              <div>
+                <p class="text-xs font-bold text-white">Sessions actives</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Se déconnecter de tous les autres navigateurs</p>
+              </div>
+              <button (click)="disconnectAllDevices()" 
+                      class="text-xs font-bold text-red-400 hover:text-red-500 transition-colors uppercase tracking-wider">
+                Déconnecter
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- CARD 4: Notifications / Alertes -->
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-3 border-b border-gosport-border/30 pb-3">
+            <div class="w-8 h-8 rounded-lg bg-sky-400/10 flex items-center justify-center text-sky-400">
+              <lucide-angular name="bell" size="18"></lucide-angular>
+            </div>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Notifications Plateforme</h2>
+          </div>
+
+          <div class="divide-y divide-gosport-border/30 space-y-3.5">
+            <!-- Switch 1: New Users -->
+            <div class="flex justify-between items-center pt-1.5">
+              <div class="pr-4">
+                <p class="text-xs font-bold text-white">Nouveaux utilisateurs</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Alerte système lors de l'enregistrement de comptes</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" [(ngModel)]="notifyNewUsers" class="sr-only peer">
+                <div class="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-gosport-orange peer-checked:after:bg-white peer-checked:after:border-white"></div>
+              </label>
+            </div>
+
+            <!-- Switch 2: New Programs -->
+            <div class="flex justify-between items-center pt-3.5">
+              <div class="pr-4">
+                <p class="text-xs font-bold text-white">Nouveaux programmes</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Notifications de publication de plans par les coachs</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" [(ngModel)]="notifyNewPrograms" class="sr-only peer">
+                <div class="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-gosport-orange peer-checked:after:bg-white peer-checked:after:border-white"></div>
+              </label>
+            </div>
+
+            <!-- Switch 3: Unverified Accounts -->
+            <div class="flex justify-between items-center pt-3.5">
+              <div class="pr-4">
+                <p class="text-xs font-bold text-white">Comptes non vérifiés</p>
+                <p class="text-[10px] text-slate-500 mt-0.5">Rappels périodiques sur les comptes en attente d'activation</p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" [(ngModel)]="notifyUnverifiedAccounts" class="sr-only peer">
+                <div class="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-gosport-orange peer-checked:after:bg-white peer-checked:after:border-white"></div>
+              </label>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Global Save Action -->
+    <div class="flex justify-end pt-4">
+      <button (click)="saveGlobalSettings()" 
+              class="bg-gosport-orange hover:bg-orange-600 text-white font-bold text-sm uppercase tracking-wider px-8 py-3 rounded-xl transition-all shadow-lg shadow-gosport-orange/20 flex items-center gap-2">
+        <lucide-angular name="save" size="16"></lucide-angular>
+        Enregistrer les paramètres
+      </button>
+    </div>
+  </div>
+</app-dashboard-layout>

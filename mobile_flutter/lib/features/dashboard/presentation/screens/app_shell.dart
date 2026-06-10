@@ -153,6 +153,14 @@ class AppShell extends ConsumerWidget {
           _NavItem(Icons.calendar_month_rounded, 'Schedule', '/schedule'),
           _NavItem(Icons.bar_chart_rounded, 'Analytics', '/analytics'),
         ];
+      case AppConstants.roleNutritionist:
+        return [
+          _NavItem(Icons.dashboard_rounded, 'Home', '/dashboard'),
+          _NavItem(Icons.people_alt_rounded, 'Clients', '/nutritionist/clients'),
+          _NavItem(Icons.restaurant_menu_rounded, 'Plans', '/nutritionist/plans'),
+          _NavItem(Icons.restaurant_rounded, 'Nutrition', '/nutrition'),
+          _NavItem(Icons.person_rounded, 'Profile', '/profile'),
+        ];
       case AppConstants.roleAthlete:
       default:
         return [

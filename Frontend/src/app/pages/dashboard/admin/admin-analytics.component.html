@@ -1,0 +1,339 @@
+<app-dashboard-layout>
+  <div class="space-y-6">
+    <!-- Header & Filters -->
+    <div class="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-display font-bold text-white uppercase tracking-wider">
+          Analyses & <span class="text-gosport-orange">Statistiques</span>
+        </h1>
+        <p class="text-xs text-slate-400 mt-1">Analyse détaillée de l'activité, de la croissance et des performances de la plateforme.</p>
+      </div>
+
+      <!-- Filters Row -->
+      <div class="flex flex-wrap gap-3 items-center">
+        <!-- Period Filter -->
+        <div class="flex items-center bg-slate-900 border border-gosport-border rounded-xl px-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2">Période</span>
+          <select [(ngModel)]="period" (change)="onFilterChange()"
+                  class="bg-transparent text-sm text-white py-2 pr-4 outline-none cursor-pointer border-none font-bold">
+            <option value="all">Tout l'historique</option>
+            <option value="week">7 derniers jours</option>
+            <option value="month">30 derniers jours</option>
+            <option value="year">12 derniers mois</option>
+          </select>
+        </div>
+
+        <!-- Role Filter -->
+        <div class="flex items-center bg-slate-900 border border-gosport-border rounded-xl px-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2">Rôle</span>
+          <select [(ngModel)]="role" (change)="onFilterChange()"
+                  class="bg-transparent text-sm text-white py-2 pr-4 outline-none cursor-pointer border-none font-bold">
+            <option value="">Tous les rôles</option>
+            <option value="athlete">Athlète</option>
+            <option value="coach">Coach</option>
+            <option value="nutritionist">Nutritionniste</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="flex items-center bg-slate-900 border border-gosport-border rounded-xl px-2">
+          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider px-2">Statut</span>
+          <select [(ngModel)]="status" (change)="onFilterChange()"
+                  class="bg-transparent text-sm text-white py-2 pr-4 outline-none cursor-pointer border-none font-bold">
+            <option value="">Tous les statuts</option>
+            <option value="verified">Vérifiés uniquement</option>
+            <option value="pending">En attente uniquement</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex flex-col items-center justify-center py-24 space-y-4">
+      <div class="w-12 h-12 border-4 border-gosport-orange/20 border-t-gosport-orange rounded-full animate-spin"></div>
+      <p class="text-slate-400 text-sm italic">Calcul des statistiques en cours...</p>
+    </div>
+
+    <!-- Main Analytics Content -->
+    <div *ngIf="!isLoading && data" class="space-y-6 animate-fade-in">
+      
+      <!-- Metric Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Total Users -->
+        <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/30 transition-all">
+          <div class="absolute top-0 right-0 p-3 opacity-[0.06] group-hover:opacity-[0.10] transition-opacity">
+            <lucide-angular name="users" size="40" class="text-white"></lucide-angular>
+          </div>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Utilisateurs</p>
+          <h3 class="text-3xl font-display font-bold text-white">{{ data.cards.totalUsers || 0 }}</h3>
+          <p class="text-[10px] text-slate-400 mt-1">comptes enregistrés</p>
+        </div>
+
+        <!-- Coaches -->
+        <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/30 transition-all">
+          <div class="absolute top-0 right-0 p-3 opacity-[0.06] group-hover:opacity-[0.10] transition-opacity">
+            <lucide-angular name="award" size="40" class="text-white"></lucide-angular>
+          </div>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Coachs</p>
+          <h3 class="text-3xl font-display font-bold text-white">{{ data.cards.totalCoaches || 0 }}</h3>
+          <p class="text-[10px] text-slate-400 mt-1">professionnels actifs</p>
+        </div>
+
+        <!-- Athletes -->
+        <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/30 transition-all">
+          <div class="absolute top-0 right-0 p-3 opacity-[0.06] group-hover:opacity-[0.10] transition-opacity">
+            <lucide-angular name="activity" size="40" class="text-white"></lucide-angular>
+          </div>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Athlètes</p>
+          <h3 class="text-3xl font-display font-bold text-white">{{ data.cards.totalAthletes || 0 }}</h3>
+          <p class="text-[10px] text-slate-400 mt-1">sportifs suivis</p>
+        </div>
+
+        <!-- Nutritionists -->
+        <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/30 transition-all">
+          <div class="absolute top-0 right-0 p-3 opacity-[0.06] group-hover:opacity-[0.10] transition-opacity">
+            <lucide-angular name="apple" size="40" class="text-white"></lucide-angular>
+          </div>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Nutritionnistes</p>
+          <h3 class="text-3xl font-display font-bold text-white">{{ data.cards.totalNutritionists || 0 }}</h3>
+          <p class="text-[10px] text-slate-400 mt-1">diététiciens inscrits</p>
+        </div>
+
+        <!-- New this month -->
+        <div class="bg-gosport-surface border border-gosport-border p-5 rounded-2xl relative overflow-hidden group hover:border-gosport-orange/30 transition-all">
+          <div class="absolute top-0 right-0 p-3 opacity-[0.06] group-hover:opacity-[0.10] transition-opacity">
+            <lucide-angular name="user-plus" size="40" class="text-white"></lucide-angular>
+          </div>
+          <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Nouveaux ce mois</p>
+          <h3 class="text-3xl font-display font-bold text-gosport-orange">{{ data.cards.newUsersThisMonth || 0 }}</h3>
+          <p class="text-[10px] text-slate-400 mt-1">inscriptions en cours</p>
+        </div>
+      </div>
+
+      <!-- Charts Section (Growth & Distribution) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Registration Growth Area Chart -->
+        <div class="lg:col-span-2 bg-gosport-surface border border-gosport-border rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-6">
+            <div>
+              <h2 class="text-sm font-bold text-white uppercase tracking-wider">Évolution des Inscriptions</h2>
+              <p class="text-[10px] text-slate-500 mt-0.5">Taux de croissance des utilisateurs sur les 6 derniers mois</p>
+            </div>
+          </div>
+          
+          <div class="relative w-full" style="height: 180px;">
+            <!-- SVG Line & Area Chart -->
+            <svg viewBox="0 0 500 150" class="w-full h-full overflow-visible" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#ff5500" stop-opacity="0.35"/>
+                  <stop offset="100%" stop-color="#ff5500" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              
+              <!-- Grid Lines -->
+              <line x1="20" y1="20" x2="480" y2="20" stroke="#334155" stroke-dasharray="3" stroke-width="0.5" />
+              <line x1="20" y1="75" x2="480" y2="75" stroke="#334155" stroke-dasharray="3" stroke-width="0.5" />
+              <line x1="20" y1="130" x2="480" y2="130" stroke="#334155" stroke-dasharray="3" stroke-width="0.5" />
+              
+              <!-- Dynamic Area -->
+              <path [attr.d]="getAreaPath()" fill="url(#areaGradient)"></path>
+              
+              <!-- Dynamic Path -->
+              <path [attr.d]="getLinePath()" fill="none" stroke="#ff5500" stroke-width="2.5" stroke-linecap="round"></path>
+              
+              <!-- Data Circles / Interactive Points -->
+              <g *ngFor="let p of getChartPoints(); let i = index" class="group/dot">
+                <circle [attr.cx]="p.x" [attr.cy]="p.y" r="4" fill="#ff5500" stroke="#1e293b" stroke-width="1.5" class="transition-all duration-200 cursor-pointer group-hover/dot:r-6"></circle>
+                
+                <!-- SVG Tooltip -->
+                <g class="opacity-0 group-hover/dot:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  <rect [attr.x]="p.x - 45" [attr.y]="p.y - 32" width="90" height="22" rx="4" fill="#0f172a" stroke="#ff5500" stroke-width="1"></rect>
+                  <text [attr.x]="p.x" [attr.y]="p.y - 18" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="bold">
+                    {{ p.count }} utilisateur{{ p.count > 1 ? 's' : '' }}
+                  </text>
+                </g>
+              </g>
+            </svg>
+          </div>
+          
+          <!-- Month Labels -->
+          <div class="flex justify-between px-3 mt-2 text-[9px] font-bold text-slate-500 uppercase tracking-wider">
+            <span *ngFor="let p of getChartPoints()">{{ p.month.split(' ')[0] }}</span>
+          </div>
+        </div>
+
+        <!-- Role Distribution Donut Chart -->
+        <div class="bg-gosport-surface border border-gosport-border rounded-2xl p-5 flex flex-col">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider mb-1">Répartition par Rôle</h2>
+          <p class="text-[10px] text-slate-500 mb-6">Proportion des différents types de profils</p>
+
+          <div class="flex-1 flex flex-col sm:flex-row items-center justify-around gap-4">
+            <!-- SVG Donut -->
+            <div class="relative w-32 h-32 flex items-center justify-center shrink-0">
+              <svg width="120" height="120" viewBox="0 0 120 120" class="-rotate-90">
+                <!-- Outer Shadow/Background Circle -->
+                <circle cx="60" cy="60" r="50" fill="transparent" stroke="#1e293b" stroke-width="8"></circle>
+                <!-- Segments -->
+                <circle *ngFor="let slice of getDonutSlices()" 
+                        cx="60" cy="60" r="50" 
+                        fill="transparent" 
+                        [attr.stroke]="slice.color" 
+                        stroke-width="8" 
+                        [attr.stroke-dasharray]="slice.dashArray" 
+                        [attr.stroke-dashoffset]="slice.dashOffset"
+                        class="transition-all duration-500 hover:stroke-[10px] cursor-pointer"
+                        [attr.title]="slice.name + ': ' + slice.percentage + '%'"></circle>
+              </svg>
+              <!-- Center Text -->
+              <div class="absolute text-center">
+                <span class="text-lg font-display font-bold text-white">{{ data.cards.totalUsers || 0 }}</span>
+                <span class="block text-[8px] font-black text-slate-500 uppercase tracking-widest">Total</span>
+              </div>
+            </div>
+
+            <!-- Legend Grid -->
+            <div class="space-y-2.5 w-full">
+              <div *ngFor="let slice of getDonutSlices()" class="flex items-center justify-between text-xs">
+                <div class="flex items-center gap-2">
+                  <div class="w-2.5 h-2.5 rounded-full" [style.background-color]="slice.color"></div>
+                  <span class="text-slate-400 font-medium">{{ slice.name }}</span>
+                </div>
+                <div class="text-right">
+                  <span class="text-white font-bold">{{ slice.count }}</span>
+                  <span class="text-[10px] text-slate-500 ml-1.5">({{ slice.percentage }}%)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Metrics & Top Coaches Row -->
+      <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        
+        <!-- Platform Activity Progress Bars -->
+        <div class="lg:col-span-2 bg-gosport-surface border border-gosport-border rounded-2xl p-5">
+          <h2 class="text-sm font-bold text-white uppercase tracking-wider">Activité de la Plateforme</h2>
+          <p class="text-[10px] text-slate-500 mt-0.5 mb-6">Volumes de données générés sur la période</p>
+
+          <div class="space-y-4">
+            <!-- Programs Created -->
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400 font-medium">Programmes d'entraînement créés</span>
+                <span class="text-white font-bold">{{ data.activity.programsCount || 0 }}</span>
+              </div>
+              <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-gosport-orange rounded-full transition-all duration-700"
+                  [style.width.%]="getActivityPercentage(data.activity.programsCount)"></div>
+              </div>
+            </div>
+
+            <!-- Sessions Scheduled -->
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400 font-medium">Séances d'entraînement planifiées</span>
+                <span class="text-white font-bold">{{ data.activity.sessionsCount || 0 }}</span>
+              </div>
+              <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-emerald-400 rounded-full transition-all duration-700"
+                  [style.width.%]="getActivityPercentage(data.activity.sessionsCount)"></div>
+              </div>
+            </div>
+
+            <!-- Workouts Completed -->
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400 font-medium">Séances complétées (Workouts)</span>
+                <span class="text-white font-bold text-emerald-400">{{ data.activity.completedWorkoutsCount || 0 }}</span>
+              </div>
+              <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-lime-400 rounded-full transition-all duration-700"
+                  [style.width.%]="getActivityPercentage(data.activity.completedWorkoutsCount)"></div>
+              </div>
+            </div>
+
+            <!-- Goals Fixed -->
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400 font-medium">Objectifs sportifs définis</span>
+                <span class="text-white font-bold">{{ data.activity.goalsCount || 0 }}</span>
+              </div>
+              <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-sky-400 rounded-full transition-all duration-700"
+                  [style.width.%]="getActivityPercentage(data.activity.goalsCount)"></div>
+              </div>
+            </div>
+
+            <!-- Nutrition Plans -->
+            <div>
+              <div class="flex justify-between text-xs mb-1.5">
+                <span class="text-slate-400 font-medium">Plans nutritionnels élaborés</span>
+                <span class="text-white font-bold">{{ data.activity.dietPlansCount || 0 }}</span>
+              </div>
+              <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+                <div class="h-full bg-purple-400 rounded-full transition-all duration-700"
+                  [style.width.%]="getActivityPercentage(data.activity.dietPlansCount)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Coaches Performance Table -->
+        <div class="lg:col-span-3 bg-gosport-surface border border-gosport-border rounded-2xl overflow-hidden shadow-2xl">
+          <div class="p-5 border-b border-gosport-border">
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider">Top Coachs les plus Actifs</h2>
+            <p class="text-[10px] text-slate-500 mt-0.5">Classement des professionnels par nombre d'athlètes suivis et programmes créés</p>
+          </div>
+          
+          <div class="overflow-x-auto custom-scrollbar">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-black/20 border-b border-gosport-border">
+                  <th class="px-5 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest">Nom / Email</th>
+                  <th class="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Athlètes</th>
+                  <th class="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Programmes</th>
+                  <th class="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-center">Note</th>
+                  <th class="px-4 py-3 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Statut</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gosport-border/30 text-xs">
+                <tr *ngFor="let coach of data.topCoaches" class="hover:bg-white/[0.02] transition-colors">
+                  <td class="px-5 py-3">
+                    <p class="font-bold text-white">{{ coach.name }}</p>
+                    <p class="text-[10px] text-slate-500">{{ coach.email }}</p>
+                  </td>
+                  <td class="px-4 py-3 text-center font-bold text-gosport-orange">
+                    {{ coach.athletesCount }}
+                  </td>
+                  <td class="px-4 py-3 text-center text-slate-300">
+                    {{ coach.programsCount }}
+                  </td>
+                  <td class="px-4 py-3 text-center font-bold text-yellow-500">
+                    {{ coach.rating | number:'1.1-1' }} ★
+                  </td>
+                  <td class="px-4 py-3 text-right">
+                    <span class="inline-block px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider"
+                          [ngClass]="coach.status === 'Vérifié' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-slate-700/30 text-slate-400'">
+                      {{ coach.status }}
+                    </span>
+                  </td>
+                </tr>
+                <tr *ngIf="data.topCoaches.length === 0">
+                  <td colspan="5" class="p-8 text-center text-slate-500 italic">
+                    Aucun coach actif sur la plateforme.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</app-dashboard-layout>

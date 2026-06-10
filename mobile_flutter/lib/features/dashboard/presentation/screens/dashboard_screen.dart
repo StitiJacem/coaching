@@ -13,6 +13,8 @@ import '../../../notifications/data/notifications_repository.dart';
 import '../../../notifications/presentation/widgets/notification_popup.dart';
 import '../../../../shared/widgets/animate_in.dart';
 import 'package:coaching_mobile/features/workout/data/workout_log_repository.dart' as coaching_mobile;
+import '../../../nutritionist/data/nutritionist_repository.dart';
+import '../../../nutritionist/presentation/widgets/connection_request_card.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -32,6 +34,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
   List<dynamic> _weeklySessions = [];
   List<dynamic> _recentAthletes = [];
   Map<String, dynamic>? _overview;
+
+  // ── Nutritionist-specific state ─────────────────────────────────────────
+  Map<String, dynamic> _nutritionistProfile = {};
+  List<dynamic> _nutritionistClients = [];
+  List<dynamic> _nutritionistPlans = [];
+  List<dynamic> _pendingNutritionRequests = [];
+  final Map<String, bool> _requestLoading = {};
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -62,6 +71,51 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
 
       final isAthlete = user.role == AppConstants.roleAthlete;
       final isCoach = user.role == AppConstants.roleCoach;
+      final isNutritionist = user.role == AppConstants.roleNutritionist;
+
+      // ── Nutritionist load path ─────────────────────────────────────────
+      if (isNutritionist) {
+        final nutRepo = ref.read(nutritionistRepositoryProvider);
+        final notifRepo = ref.read(notificationsRepositoryProvider);
+        final results = await Future.wait([
+          nutRepo.getMyProfile(),
+          nutRepo.getMyRequests(),
+          nutRepo.getMyPlans(),
+          notifRepo.getUnreadCount(),
+        ]);
+        _nutritionistProfile = results[0] as Map<String, dynamic>;
+        final nutritionistId =
+            _nutritionistProfile['id']?.toString() ?? user.id.toString();
+        final allRequests = results[1] as List<dynamic>;
+        _pendingNutritionRequests = allRequests
+            .where((r) => r['status'] == 'pending')
+            .toList();
+        _nutritionistPlans = results[2] as List<dynamic>;
+        _unreadCount = results[3] as int;
+        // Load clients separately (needs nutritionist entity id)
+        try {
+          _nutritionistClients =
+              await nutRepo.getClients(nutritionistId);
+        } catch (_) {}
+        double avgCompliance = 0.0;
+        if (_nutritionistClients.isNotEmpty) {
+          double sum = 0.0;
+          for (var c in _nutritionistClients) {
+            final comp = c['compliance'] as Map<String, dynamic>?;
+            sum += (comp?['adherenceRate'] as num?)?.toDouble() ?? 0.0;
+          }
+          avgCompliance = sum / _nutritionistClients.length;
+        }
+
+        // Build synthetic stats map
+        _stats = {
+          'totalClients': _nutritionistClients.length,
+          'totalPlans': _nutritionistPlans.length,
+          'pendingRequests': _pendingNutritionRequests.length,
+          'avgCompliance': avgCompliance,
+        };
+        return;
+      }
 
       final results = await Future.wait(<Future<dynamic>>[
         isAthlete ? repo.getAthleteStats(user.id) : repo.getStats(role: user.role),
@@ -166,6 +220,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final isCoach = user?.role == AppConstants.roleCoach;
+    final isNutritionist = user?.role == AppConstants.roleNutritionist;
+
+    // ── Nutritionist-specific refresh indicator color ────────────────────
+    final refreshColor =
+        isNutritionist ? AppColors.roleNutritionist : AppColors.primary;
+    final bgGlowColor = isNutritionist
+        ? AppColors.roleNutritionist.withValues(alpha: 0.05)
+        : AppColors.primary.withValues(alpha: 0.05);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -180,7 +242,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.primary.withValues(alpha: 0.05),
+                color: bgGlowColor,
               ),
               child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100), child: const SizedBox()),
             ),
@@ -189,14 +251,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
           // ── Main Content ──────────────────────────────────────────────────
           SafeArea(
             child: RefreshIndicator(
-              color: AppColors.primary,
+              color: refreshColor,
               onRefresh: _load,
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   _buildAppBar(context, user, _unreadCount),
                   if (_loading)
-                    const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: AppColors.primary)))
+                    SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: refreshColor)))
                   else
                     SliverFadeTransition(
                       opacity: _fadeAnimation,
@@ -206,9 +268,15 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
                           delegate: SliverChildListDelegate([
                             _buildHeroSection(user, _stats),
                             const SizedBox(height: 32),
-                            _buildStatsGrid(isCoach, _stats),
+                            _buildStatsGrid(isCoach, _stats, isNutritionist),
                             const SizedBox(height: 32),
-                            if (!isCoach) ...[
+                            if (isNutritionist) ...[
+                              _buildNutritionistPendingRequests(),
+                              const SizedBox(height: 32),
+                              _buildNutritionistClients(),
+                              const SizedBox(height: 32),
+                              _buildNutritionistPlans(),
+                            ] else if (!isCoach) ...[
                               _buildWeeklySchedule(),
                               const SizedBox(height: 32),
                               _buildTodayWorkout(),
@@ -217,13 +285,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
                               const SizedBox(height: 32),
                               _buildRecentAthletes(),
                             ],
-                            if (!isCoach && _overview != null) ...[
+                            if (!isCoach && !isNutritionist && _overview != null) ...[
                               _buildBiometricsSection(_overview!),
                               const SizedBox(height: 32),
                               _buildObservationsSection(_overview!),
                               const SizedBox(height: 32),
                             ],
-                            _buildActivityLog(isCoach),
+                            if (!isNutritionist) _buildActivityLog(isCoach),
                           ]),
                         ),
                       ),
@@ -246,8 +314,36 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
 
   Widget _buildHeroSection(user, stats) {
     final isAthlete = user?.role == AppConstants.roleAthlete;
-    final name = user?.firstName ?? 'Athlete';
-    
+    final isNutritionist = user?.role == AppConstants.roleNutritionist;
+    final name = user?.firstName ?? 'Utilisateur';
+
+    if (isNutritionist) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'NUTRITION',
+            style: TextStyle(
+              color: AppColors.roleNutritionist,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'BONJOUR, ${name.toUpperCase()} 🥗',
+            style: GoogleFonts.bebasNeue(
+              color: Colors.white,
+              fontSize: 42,
+              letterSpacing: 1.5,
+              height: 1.0,
+            ),
+          ),
+        ],
+      );
+    }
+
     if (isAthlete) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,11 +603,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
   }
 
   // ── Stats grid ───────────────────────────────────────────────────────────────
-  Widget _buildStatsGrid(bool isCoach, Map<String, dynamic>? stats) {
+  Widget _buildStatsGrid(bool isCoach, Map<String, dynamic>? stats, [bool isNutritionist = false]) {
     if (stats == null || stats.isEmpty) return const SizedBox.shrink();
 
     List<Map<String, dynamic>> tiles;
-    if (isCoach) {
+    if (isNutritionist) {
+      final double avgComp = (stats['avgCompliance'] as num?)?.toDouble() ?? 0.0;
+      tiles = [
+        {'label': 'CLIENTS', 'value': '${stats['totalClients'] ?? 0}', 'icon': Icons.group_rounded, 'color': AppColors.roleNutritionist},
+        {'label': 'PLANS CREATED', 'value': '${stats['totalPlans'] ?? 0}', 'icon': Icons.restaurant_menu_rounded, 'color': AppColors.accent},
+        {'label': 'PENDING REQUESTS', 'value': '${stats['pendingRequests'] ?? 0}', 'icon': Icons.pending_actions_rounded, 'color': AppColors.warning},
+        {'label': 'AVG COMPLIANCE', 'value': '${avgComp.toInt()}%', 'icon': Icons.offline_bolt_rounded, 'color': AppColors.success},
+      ];
+    } else if (isCoach) {
       tiles = [
         {'label': 'ATHLETES', 'value': '${stats['totalAthletes'] ?? 0}', 'icon': Icons.group_rounded, 'color': AppColors.primary},
         {'label': 'PROGRAMS', 'value': '${stats['totalPrograms'] ?? 0}', 'icon': Icons.assignment_rounded, 'color': AppColors.accent},
@@ -636,6 +740,293 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> with SingleTi
         const Text('RECENT ACTIVITY', style: TextStyle(color: AppColors.textMuted, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 1.5)),
         const SizedBox(height: 16),
         _ActivityLog(prs: _recentPRs, isCoach: isCoach),
+      ],
+    );
+  }
+
+  // ── Nutritionist: Pending connection requests ────────────────────────────────
+  Widget _buildNutritionistPendingRequests() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('DEMANDES EN ATTENTE',
+                style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5)),
+            if (_pendingNutritionRequests.isNotEmpty)
+              Text('${_pendingNutritionRequests.length}',
+                  style: const TextStyle(
+                      color: AppColors.roleNutritionist,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900)),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (_pendingNutritionRequests.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cardBorder)),
+            child: const Center(
+                child: Text('Aucune demande en attente',
+                    style: TextStyle(
+                        color: AppColors.textMuted, fontSize: 13))),
+          )
+        else
+          ..._pendingNutritionRequests.map((r) {
+            final reqId = r['id']?.toString() ?? '';
+            final isLoading = _requestLoading[reqId] == true;
+            return ConnectionRequestCard(
+              request: r as Map<String, dynamic>,
+              isLoading: isLoading,
+              onAccept: () async {
+                setState(() => _requestLoading[reqId] = true);
+                try {
+                  await ref
+                      .read(nutritionistRepositoryProvider)
+                      .respondToRequest(reqId, 'accepted');
+                  setState(() {
+                    _pendingNutritionRequests
+                        .removeWhere((req) => req['id'].toString() == reqId);
+                    _requestLoading.remove(reqId);
+                  });
+                } catch (_) {
+                  setState(() => _requestLoading.remove(reqId));
+                }
+              },
+              onReject: () async {
+                setState(() => _requestLoading[reqId] = true);
+                try {
+                  await ref
+                      .read(nutritionistRepositoryProvider)
+                      .respondToRequest(reqId, 'rejected');
+                  setState(() {
+                    _pendingNutritionRequests
+                        .removeWhere((req) => req['id'].toString() == reqId);
+                    _requestLoading.remove(reqId);
+                  });
+                } catch (_) {
+                  setState(() => _requestLoading.remove(reqId));
+                }
+              },
+            );
+          }),
+      ],
+    );
+  }
+
+  // ── Nutritionist: Clients list ───────────────────────────────────────────────
+  Widget _buildNutritionistClients() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('MES CLIENTS',
+                style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5)),
+            GestureDetector(
+              onTap: () => context.push('/nutritionist/clients'),
+              child: const Text('VOIR TOUT',
+                  style: TextStyle(
+                      color: AppColors.roleNutritionist,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      fontStyle: FontStyle.italic)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (_nutritionistClients.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cardBorder)),
+            child: const Center(
+                child: Text('Aucun client connecté',
+                    style: TextStyle(
+                        color: AppColors.textMuted, fontSize: 13))),
+          )
+        else
+          ..._nutritionistClients.take(3).map((c) {
+            final client = c as Map<String, dynamic>;
+            final athlete = client['athlete'] as Map<String, dynamic>?;
+            final user = athlete?['user'] as Map<String, dynamic>? ??
+                client['user'] as Map<String, dynamic>? ??
+                client;
+            final firstName = user['first_name'] ?? user['firstName'] ?? '';
+            final lastName = user['last_name'] ?? user['lastName'] ?? '';
+            final name = '$firstName $lastName'.trim().isEmpty
+                ? 'Client'
+                : '$firstName $lastName';
+            final initial =
+                firstName.isNotEmpty ? firstName[0].toUpperCase() : 'C';
+            final athleteId = athlete?['id']?.toString();
+
+            return GestureDetector(
+              onTap: () {
+                if (athleteId != null) {
+                  context.push('/nutritionist/clients/$athleteId');
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.cardBorder)),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: AppColors.roleNutritionist
+                          .withValues(alpha: 0.15),
+                      child: Text(initial,
+                          style: const TextStyle(
+                              color: AppColors.roleNutritionist,
+                              fontWeight: FontWeight.w800)),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(name,
+                          style: const TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14)),
+                    ),
+                    const Icon(Icons.chevron_right_rounded,
+                        color: AppColors.textMuted, size: 18),
+                  ],
+                ),
+              ),
+            );
+          }),
+      ],
+    );
+  }
+
+  // ── Nutritionist: Plans summary ──────────────────────────────────────────────
+  Widget _buildNutritionistPlans() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('MES PLANS RÉCENTS',
+                style: TextStyle(
+                    color: AppColors.textMuted,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5)),
+            GestureDetector(
+              onTap: () => context.push('/nutritionist/plans'),
+              child: const Text('GÉRER',
+                  style: TextStyle(
+                      color: AppColors.roleNutritionist,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      fontStyle: FontStyle.italic)),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (_nutritionistPlans.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: AppColors.cardBorder)),
+            child: Center(
+              child: Column(
+                children: [
+                  const Text('Aucun plan créé',
+                      style: TextStyle(
+                          color: AppColors.textMuted, fontSize: 13)),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: () =>
+                        context.push('/nutritionist/plans/create'),
+                    icon: const Icon(Icons.add_rounded, size: 16),
+                    label: const Text('CRÉER UN PLAN',
+                        style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.roleNutritionist,
+                        minimumSize: const Size(160, 40),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12))),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ..._nutritionistPlans.take(3).map((p) {
+            final plan = p as Map<String, dynamic>;
+            final name = plan['name'] ?? 'Plan';
+            final calories = plan['targetCalories'] ?? 0;
+            final days = (plan['days'] as List?)?.length ?? 0;
+            return GestureDetector(
+              onTap: () => context.push('/nutritionist/plans/${plan['id']}'),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: AppColors.cardBorder)),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.roleNutritionist
+                            .withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.restaurant_menu_rounded,
+                          color: AppColors.roleNutritionist, size: 18),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(name.toString(),
+                              style: const TextStyle(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14)),
+                          Text('$days jours · $calories kcal/j',
+                              style: const TextStyle(
+                                  color: AppColors.textMuted,
+                                  fontSize: 11)),
+                        ],
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right_rounded,
+                        color: AppColors.textMuted, size: 18),
+                  ],
+                ),
+              ),
+            );
+          }),
       ],
     );
   }

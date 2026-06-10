@@ -32,7 +32,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    <input type="text" [placeholder]="searchPlaceholders[roleService.currentRole]"
+                    <input type="text" [placeholder]="searchPlaceholders[roleService.currentRole] || 'Rechercher un utilisateur...'"
                         class="bg-slate-900/50 border border-slate-800 rounded-full pl-10 pr-4 py-2 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-gosport-orange w-72 transition-colors">
                 </div>
             </div>

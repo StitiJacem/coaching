@@ -62,7 +62,7 @@ class _SpecialistsScreenState extends ConsumerState<SpecialistsScreen> {
               elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
                 centerTitle: false,
-                titlePadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                 title: const Text(
                   'My Specialists',
                   style: TextStyle(

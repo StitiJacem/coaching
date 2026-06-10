@@ -12,5 +12,6 @@ router.get("/users", AdminController.getAllUsers);
 router.delete("/users/:id", AdminController.deleteUser);
 router.get("/stats", AdminController.getStats);
 router.get("/recent-users", AdminController.getRecentUsers);
+router.get("/analytics", AdminController.getAnalytics);
 
 export default router;

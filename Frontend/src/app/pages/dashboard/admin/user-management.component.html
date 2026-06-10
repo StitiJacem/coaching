@@ -50,26 +50,26 @@
                 <div class="flex items-center gap-3">
                   <div class="w-9 h-9 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-white font-bold overflow-hidden">
                     <img *ngIf="user.photo_url" [src]="user.photo_url.startsWith('/') ? environment.apiUrl.replace('/api', '') + user.photo_url : user.photo_url" class="w-full h-full object-cover">
-                    <span *ngIf="!user.photo_url">{{ user.first_name?.[0] }}{{ user.last_name?.[0] }}</span>
+                    <span *ngIf="!user.photo_url">{{ (user.first_name || 'U')[0] }}{{ (user.last_name || '')[0] || '' }}</span>
                   </div>
                   <div>
-                    <p class="text-sm font-bold text-white">{{ user.first_name }} {{ user.last_name }}</p>
-                    <p class="text-[10px] text-slate-500">{{ user.email }}</p>
+                    <p class="text-sm font-bold text-white">{{ (user.first_name || user.last_name) ? ((user.first_name || '') + ' ' + (user.last_name || '')).trim() : 'Utilisateur' }}</p>
+                    <p class="text-[10px] text-slate-500">{{ user.email || 'Email non disponible' }}</p>
                   </div>
                 </div>
               </td>
               <td class="px-6 py-4">
-                <span class="text-xs font-bold uppercase tracking-wider" [ngClass]="getRoleColor(user.role)">
+                <span class="text-xs font-bold uppercase tracking-wider" [ngClass]="getRoleColor(user.role || '')">
                   {{ 
                     user.role === 'athlete' ? 'ATHLÈTE' : 
                     user.role === 'coach' ? 'COACH' : 
                     user.role === 'nutritionist' ? 'NUTRITIONNISTE' : 
-                    user.role === 'admin' ? 'ADMIN' : user.role 
+                    user.role === 'admin' ? 'ADMIN' : (user.role || 'N/A') 
                   }}
                 </span>
               </td>
               <td class="px-6 py-4">
-                <p class="text-xs text-slate-400">{{ user.created_at | date:'dd MMM yyyy' }}</p>
+                <p class="text-xs text-slate-400">{{ user.created_at ? (user.created_at | date:'dd MMM yyyy') : 'Date inconnue' }}</p>
               </td>
               <td class="px-6 py-4">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider"

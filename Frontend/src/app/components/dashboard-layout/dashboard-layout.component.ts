@@ -30,6 +30,7 @@ export class DashboardLayoutComponent implements OnInit {
     };
 
     searchPlaceholders: Record<string, string> = {
+        admin: 'Rechercher un utilisateur...',
         coach: 'Search athletes, programs...',
         athlete: 'Search workouts, goals...',
         doctor: 'Search patients, records...',
