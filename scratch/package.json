@@ -1,8 +1,0 @@
-{
-  "name": "scratch-pdf",
-  "version": "1.0.0",
-  "main": "read_pdf.js",
-  "dependencies": {
-    "pdf-parse": "^1.1.1"
-  }
-}
